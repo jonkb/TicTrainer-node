@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TicTrainer registration for users</title>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+  </head>
+  <body>
+  
+    <section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>User Account Registration</h1>
+				<div style="clear: both;"></div>
+			</div>
+    </section>
+
+    <section class="main-content">
+      <!--FORM-->
+      <form method="POST" name="addUser">
+        <fieldset>
+          <legend>New Account</legend>
+					Sex:<br>
+          <input type="radio" name="sex" value="male"> Male<br>
+          <input type="radio" name="sex" value="female"> Female<br>
+          Birth Date:<br>
+          <input type:"text" name="birth" placeholder="mm/dd/yyyy" required> <br>
+          Password:<br>
+          <input type="password" name="pWord" required> <br>
+          Confirm Password:<br>
+          <input type="password" name="pWordConf" required> <br>
+          <input type="submit" value="Create Account" style="margin-top: 4mm">
+        </fieldset>
+      </form>
+    </section>
+  
+  </body>
+</html>

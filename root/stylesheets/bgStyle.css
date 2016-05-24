@@ -1,0 +1,219 @@
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #2f3537; /*Darker*/
+	background-color: #fff;
+}
+
+a {
+  color: #1d66af;
+  text-decoration: none; }
+  a:hover {
+    text-decoration: underline; }
+
+.logo {
+	float: left;
+	overflow: hidden;
+	color: #fff;
+  border-style: solid;
+	border-color: #fff;
+  border-width: 1px;
+  border-radius: .2rem;
+	margin: 0 .5rem 0 0;
+}
+.logo::before{
+	content: 'Tt';
+}
+.logo:hover{
+	text-decoration: none;
+	background-color: rgba(255, 255, 255, .2);
+}
+
+.page-header {
+  color: #fff;
+  text-align: center;
+  text-shadow: .01em .01em .05em #444;
+  /*Slightly lighter than original*/
+  background-color: #18b466;
+  background-image: linear-gradient(120deg, #1866b4, #18b466); 
+  padding: 1rem 1rem;
+}
+.page-header h1, .page-header h2, .page-header h3 {
+  margin-top: 0;
+  margin-bottom: .2rem;
+}
+.header-navbar{
+	text-align: left;
+}
+
+.main-content h1, .main-content h2, .main-content h3 {
+  margin-top: .3;
+  margin-bottom: .3rem;
+  color: #18b466;
+}
+
+.btn {
+  margin: .25rem;
+	color: #fff;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.8);
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 0.3rem;
+  transition: background-color 0.3s, border-color 0.3s; 
+}
+
+.btn:hover {
+	text-decoration: none;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.9); }
+
+.main-content .btn {
+  margin-bottom: .3rem;
+  text-align: center;
+	color: #fff;
+  background-color: #1866b4;
+  background-image: linear-gradient(120deg, #1866b4, #18b466); 
+  border-color: #1fe080;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 0.3rem;
+  transition: background-image 0.3s, background-color 0.3s, border-color 0.3s; 
+	}
+  /*.btn + .btn {
+    margin-left: 1rem; }*/
+
+.main-content .btn:hover {
+	text-decoration: none;
+  background-color: #18b466;
+  background-image: linear-gradient(300deg, #1866b4, #18b466); 
+  border-color: #4be799;
+  }
+
+.bigBtn {
+  margin: .25rem auto;
+  text-align: center;
+  color: #fff;
+  background-color: #1866b4;
+  background-image: linear-gradient(120deg, #1866b4, #18b466); 
+  border-color: #1fe080;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 0.5rem;
+	transition: background-image 0.5s, background-color 0.5s, border-color 0.5s;
+}
+
+.bigBtn:hover {
+	text-decoration: none;
+  background-color: #18b466;
+  background-image: linear-gradient(300deg, #1866b4, #18b466); 
+  border-color: #4be799;
+ }
+	
+.bigCounter {
+	font-family: Impact, Charcoal, sans-serif;
+	text-align: right;
+}
+.medCounter {
+	font-family: Impact, Charcoal, sans-serif;
+	vertical-align: super;
+	width: 3em;
+}
+	
+footer {
+  padding-top: 2rem;
+  margin-top: 2rem;
+  border-top: solid 1px #eff0f1;
+}
+  
+/*Conditional on screen size:*/
+@media (min-width: 60rem) {/*BIG*/
+  .page-header h1{ font-size: 3.25rem; }
+  .page-header h2{ font-size: 1.5rem; }
+  .main-content {
+    max-width: 60em;
+    padding: 2rem 4rem;/*: top-bottom left-right;*/
+    margin: 0 auto; } 
+  .btn{
+    display: inline-block;
+    padding: .7rem 1.2rem;
+  }
+	.bigBtn{
+		width: 75%;
+    padding: 1rem 1.5rem;
+		font-size: 4rem;
+		line-height: 8rem;
+	}
+	.bigCounter{
+		font-size: 7rem;
+	}
+	.medCounter{
+		font-size: 4.3rem;
+	}
+	.logo{
+		padding: 0 .5rem; 
+		font-size: 5rem; 
+		line-height: 5rem;
+	}
+}
+
+@media (min-width: 30rem) and (max-width: 60rem) {/*MED*/
+  .page-header h1{ font-size: 2.25rem; }
+  .page-header h2{ font-size: 1.2rem; }
+  .main-content {
+    padding: 1.5rem 2rem;
+  }
+  .btn{
+    display: inline-block;
+    padding: .5rem .8rem;
+  }
+	.bigBtn{
+		width: 85%;
+    padding: .7rem 1.2rem;
+		font-size: 3rem;
+		line-height: 6rem;
+	}
+	.bigCounter{
+		font-size: 5rem;
+	}
+	.medCounter{
+		font-size: 3rem;
+	}
+	.logo{
+		padding: 0 .5rem; 
+		font-size: 4rem; 
+		line-height: 4rem;
+	}
+}
+
+@media (max-width: 30rem){/*480px) {Phone*/
+  .page-header h1{ font-size: 1.75rem; }
+  .page-header h2{ font-size: 1rem; }
+  .main-content {
+    padding: 1rem 1rem;
+  }
+  .btn{
+    display: block;
+    padding: .4rem;
+  }
+	.bigBtn{
+		width: 95%;
+    padding: .5rem .8rem;
+		font-size: 2rem;
+		line-height: 4rem;
+	}
+	.bigCounter{
+		font-size: 3rem;
+	}
+	.medCounter{
+		font-size: 1.85rem;
+	}
+	.logo{
+		padding: 0 .25rem; 
+		font-size: 3rem; 
+		line-height: 3rem;
+	}
+}
