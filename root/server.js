@@ -2,6 +2,7 @@
 - use btn in forms
 - make it less natural to run away after ret_created
 - Stylesheet MIME type mystery
+- fix onbeforeunload on mobile
 
 -"I'm paying attention" widget for trainer
 -change b,m counter size for screen size
