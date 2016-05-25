@@ -4,7 +4,6 @@ var fs = require("fs");
  * returns an error or the data
  */
 var addT = function add_trainer(newTData, retCB) {
-	console.log("Adding Trainer");
 	var fN = newTData.fName;
 	var bD = newTData.birth;
 	var pass = newTData.pWord;
@@ -34,7 +33,7 @@ var addT = function add_trainer(newTData, retCB) {
 							if(err)
 								retCB("fe");
 							else{
-								console.log("Data: "+tData);
+								//console.log("Data: "+tData);
 								retCB(tData);
 							}
 						});
@@ -54,7 +53,6 @@ var addT = function add_trainer(newTData, retCB) {
  * returns an error or the data
  */
 var addU = function add_user(newUData, retCB) {
-	console.log("Adding User");
 	var sex = newUData.sex;
 	var bD = newUData.birth;
 	var pass = newUData.pWord;
