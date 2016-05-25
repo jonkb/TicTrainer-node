@@ -1,4 +1,5 @@
 /*To Do:
+- switch link and edit in manage account
 - use btn in forms
 - make it less natural to run away after ret_created
 - Stylesheet MIME type mystery
