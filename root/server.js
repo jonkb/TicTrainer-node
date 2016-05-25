@@ -4,15 +4,16 @@
 - Stylesheet MIME type mystery
 - fix onbeforeunload on mobile
 
--"I'm paying attention" widget for trainer
--change b,m counter size for screen size
--use fs.open instead of writeFileSync
+- "I'm paying attention" widget for trainer
+- change b,m counter size for screen size
+- use fs.open instead of writeFileSync
+- add leaderboard
 
--make id's non-case sensitive ?
--switch the ret_* functions to reading in a file and inserting the data in the holes (like font program template)
--Maybe use json instead for linkloading?
--Think about moving the ret_* functions to an external js file
--Should I make it check password each step of the session for safety -- would that be taxing
+- make id's non-case sensitive ? what about hex? or base 36? or not 4-long
+- switch the ret_* functions to reading in a file and inserting the data in the holes (like font program template)
+- Maybe use json instead for linkloading?
+- Think about moving the ret_* functions to an external js file
+- Should I make it check password each step of the session for safety -- would that be taxing
 */
 
 var http = require("http");
