@@ -1,4 +1,5 @@
 /*To Do:
+- switch things to real files
 - Use normalize.css ? Change M/F
 - switch link and edit in manage account
 - use btn in forms
