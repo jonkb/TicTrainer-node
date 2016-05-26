@@ -1,31 +1,9 @@
-/*To Do:
-- switch things to real files
-- Use normalize.css ? Change M/F
-- switch link and edit in manage account
-- use btn in forms
-- make it less natural to run away after ret_created
-- Stylesheet MIME type mystery
-- fix onbeforeunload on mobile
-
-- "I'm paying attention" widget for trainer
-- change b,m counter size for screen size
-- use fs.open instead of writeFileSync
-- add leaderboard
-
-- make id's non-case sensitive ? what about hex? or base 36? or not 4-long
-- switch the ret_* functions to reading in a file and inserting the data in the holes (like font program template)
-- Maybe use json instead for linkloading?
-- Think about moving the ret_* functions to an external js file
-- Should I make it check password each step of the session for safety -- would that be taxing
-*/
-
 var http = require("http");
 var fs = require('fs');
 var url = require('url');
 
 const debugging = 2;//depth of debugging: 0,1,2
 const PORT = 8888;
-//const pathzero = "C:/Users/16jonathanblack/Google Drive/12/CompSci/PROJECT/TicTrainer/Web/Node/TTweb/";
 
 /*Takes two objects:
 head={title[, sub][, bodytag]}
