@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<title>Link Successful</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+	</head>
+	<body>
+    <section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>Link Successful</h1>
+				<h2>Press Button To Start Session</h2>
+				<div style="clear: both;"></div>
+			</div>
+    </section>
+    <section class="main-content">
+			<form id='startButton' method='POST' style='width: 100%; text-align:center;'>
+				<input type='hidden' name='source' value='start_session-trainer'>
+				<input type='hidden' name='id' value='**[id]**'>
+				<input type='hidden' name='pWord' value='**[pw]**'>
+				<input type='hidden' name='lid' value='**[lid]**'>
+				<input type='submit' class='bigBtn' value='START'>
+			</form>
+    </section>
+		<script>
+			window.onbeforeunload = leave;
+			document.getElementById('startButton').addEventListener('click', beforeSub);
+			var sub = false;
+			function leave(){
+				if(sub == false){
+					var xhr = new XMLHttpRequest();
+					var url = '/session/index.html';
+					var reqBody = 'source=start_session-trainer&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=leave';
+					xhr.open('POST', url, true);
+					xhr.send(reqBody);
+				}
+			}
+			function beforeSub(){
+				sub = true;
+			}
+		</script>
+	</body>
+</html>

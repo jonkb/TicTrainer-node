@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<title>TicTrainer Session: Trainer</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+	</head>
+	<body>
+    <section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>TicTrainer Session: Trainer</h1>
+				<div style="clear: both;"></div>
+			</div>
+    </section>
+    <section class="main-content">
+			<div class='tr_btns'>
+				<button type='button' class='bigBtn' id='ticBtn'>Tic Detected</button><br>
+				<button type='button' class='bigBtn' id='endBtn'>End Session</button>
+			</div>
+			<table class='paying_attention'>
+				<tr>
+					<td style='width:100%;'>
+						<div id='animation' style='height:100%; float:right; background-color:#808080; width:100%;'></div>
+					</td>
+					<td id='here_btn' class='btn' style='white-space:nowrap; margin:0;'>
+						I'm Here
+					</td>
+				</tr>
+			</table>
+    </section>
+		<script>
+			window.onbeforeunload = endS;
+			document.getElementById('ticBtn').addEventListener('click', tic);
+			document.getElementById('endBtn').addEventListener('click', endS);
+			document.getElementById('here_btn').addEventListener('click', here);
+			var anim_bar = document.getElementById('animation');
+			var tTotal = 60;
+			var tLeft = 60;
+			progress();
+			function progress(){
+				var width = 100 * tLeft / tTotal;
+				var color = '808080';
+				if(tLeft / tTotal < .15)
+					color = 'FF0000';
+				anim_bar.setAttribute('style', 'height:100%; float:right; background-color:#'+color+'; width:'+width+'%;');
+				if(tLeft > 0){
+					tLeft -= 1;
+					setTimeout(progress, 1000);
+				}
+				else{
+					endS();
+				}
+			}
+			function here(){
+				tLeft = tTotal;
+			}
+		  function tic(){
+		    var xhr = new XMLHttpRequest();
+				var url = '/session/index.html';
+				var reqBody = 'source=session-trainer&id=**[id]**&pWord=**[pw]**&lid=**[lid]**';
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){//just check that everything is fine
+						if(xhr.status != 200){
+							var errP = xhr.responseText;
+							document.open();
+							document.write(errP);
+							document.close();
+						}
+						else{
+							if(xhr.responseText != 'good'){//end page
+								document.open();
+								document.write(xhr.responseText);
+								document.close();
+							}
+						}
+					}
+				};
+				xhr.open('POST', url, true);
+				xhr.send(reqBody);
+		  }
+		  function endS(){
+				var xhr = new XMLHttpRequest();
+				var url = '/session/index.html';
+				var reqBody = 'source=session_end-trainer&id=**[id]**&pWord=**[pw]**&lid=**[lid]**';
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){//just check that everything is fine
+						document.open();
+						document.write(xhr.responseText);
+						document.close();
+					}
+				};
+				xhr.open('POST', url, true);
+				xhr.send(reqBody);
+		  }
+		</script>
+	</body>
+</html>

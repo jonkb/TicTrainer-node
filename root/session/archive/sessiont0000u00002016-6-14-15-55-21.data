@@ -1,0 +1,20 @@
+session started|2016-06-14T20:55:11.872Z
+tic detected|2016-06-14T20:55:13.376Z
+starting user level,points|2,4673
+user level,points|2,4673|2016-06-14T20:55:13.470Z
+user level,points|2,4677|2016-06-14T20:55:15.488Z
+tic detected|2016-06-14T20:55:16.176Z
+user level,points|2,4685|2016-06-14T20:55:17.505Z
+tic detected|2016-06-14T20:55:18.707Z
+user level,points|2,4685|2016-06-14T20:55:19.525Z
+tic detected|2016-06-14T20:55:19.928Z
+session ended|2016-06-14T20:55:20.579Z
+user level,points|2,4685|2016-06-14T20:55:21.546Z
+****************
+Report:
+session length|8707
+levels gained|0
+points earned|12
+number of tics|4
+longest tic free interval|2800
+number of 10s tic free intervals|0

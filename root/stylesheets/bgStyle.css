@@ -50,9 +50,19 @@ a {
 }
 
 .main-content h1, .main-content h2, .main-content h3 {
-  margin-top: .3;
-  margin-bottom: .3rem;
+  margin-top: .3rem;
+  margin-bottom: 0;
   color: #18b466;
+}
+
+.main-content .alertText {
+	display: block;
+	margin: 0;
+	padding-left: 2rem;
+  color: #18b466;
+	font-style: oblique;
+	font-size: 2rem;
+  font-weight: bold;
 }
 
 .btn {
@@ -122,6 +132,19 @@ a {
 	vertical-align: super;
 	width: 3em;
 }
+
+.paying_attention {
+	width: 100%;
+	height: 2rem;
+	border: 1px solid #000;
+  border-radius: 0.3rem;
+	padding: 0rem;
+}
+
+.tr_btns{
+  text-align: center;
+	margin: 0 auto .25rem auto;
+}
 	
 footer {
   padding-top: 2rem;
@@ -142,16 +165,24 @@ footer {
     padding: .7rem 1.2rem;
   }
 	.bigBtn{
-		width: 75%;
     padding: 1rem 1.5rem;
 		font-size: 4rem;
 		line-height: 8rem;
+		width: 85%;
+	}
+	.paying_attention{
+		/*width: 20%;*/
+		/*height: 21rem;*/
 	}
 	.bigCounter{
 		font-size: 7rem;
 	}
 	.medCounter{
 		font-size: 4.3rem;
+	}
+	.tr_btns{
+		/*width: 85%;*/
+		margin: 0 0;
 	}
 	.logo{
 		padding: 0 .5rem; 
@@ -171,16 +202,23 @@ footer {
     padding: .5rem .8rem;
   }
 	.bigBtn{
-		width: 85%;
     padding: .7rem 1.2rem;
 		font-size: 3rem;
 		line-height: 6rem;
+		width: 90%;
+	}
+	.paying_attention{
+		/*width: 15%;*/
+		/*height: 16rem;*/
 	}
 	.bigCounter{
 		font-size: 5rem;
 	}
 	.medCounter{
 		font-size: 3rem;
+	}
+	.tr_btns{
+		/*width: 90%;*/
 	}
 	.logo{
 		padding: 0 .5rem; 
@@ -200,16 +238,23 @@ footer {
     padding: .4rem;
   }
 	.bigBtn{
-		width: 95%;
     padding: .5rem .8rem;
 		font-size: 2rem;
 		line-height: 4rem;
+		width: 95%;
+	}
+	.paying_attention{
+		/*width: 10%;*/
+		/*height: 11rem;*/
 	}
 	.bigCounter{
 		font-size: 3rem;
 	}
 	.medCounter{
 		font-size: 1.85rem;
+	}
+	.tr_btns{
+		/*width: 95%;*/
 	}
 	.logo{
 		padding: 0 .25rem; 

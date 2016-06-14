@@ -1,0 +1,49 @@
+session started|2016-06-14T00:23:51.815Z
+starting user level,points|0,0
+user level,points|1,0|2016-06-14T00:23:55.175Z
+user level,points|1,1|2016-06-14T00:23:56.195Z
+tic detected|2016-06-14T00:23:56.508Z
+user level,points|1,3|2016-06-14T00:23:57.209Z
+tic detected|2016-06-14T00:23:57.812Z
+user level,points|1,3|2016-06-14T00:23:58.223Z
+user level,points|1,3|2016-06-14T00:23:59.239Z
+user level,points|1,4|2016-06-14T00:24:00.254Z
+user level,points|1,6|2016-06-14T00:24:01.270Z
+user level,points|1,9|2016-06-14T00:24:02.287Z
+user level,points|1,13|2016-06-14T00:24:03.308Z
+user level,points|1,18|2016-06-14T00:24:04.326Z
+user level,points|1,24|2016-06-14T00:24:05.348Z
+user level,points|1,31|2016-06-14T00:24:06.367Z
+user level,points|1,39|2016-06-14T00:24:07.382Z
+user level,points|1,48|2016-06-14T00:24:08.396Z
+user level,points|1,58|2016-06-14T00:24:09.409Z
+user level,points|1,68|2016-06-14T00:24:10.424Z
+user level,points|1,78|2016-06-14T00:24:11.439Z
+user level,points|1,88|2016-06-14T00:24:12.459Z
+user level,points|1,98|2016-06-14T00:24:13.476Z
+user level,points|1,108|2016-06-14T00:24:14.496Z
+user level,points|1,118|2016-06-14T00:24:15.518Z
+user level,points|1,128|2016-06-14T00:24:16.538Z
+user level,points|1,138|2016-06-14T00:24:17.561Z
+user level,points|1,148|2016-06-14T00:24:18.575Z
+user level,points|1,158|2016-06-14T00:24:19.593Z
+user level,points|1,168|2016-06-14T00:24:20.616Z
+user level,points|1,178|2016-06-14T00:24:21.643Z
+user level,points|1,188|2016-06-14T00:24:22.659Z
+user level,points|1,198|2016-06-14T00:24:23.672Z
+user level,points|1,208|2016-06-14T00:24:24.691Z
+user level,points|1,218|2016-06-14T00:24:25.708Z
+user level,points|1,228|2016-06-14T00:24:26.724Z
+user level,points|1,238|2016-06-14T00:24:27.741Z
+user level,points|1,248|2016-06-14T00:24:28.758Z
+user level,points|1,258|2016-06-14T00:24:29.777Z
+session ended|2016-06-14T00:24:30.526Zsession started|2016-06-14T00:24:30.551Z
+user level,points|1,268|2016-06-14T00:24:30.790Z
+****************
+Report:
+session length|NaN
+levels gained|1
+points earned|268
+number of tics|2
+longest tic free interval|4693
+number of 10s tic free intervals|0
