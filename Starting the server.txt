@@ -10,4 +10,4 @@ navigate to the root directory
 
 .../root$ nohup node server.js &> ../"Project Files"/log.txt
 
- - &> pipes error and regular output to log.txt
+ - "&>" pipes error and regular output to log.txt
