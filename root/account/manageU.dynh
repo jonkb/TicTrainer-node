@@ -42,7 +42,7 @@
 					<legend>Add Trainer</legend>
 					Trainer Account ID:<br>
 					<input type='text' name='lid' placeholder='t0000' required> <br>
-					<input type='submit' value='Link' class="btn" style="margin: .5rem 0 0 0; padding: .5rem">
+					<input type='submit' value='Link' class="btn">
 				</fieldset>
 			</form>
 			<form method='POST'>
@@ -59,7 +59,7 @@
 					**[pw]**<br>
 					New Password:<br>
 					<input type='password' name='pWord' required> <br>
-					<input type='submit' value='Save Changes' class="btn" style="margin: .5rem 0 0 0; padding: .5rem">
+					<input type='submit' value='Save Changes' class="btn">
 				</fieldset>
 			</form>
 			<a href='/index.html' class='btn'>Return to Home</a>

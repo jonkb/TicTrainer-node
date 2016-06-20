@@ -19,7 +19,11 @@
 			<td id='rCounter' class='medCounter'>+0</td></table>
     </section>
 		<script>
+			var salido = false;//salido -sp- left
 			window.onbeforeunload = endS;
+			window.onpagehide = endS;
+			//document.addEventListener('visibilitychange', function(){if(document.hidden){endS();}}, false);
+
 			var points = **[points]**;
 			var level = **[level]**;
 			if(level == 0){
@@ -82,19 +86,22 @@
 			  setTimeout(function(){document.getElementById('display').setAttribute('style', 'width:100%;');}, 1000)
 			}
 			function endS(){
-				var xhr = new XMLHttpRequest();
-				var url = '/session/index.html'
-				//source,id,pWord,lid,level,points
-				var reqBody = 'source=session_end-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&level='+level+'&points='+points;
-				xhr.open('POST', url, true);
-				xhr.onreadystatechange = function(){
-					if(xhr.readyState == 4){
-						document.open();
-						document.write(xhr.responseText);
-						document.close();
+				if(!salido){
+					var xhr = new XMLHttpRequest();
+					var url = '/session/index.html'
+					//source,id,pWord,lid,level,points
+					var reqBody = 'source=session_end-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&level='+level+'&points='+points;
+					xhr.open('POST', url, true);
+					xhr.onreadystatechange = function(){
+						if(xhr.readyState == 4){
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
 					}
+					xhr.send(reqBody);
+					salido = true;
 				}
-				xhr.send(reqBody);
 			}
 			function levelUp(){
 				level++;

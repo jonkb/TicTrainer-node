@@ -7,12 +7,15 @@ const debugging = 3;//depth of debugging: 0,1,2
 module.exports.dynamic = dynamic;
 module.exports.indexNOf = indexNOf;
 module.exports.fixD = fixD;
-module.exports.fourZ = fourZ;
+//module.exports.fourZ = fourZ;
+module.exports.parse36ToDec = parse36ToDec;
+module.exports.decTo36 = decTo36;
 module.exports.dataToEntries = dataToEntries;
 module.exports.genReport = genReport;
 module.exports.toData = toData;
 module.exports.time = time;
 module.exports.debugShout = debugShout;
+module.exports.log_error = log_error;
 
 /*
 	load and edit a dynamic html file (.dynh is my extension for it)
@@ -150,21 +153,64 @@ function fixD(d){
 	//Everything went well
 	return date;
 }
-//Make sure  number has 4 decimal places (for ids)
-function fourZ(n){
-	if(isNaN(n))
-		return "Error";
-	var r = n.toString();
-	if(r.length == 1)
-		return "000"+r;
-	if(r.length == 2)
-		return "00"+r;
-	if(r.length == 3)
-		return "0"+r;
-	if(r.length == 4)
-		return r;
-	else
-		return "Error";
+//take a string, parse it to base 36, convert it to a dec int
+function parse36ToDec(str36){
+	var n=0;
+	var power=0;
+	var conversion = {
+		"0": 0,
+		"1": 1,
+		"2": 2,
+		"3": 3,
+		"4": 4,
+		"5": 5,
+		"6": 6,
+		"7": 7,
+		"8": 8,
+		"9": 9,
+		"a": 10,
+		"b": 11,
+		"c": 12,
+		"d": 13,
+		"e": 14,
+		"f": 15,
+		"g": 16,
+		"h": 17,
+		"i": 18,
+		"j": 19,
+		"k": 20,
+		"l": 21,
+		"m": 22,
+		"n": 23,
+		"o": 24,
+		"p": 25,
+		"q": 26,
+		"r": 27,
+		"s": 28,
+		"t": 29,
+		"u": 30,
+		"v": 31,
+		"w": 32,
+		"x": 33,
+		"y": 34,
+		"z": 35
+	};
+	for(var i = str36.length-1; i>= 0; i--){
+		n+= conversion[str36[i]] * Math.pow(36, power);
+		power++;
+	}
+	return n;
+}
+function decTo36(dec){
+	var conversion = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+	var rem = 0;
+	var b36 = "";
+	while(dec > 0){
+		rem = dec % 36;
+		b36 = conversion[rem] + b36;
+		dec = Math.floor(dec/36);
+	}
+	return b36;
 }
 //Takes the string of a data file and returns an array of entry arrays
 function dataToEntries(data){
@@ -282,6 +328,11 @@ function debugShout(message, depth){//d0 always show, d1 first level debugging, 
 		if(debugging > 1)
 			console.log(message);
 	}
+}
+function log_error(error_type, message){
+	message = message || "-";
+	var eEntry = "\n<"+error_type+";"+time()+";"+message+">";
+	fs.appendFile("./error/log.data", eEntry, function(err){});
 }
 
 

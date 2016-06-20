@@ -18,55 +18,62 @@
 			<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>
     </section>
 		<script>
-				var tryN = 0;
-				window.onbeforeunload = leave;
-				look();//automatic
-				function look(){
-					if(tryN < 30){
-						var xhr = new XMLHttpRequest();
-						var url = '/session/index.html';
-						var reqBody = 'source=linkloading-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=exists';
-						xhr.open('POST', url, true);
-						xhr.setRequestHeader('Content-type', 'text/plain');
-						xhr.onreadystatechange = function(){
-							if(xhr.readyState == 4){
-								if(xhr.responseText == 'wait'){//retry
-									setTimeout(look, 2000);//loop
-								}
-								else{
-									document.open();
-									document.write(xhr.responseText);
-									document.close();
-								}
+			var tryN = 0;
+			var salido = false;//salido -sp- left
+			window.onbeforeunload = leave;
+			window.onpagehide = leave;
+			//document.addEventListener('visibilitychange', function(){if(document.hidden){leave();}}, false);
+			
+			look();//automatic
+			function look(){
+				if(tryN < 30){
+					var xhr = new XMLHttpRequest();
+					var url = '/session/index.html';
+					var reqBody = 'source=linkloading-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=exists';
+					xhr.open('POST', url, true);
+					xhr.setRequestHeader('Content-type', 'text/plain');
+					xhr.onreadystatechange = function(){
+						if(xhr.readyState == 4){
+							if(xhr.responseText == 'wait'){//retry
+								setTimeout(look, 2000);//loop
 							}
-						};
-						xhr.send(reqBody);
-						tryN++;
-					}
-					else{//Timeout
-						var xhr = new XMLHttpRequest();
-						var url = '/session/index.html';
-						var reqBody = 'source=linkloading-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=timeout';
-						xhr.open('POST', url, true);
-						xhr.setRequestHeader('Content-type', 'text/plain');
-						xhr.onreadystatechange = function(){
-							if(xhr.readyState == 4){
+							else{
 								document.open();
 								document.write(xhr.responseText);
 								document.close();
 							}
-						};
-						xhr.send(reqBody);
-					}
+						}
+					};
+					xhr.send(reqBody);
+					tryN++;
 				}
-				function leave(){
+				else{//Timeout
+					var xhr = new XMLHttpRequest();
+					var url = '/session/index.html';
+					var reqBody = 'source=linkloading-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=timeout';
+					xhr.open('POST', url, true);
+					xhr.setRequestHeader('Content-type', 'text/plain');
+					xhr.onreadystatechange = function(){
+						if(xhr.readyState == 4){
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
+					};
+					xhr.send(reqBody);
+				}
+			}
+			function leave(){
+				if(!salido){
 					var xhr = new XMLHttpRequest();
 					var url = '/session/index.html'
 					var reqBody = 'source=linkloading-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=leave';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.send(reqBody);
+					salido = true;
 				}
+			}
 		</script>
 	</body>
 </html>

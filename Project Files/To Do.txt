@@ -1,23 +1,24 @@
 To Do:
 FUNCTIONAL:
-- The DNS thing. - PURL - aws elastic ip address - aws route 53?
-- look up forever.js - ex. forever -l forever.log -o out.log -e err.log my-script.js - that or "nohup" - or multiplexer - or disown
-  - $ nohup node server.js &> ../"Project Files"/log.txt
-- fix onbeforeunload on mobile
+ARE WE READY TO GO PUBLIC?
+- BEFORE WE DO:
+  - Dad edit index paragraphs
 
 VISUAL:
-- change b,m counter size for screen size
 
 DEEPER:
+- check form errors client-side
+- Use more fs.open ?
+- Convert everything in the session to 307 redirects
 - get rid of birth date for trainers or check minimum age. Why is it there?
-- switch things to real files
-- Use normalize.css ?
-- use fs.open instead of writeFileSync
-- Think about moving things to an external js file
+- move more things to aux?
 - Should I make it check password each step of the session for safety -- would that be taxing
 
 MAYBE:
 - add leaderboard
-- make id's non-case sensitive ? what about hex? or base 36? or not 4-long
+- look up dragonfable level up ratios   - (100*level^2)http://dfwiki.com/w/Experience_Chart   - http://epicduelwiki.com/w/Experience#Experience_by_Level
+- convert points into coins on each levelUp, add a store
+  - buy decorations, stickers?
 - Maybe use ajax instead for linkloading-trainer?
-- use json? ajaj?
+- use json? ajaj? instead of ajax and .data and xml
+- move reports out of error and into report folders

@@ -8,28 +8,21 @@ body {
 	background-color: #fff;
 }
 
+p, ul{
+	margin-top: 0;
+}
+
 a {
   color: #1d66af;
   text-decoration: none; }
   a:hover {
     text-decoration: underline; }
-
-.logo {
-	float: left;
-	overflow: hidden;
-	color: #fff;
-  border-style: solid;
-	border-color: #fff;
-  border-width: 1px;
-  border-radius: .2rem;
-	margin: 0 .5rem 0 0;
-}
-.logo::before{
-	content: 'Tt';
-}
-.logo:hover{
-	text-decoration: none;
-	background-color: rgba(255, 255, 255, .2);
+	
+footer {
+  padding-top: 2rem;
+  margin-top: 4rem;
+  border-top: solid 1px #cccccc;
+	text-align: center;
 }
 
 .page-header {
@@ -48,10 +41,26 @@ a {
 .header-navbar{
 	text-align: left;
 }
+.logo {
+	float: left;
+	overflow: hidden;
+	color: #fff;
+  border-style: solid;
+	border-color: #fff;
+  border-width: 1px;
+  border-radius: .2rem;
+	margin: 0 .5rem 0 0;
+}
+.logo::before{
+	content: 'Tt';
+}
+.logo:hover{
+	text-decoration: none;
+	background-color: rgba(255, 255, 255, .2);
+}
 
 .main-content h1, .main-content h2, .main-content h3 {
-  margin-top: .3rem;
-  margin-bottom: 0;
+  margin: 0;
   color: #18b466;
 }
 
@@ -65,22 +74,6 @@ a {
   font-weight: bold;
 }
 
-.btn {
-  margin: .25rem;
-	color: #fff;
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.8);
-  border-style: solid;
-  border-width: 1px;
-  border-radius: 0.3rem;
-  transition: background-color 0.3s, border-color 0.3s; 
-}
-
-.btn:hover {
-	text-decoration: none;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.9); }
-
 .main-content .btn {
   margin-bottom: .3rem;
   text-align: center;
@@ -93,15 +86,31 @@ a {
   border-radius: 0.3rem;
   transition: background-image 0.3s, background-color 0.3s, border-color 0.3s; 
 	}
-  /*.btn + .btn {
-    margin-left: 1rem; }*/
-
 .main-content .btn:hover {
 	text-decoration: none;
   background-color: #18b466;
   background-image: linear-gradient(300deg, #1866b4, #18b466); 
   border-color: #4be799;
   }
+.page-header .btn {
+  margin: .25rem;
+	color: #fff;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.8);
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 0.3rem;
+  transition: background-color 0.3s, border-color 0.3s; 
+}
+.page-header .btn:hover {
+	text-decoration: none;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.9); }	
+.main-content form .btn {
+	margin: .5rem 0 0 0; 
+	margin-bottom: 0;
+	padding: .3rem .5rem;
+}
 
 .bigBtn {
   margin: .25rem auto;
@@ -144,12 +153,6 @@ a {
 .tr_btns{
   text-align: center;
 	margin: 0 auto .25rem auto;
-}
-	
-footer {
-  padding-top: 2rem;
-  margin-top: 2rem;
-  border-top: solid 1px #eff0f1;
 }
   
 /*Conditional on screen size:*/
