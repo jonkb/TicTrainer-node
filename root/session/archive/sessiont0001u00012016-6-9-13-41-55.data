@@ -1,0 +1,44 @@
+session started|2016-06-09T18:41:37.700Z
+starting user level,points|1,303
+user level,points|1,303|2016-06-09T18:41:39.304Z
+user level,points|1,304|2016-06-09T18:41:40.324Z
+tic detected|2016-06-09T18:41:40.721Z
+user level,points|1,306|2016-06-09T18:41:41.337Z
+user level,points|1,306|2016-06-09T18:41:42.351Z
+user level,points|1,307|2016-06-09T18:41:43.363Z
+tic detected|2016-06-09T18:41:43.482Z
+user level,points|1,309|2016-06-09T18:41:44.375Z
+tic detected|2016-06-09T18:41:45.039Z
+user level,points|1,309|2016-06-09T18:41:45.388Z
+tic detected|2016-06-09T18:41:45.940Z
+user level,points|1,309|2016-06-09T18:41:46.405Z
+tic detected|2016-06-09T18:41:46.921Z
+tic detected|2016-06-09T18:41:47.130Z
+user level,points|1,309|2016-06-09T18:41:47.424Z
+tic detected|2016-06-09T18:41:47.916Z
+tic detected|2016-06-09T18:41:48.095Z
+tic detected|2016-06-09T18:41:48.255Z
+user level,points|1,309|2016-06-09T18:41:48.440Z
+tic detected|2016-06-09T18:41:48.529Z
+tic detected|2016-06-09T18:41:48.913Z
+tic detected|2016-06-09T18:41:49.080Z
+tic detected|2016-06-09T18:41:49.240Z
+tic detected|2016-06-09T18:41:49.407Z
+user level,points|1,309|2016-06-09T18:41:49.457Z
+tic detected|2016-06-09T18:41:49.569Z
+tic detected|2016-06-09T18:41:49.696Z
+user level,points|1,309|2016-06-09T18:41:50.479Z
+user level,points|1,309|2016-06-09T18:41:51.495Z
+user level,points|1,310|2016-06-09T18:41:52.507Z
+user level,points|1,312|2016-06-09T18:41:53.519Z
+user level,points|1,315|2016-06-09T18:41:54.534Z
+session ended|2016-06-09T18:41:54.897Z
+user level,points|1,319|2016-06-09T18:41:55.546Z
+****************
+Report:
+session length|17197
+levels gained|0
+points earned|16
+number of tics|16
+longest tic free interval|3021
+number of 10s tic free intervals|0
