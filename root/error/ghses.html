@@ -15,7 +15,7 @@
 			</div>
 		</section>
 		<section class='main-content' id='mainC'>
-			<form method="POST" name="ghSession">
+			<form method="POST" name="ghSession" onsubmit="return checkForm();">
 				<fieldset>
 					<legend>Terminate Ghost Session</legend>
 					Trainer ID:<br>
@@ -28,5 +28,19 @@
 				</fieldset>
 			</form>
 		</section>
+		<script>
+			function checkForm(){
+				var tid = document.forms["ghSession"]["tid"].value.toLowerCase();
+				var uid = document.forms["ghSession"]["uid"].value.toLowerCase();
+				if(tid[0] != "t" || tid.length < 2){
+					alert("Invalid trainer ID");
+					return false;
+				}
+				if(uid[0] != "u" || uid.length < 2){
+					alert("Invalid user ID");
+					return false;
+				}
+			}
+		</script>
 	</body>
 </html>

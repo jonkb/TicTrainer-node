@@ -2,8 +2,8 @@
 <html lang="en-us">
   <head>
     <meta charset="UTF-8">
-    <title>TicTrainer registration for users</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TicTrainer registration for users</title>
     <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
     <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
   </head>
@@ -19,14 +19,30 @@
 
     <section class="main-content">
       <!--FORM-->
-      <form method="POST" name="addUser">
+      <form method="POST" name="addUser" onsubmit="return checkForm();">
+				<input type="hidden" name="birth" value="-">
         <fieldset>
           <legend>New Account</legend>
 					Sex:<br>
           <input type="radio" name="sex" value="M"> Male<br>
           <input type="radio" name="sex" value="F"> Female<br>
-          Birth Date:<br>
-          <input type:"text" name="birth" placeholder="mm/dd/yyyy" required> <br>
+          Birth Month and Year:<br>
+          <select name="month" required>
+						<option value="-">Month</option>
+						<option value="0">January</option>
+						<option value="1">February</option>
+						<option value="2">March</option>
+						<option value="3">April</option>
+						<option value="4">May</option>
+						<option value="5">June</option>
+						<option value="6">July</option>
+						<option value="7">August</option>
+						<option value="8">September</option>
+						<option value="9">October</option>
+						<option value="10">November</option>
+						<option value="11">December</option>
+					</select>
+					<input type="text" name="year" size="4" placeholder="yyyy" required><br>
           Password:<br>
           <input type="password" name="pWord" required> <br>
           Confirm Password:<br>
@@ -35,6 +51,37 @@
         </fieldset>
       </form>
     </section>
-  
+		<script src="/scripts/math-ext.js"></script>
+		<script>
+			function checkForm() {
+				var s = document.forms["addUser"]["sex"].value;
+				var m = document.forms["addUser"]["month"].value;
+				var y = document.forms["addUser"]["year"].value;
+				var pw = document.forms["addUser"]["pWord"].value;
+				var pwC = document.forms["addUser"]["pWordConf"].value;
+				if(pw != pwC){
+					alert("Passwords do not match");
+					return false;
+				}
+				if(!s || !m || (m == "-") || !y || !pw || !pwC){
+					alert("Please finish the form");
+					return false;
+				}
+				if(pw.indexOf(";") != -1 || pw.indexOf("<") != -1 || pw.indexOf(">") != -1){
+					alert("Please do not include \";\", \"<\", or \">\" in your password");
+					return false;
+				}
+				
+				var d1 = new Date(y, m, 15);//Guess middle of month
+				var d2 = randDate(d1);
+				document.forms["addUser"]["birth"].value = d2;
+				return true;
+			}
+			//Gets a date within 45 days of the given date
+			function randDate(d){
+				var o = norm(0, 15, 45);//in math-ext
+				return d.setDate(d.getDate() + o);
+			}
+		</script>
   </body>
 </html>

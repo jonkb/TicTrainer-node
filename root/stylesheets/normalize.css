@@ -289,7 +289,7 @@ button:-moz-focusring,
  */
 
 fieldset {
-  margin: 0;
+  margin: 0 0 .5rem 0;
   padding: 0 0.5rem 0.5rem 0.5rem;
 }
 

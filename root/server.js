@@ -1,7 +1,7 @@
 var http = require("http");
 var fs = require('fs');
 var url = require('url');
-var aux = require("./auxiliary.js");
+var aux = require("./scripts/auxiliary.js");
 
 const PORT = 8888;
 
@@ -26,7 +26,8 @@ function handleRequest(req, res){
 		dfe - Date Format,
 		ide - ID, 
 		ice - Invalid Character, 
-		conses - Concurrent Session
+		ife - Incomplete Form,
+		conses - Concurrent Session,
 		pce - Password Confirmation, 
 		anfe - Account not found, 
 		anle - Account not linked,
@@ -65,11 +66,22 @@ function handleRequest(req, res){
 	*/
 	function ret_created(data){
 		if(data.indexOf("<") != -1)
-		data = data.slice(data.indexOf("<")+1, data.indexOf(">"));
-		var splitd = data.split(";");
+			data = data.slice(data.indexOf("<")+1, data.indexOf(">"));
+		var splitd = data.split(";");//id,pass,bd,links, sex, l/p
+		var ID = splitd[0];
+		var birthText = "";
+		if(ID[0] == "u"){
+			var birthD = new Date(parseInt(splitd[2]));
+			birthText += "<br><br>"+
+				"FYI, the fake birthdate we will use for you is "+birthD.toLocaleDateString()+". \n"+
+				"There's a small chance (less than 3%) that this is your real birthday, but if so, \n"+
+				"that's just a lucky guess. All we know on our end is that it's within a couple \n"+
+				"of months of your real birthday.";
+		}
 		var dynd = {
-			"id": splitd[0],
-			"pw": splitd[3]
+			"id": ID,
+			"pw": splitd[1],
+			"bd": birthText
 		};
 		aux.dynamic("./register/created.dynh", dynd, function(page){
 			if(page == "fe" || page == "se")
@@ -84,19 +96,18 @@ function handleRequest(req, res){
 	var data is a single account entry in a .data file (an array)
 	*/
 	function ret_manage_account(data){
-		if(data[0].substr(0,1) == "t"){
+		if(data[0][0] == "t"){
 			var lnacc = "";
-			if(data[4] == ""){
+			if(data[3] == ""){
 				lnacc = "No Linked Accounts";
 			}
-			else{//Data Format is: id;m/f;DoB;Pw;[link1][,link2][,...];level,points
-				lnacc = data[4].replace(new RegExp('[,]', 'g'), ", ");
+			else{//Data Format is: id;pw;DoB;[link1][,link2][,...]
+				lnacc = data[3].replace(new RegExp('[,]', 'g'), ", ");
 			}
 			var dynd = {//dynamic data
 				"id": data[0],
-				"fn": data[1],
+				"pw": data[1],
 				"birth": data[2],
-				"pw": data[3],
 				"linked_accounts": lnacc
 			};
 			aux.dynamic("./account/manageT.dynh", dynd, function(page){
@@ -104,24 +115,24 @@ function handleRequest(req, res){
 				res.write(page, function(err){res.end();});
 			});
 		}
-		else if(data[0].substr(0,1) == "u"){
+		else if(data[0][0] == "u"){
 			var level = data[5].split(",")[0];
 			var points = data[5].split(",")[1];
 			var lnacc = "";
-			if(data[4] == ""){
+			if(data[3] == ""){
 				lnacc = "No Linked Accounts";
 			}
-			else{//Data Format is: id;m/f;DoB;Pw;[link1][,link2][,...];level,points
-				lnacc = data[4].replace(new RegExp('[,]', 'g'), ", ");
+			else{//Data Format is: id;pw;DoB;[link1][,link2][,...],m/f,l/p
+				lnacc = data[3].replace(new RegExp('[,]', 'g'), ", ");
 			}
 			var dynd = {//dynamic data
 				"id": data[0],
-				"sex": data[1],
+				"pw": data[1],
 				"birth": data[2],
-				"pw": data[3],
-				"linked_accounts": lnacc,
-				"level": level,
-				"points": points
+				"linked_accounts": lnacc, //from data[3]
+				"sex": data[4],
+				"level": level, //from data[5]
+				"points": points //from data[5]
 			};
 			aux.dynamic("./account/manageU.dynh", dynd, function(page){
 				res.writeHead(200, {"Content-Type": "text/html"});
@@ -203,8 +214,12 @@ function handleRequest(req, res){
 			res.write(page, function(err){res.end();});
 		});
 	}
-	//
+	// After error/report
 	function ret_report_sent(data){
+		if(!data.fName)
+			data.fName = "Y";//No name supplied
+		else
+			data.fName = data.fName + ", y";
 		var dynd = {
 			"fn": data.fName
 		};
@@ -282,106 +297,115 @@ function handleRequest(req, res){
 			var qs = require("querystring");
 			body = qs.parse(Buffer.concat(body).toString());
 			aux.debugShout("request body:"+ JSON.stringify(body));
+			
 			//Decide what to do with the request based on its source
 			switch(pathname){
 				case "/register/trainer.html":
-					var fN = body.fName;
 					var bD = body.birth;
 					var pass = body.pWord;
 					var passC = body.pWordConf;
-					fN = fN.slice(0,1).toUpperCase() + fN.slice(1);//Capitalize First Letter
 					
-					//Make sure these don't include ; or \n
-					if(fN.indexOf(";") != -1 || bD.indexOf(";") != -1 || pass.indexOf(";") != -1)
+					//Double check validation
+					if(!bD || !pass || !passC){
+						ret_error("ife", "/register/trainer.html");
+						break;
+					}
+					if(isNaN(bD) || bD.length != 4){
+						ret_error("dfe", "/register/trainer.html")
+						break;
+					}
+					if(pass != passC){
+						ret_error("pce", "/register/trainer.html");
+						break;
+					}
+					//Make sure these don't include ; or \n - VITAL
+					if(pass.indexOf(";") != -1 || pass.indexOf("<") != -1 || pass.indexOf(">") != -1){
 						ret_error("ice", "/register/trainer.html");//Invalid Character Error
-					else if(fN.indexOf("<") != -1 || bD.indexOf("<") != -1 || pass.indexOf("<") != -1)
+						break;
+					}
+					if(bD.indexOf(";") != -1 || bD.indexOf("<") != -1 || bD.indexOf(">") != -1){
 						ret_error("ice", "/register/trainer.html");
-					else if(fN.indexOf(">") != -1 || bD.indexOf(">") != -1 || pass.indexOf(">") != -1)
-						ret_error("ice", "/register/trainer.html");
-					else{
-						if(pass == passC){
-							var bD = aux.fixD(bD);
-							if(bD == "Error"){
-								ret_error("dfe", "/register/trainer.html");
-								return;
-							}
-							//Get the next available iD number
-							var iD = "t0";
-							fs.readFile("./trainer.data", "utf8", function(err, data){
-								if(err){
+						break;
+					}
+					
+					//Get the next available iD number
+					var iD = "t0";
+					fs.readFile("./trainer.data", "utf8", function(err, data){
+						if(err){
+							ret_error("fe", "/register/trainer.html", "register-trainer: reading trainer.data");
+							return;
+						}
+						var last = data.slice(data.lastIndexOf("<")+1, data.lastIndexOf(">"));
+						var lastID = last.split(";")[0];
+						var nID = aux.parse36ToDec(lastID.slice(1))+1;
+						iD = "t"+aux.decTo36(nID);
+						if(iD == "tError")
+							ret_error("fe", "/register/trainer.html", "register-trainer: decTo36");
+						else{
+							var tData = "\n<"+iD+";"+pass+";"+bD+";>";//the empty section is for lnacc
+							fs.appendFile("./trainer.data", tData, function(err){
+								if(err)
 									ret_error("fe", "/register/trainer.html", "register-trainer: reading trainer.data");
-									return;
-								}
-								var last = data.slice(data.lastIndexOf("<")+1, data.lastIndexOf(">"));
-								var lastID = last.split(";")[0];
-								var nID = aux.parse36ToDec(lastID.slice(1))+1;
-								iD = "t"+aux.decTo36(nID);
-								if(iD == "tError")
-									ret_error("fe", "/register/trainer.html", "register-trainer: decTo36");
 								else{
-									var tData = "\n<"+iD+";"+fN+";"+bD+";"+pass+";>";//the empty section is for lnacc
-									fs.appendFile("./trainer.data", tData, function(err){
-										if(err)
-											ret_error("fe", "/register/trainer.html", "register-trainer: reading trainer.data");
-										else{
-											ret_created(tData);
-										}
-									});
+									ret_created(tData);
 								}
 							});
 						}
-						else{
-							ret_error("pce", "/register/trainer.html");
-						}
-					}
+					});
 				break;
 				case "/register/user.html":
 					var sex = body.sex;
 					var bD = body.birth;
 					var pass = body.pWord;
 					var passC = body.pWordConf;
-					//Make sure these don't include ; or \n
-					if(bD.indexOf(";") != -1 || pass.indexOf(";") != -1)
-						ret_error("ice", "/register/user.html");
-					else if(bD.indexOf("<") != -1 || pass.indexOf("<") != -1)
-						ret_error("ice", "/register/user.html");
-					else if(bD.indexOf(">") != -1 || pass.indexOf(">") != -1)
-						ret_error("ice", "/register/user.html");
-					else{
-						if(pass == passC){
-							var bD2 = aux.fixD(bD);
-							if(bD2 == "Error"){
-								ret_error("dfe", "/register/user.html");
-								return;
-							}
-							//Get the next available iD number
-							var iD = "u0000";
-							fs.readFile("./user.data", "utf8", function(err, data){
-								if(err){
+					
+					//Double check validation
+					if(sex != "M" && sex != "F"){
+						ret_error("ife", "/register/user.html");
+						break;
+					}
+					if(isNaN(bD)){//catches undefined 
+						ret_error("ife", "/register/user.html");
+						//I could check and do it anyway if they submitted month and year, but why be that courteous
+						break;
+					}
+					if(pass != passC){
+						ret_error("pce", "/register/user.html");
+						break;
+					}
+					//Make sure these don't include ; or \n - VITAL
+					if(pass.indexOf(";") != -1 || pass.indexOf("<") != -1 || pass.indexOf(">") != -1){
+						ret_error("ice", "/register/trainer.html");//Invalid Character Error
+						break;
+					}
+					if(bD.indexOf(";") != -1 || bD.indexOf("<") != -1 || bD.indexOf(">") != -1){
+						ret_error("ice", "/register/trainer.html");
+						break;
+					}
+					
+					//Get the next available iD number
+					var iD = "u0";
+					fs.readFile("./user.data", "utf8", function(err, data){
+						if(err){
+							ret_error("fe", "/register/user.html", "register-user: reading user.data");
+							return;
+						}
+						var last = data.slice(data.lastIndexOf("<")+1, data.lastIndexOf(">"));
+						var lastID = last.split(";")[0];
+						var nID = aux.parse36ToDec(lastID.slice(1))+1;
+						iD = "u"+aux.decTo36(nID);
+						if(iD == "uError")
+							ret_error("fe", "/register/user.html", "register-user: decTo36");
+						else{
+							var uData = "\n<"+iD+";"+pass+";"+bD+";;"+sex+";0,0>";//;links; level,points
+							fs.appendFile("./user.data", uData, function(err){
+								if(err)
 									ret_error("fe", "/register/user.html", "register-user: reading user.data");
-									return;
-								}
-								var last = data.slice(data.lastIndexOf("<")+1, data.lastIndexOf(">"));
-								var lastID = last.split(";")[0];
-								var nID = aux.parse36ToDec(lastID.slice(1))+1;
-								iD = "u"+aux.decTo36(nID);
-								if(iD == "uError")
-									ret_error("fe", "/register/user.html", "register-user: decTo36");
-								else{
-									var uData = "\n<"+iD+";"+sex+";"+bD2+";"+pass+";;0,0>";//;links;level,points
-									fs.appendFile("./user.data", uData, function(err){
-										if(err)
-											ret_error("fe", "/register/user.html", "register-user: reading user.data");
-										else
-											ret_created(uData);
-									});
-								}
+								else
+									ret_created(uData);
 							});
 						}
-						else{
-							ret_error("pce", "/register/user.html");
-						}
-					}
+					});
 				break;
 				case "/account/index.html":
 					function acc_ret(data){
@@ -399,34 +423,32 @@ function handleRequest(req, res){
 						}
 					}
 					switch(body.source){
-						case "manageAccount":
-						var iD = body.id;
+						case "manageAccount"://Log on page
 						var pass = body.pWord;
-						//This is called by fs.readFile with the loaded account data as an argument (or an error)
+						var iD = body.id;
 						var file = "./";
-						if(iD.substr(0,1) == "t")
+						
+						iD = aux.isID(iD);
+						if(iD === false){
+							acc_ret("ide");
+							break;
+						}
+						if(iD[0] == "t")
 							file += "trainer.data";
-						else if(iD.substr(0,1) == "u")
+						else if(iD[0] == "u")
 							file += "user.data";
-						else{
-							acc_ret("ide");
-							aux.debugShout("ID="+iD+" and substr="+iD.substr(0,1)+"\n");
-							break;//Exit body.source switch
-						}
-						if(isNaN(iD.substr(1))){
-							acc_ret("ide");
-						}
+						
 						fs.readFile(file, "utf8", function(err, data){
 							if(err)
 								acc_ret("fe");
 							else{
 								var people = aux.dataToEntries(data);
-								aux.debugShout("562 "+people, 3);
+								aux.debugShout("413 "+people, 3);
 								var found = false;
 								for(i=0; i < people.length; i++){
 									if(people[i][0] == iD){
 										found = true;
-										if(people[i][3] == pass)
+										if(people[i][1] == pass)
 											acc_ret(people[i]);//Success
 										else
 											acc_ret("pce");//Password Confirmation Error
@@ -438,24 +460,22 @@ function handleRequest(req, res){
 							}
 						});
 						break;
-						case "editA"://Source: Edit {id, (fName/sex), birth, pWord}
-							var newAData = aux.toData(body);
+						case "editP"://Source: editP, id, oldPass, pass
 							var iD = body.id;
+							var opw = body.oldPass;
+							var pw = body.pass;
 							var file = "./";
-							aux.debugShout("Editing "+iD, 1);
-							if(iD.substr(0,1) == "t")
-								file += "trainer.data";
-							else if(iD.substr(0,1) == "u")
-								file += "user.data";
-							else{
-								acc_ret("ide");
-								aux.debugShout("ID="+iD+" and letter="+iD.substr(0,1)+"\n");
-								break;//Exit body.source switch
-							}
-							if(isNaN(iD.substr(1))){
+							iD = aux.isID(iD);
+							if(iD === false){
 								acc_ret("ide");
 								break;
 							}
+							if(iD[0] == "t")
+								file += "trainer.data";
+							else if(iD[0] == "u")
+								file += "user.data";
+							
+							aux.debugShout("Editing "+iD, 1);
 							fs.stat(file, function(err, stats){
 								if(err){
 									acc_ret("fe");
@@ -470,12 +490,24 @@ function handleRequest(req, res){
 											return;
 										}
 										var data = buffer.toString("utf8", 0, buffer.length);
-										var accIndex = data.indexOf("<"+iD);
+										var accIndex = data.indexOf("<"+iD) + 1;
+										var accData = data.slice(accIndex);
+											accData = accData.slice(0, accData.indexOf(">"));
+											
+										var iPW = accData.indexOf(";")+1;
+										var iPWE = aux.indexNOf(accData, ";", 2);
+											
+										if(accData.slice(iPW, iPWE) != opw){
+											acc_ret("pce");
+											fs.close(fd);
+											return;
+										}
+										accData =  accData.slice(0, iPW)+ pw +accData.slice(iPWE);
 										var dBefore = data.substring(0, accIndex);
 										var dAfter = data.substring(accIndex);
-										var endIndex = aux.indexNOf(dAfter, ";", 4);
-										dAfter = dAfter.substring(endIndex);//Should include any linked accounts as well (as points for users)
-										var newData =  dBefore+ newAData+ dAfter;
+											dAfter = dAfter.slice(dAfter.indexOf(">"));
+										var newData =  dBefore+ accData+ dAfter;
+										
 										var buffer = new Buffer(newData);
 										fs.write(fd, buffer, 0, buffer.length, 0, function(err, bytes){
 											if(err){
@@ -483,31 +515,22 @@ function handleRequest(req, res){
 												fs.close(fd);
 												return;
 											}
-											buffer = new Buffer(newData.length);
-											fs.read(fd, buffer, 0, buffer.length, 0, function(err, bytes, buffer){
-												if(err){
-													acc_ret("fe");
-													fs.close(fd);
-													return;
+											var people = aux.dataToEntries(newData);
+											var found = false;
+											for(i=0; i < people.length; i++){
+												if(people[i][0] == iD){
+													found = true;
+													if(people[i][1] == pw)
+														acc_ret(people[i]);//Success - Return manage_account(data)
+													else
+														acc_ret("pce");//Password Confirmation Error
+													break;//Exit for
 												}
-												var data2 = buffer.toString("utf8", 0, buffer.length);
-												var people = aux.dataToEntries(data2);
-												var found = false;
-												for(i=0; i < people.length; i++){
-													if(people[i][0] == iD){
-														found = true;
-														if(people[i][3] == body.pWord)
-															acc_ret(people[i]);//Success - Return manage_account(data)
-														else
-															acc_ret("pce");//Password Confirmation Error
-														break;//Exit for
-													}
-												}
-												if(!found)
-													acc_ret("anfe");//Account not found error
-												fs.close(fd);
-											});
-										});;
+											}
+											if(!found)
+												acc_ret("anfe");//Account not found error
+											fs.close(fd);
+										});
 									});
 								});
 							});
@@ -517,30 +540,25 @@ function handleRequest(req, res){
 							var lID = body.lid;
 							var file = "./";
 							var lFile = "./";
-							aux.debugShout("Editing "+iD, 1);
-							if(iD.substr(0,1) == "t"){
+							
+							iD = aux.isID(iD);
+							lID = aux.isID(lID);
+							if(iD === false || lID === false){
+								acc_ret("ide");
+								break;
+							}
+							if(iD[0] == "t"){
 								file += "trainer.data";
 								lFile += "user.data";
 							}
-							else if(iD.substr(0,1) == "u"){
+							else if(iD[0] == "u"){
 								file += "user.data";
 								lFile += "trainer.data";
 							}
-							else{
-								acc_ret("ide");//Id format error
-								aux.debugShout("ID="+iD+" and substr="+iD.substr(0,1)+"\n");
-								break;//Exit body.source switch
-							}
-							if(lID.substr(0,1) != "t" && lID.substr(0,1) != "u"){
-								acc_ret("ide");
-								aux.debugShout("lID="+lID+" and substr="+lID.substr(0,1)+"\n");
-								break;//Exit body.source switch
-							}
-							if(isNaN(iD.substr(1)) || isNaN(lID.substr(1))){
-								acc_ret("ide");
-								break;//Exit body.source switch
-							}
-							//Check that the user exists
+							
+							aux.debugShout("Linking " + lID + " to " + iD, 1);
+							
+							//Check that the user exists -- this can stay as "readFile" because I'm not editing it
 							fs.readFile(lFile, "utf8", function(err, data){
 								if(err){
 									acc_ret("fe");
@@ -552,64 +570,87 @@ function handleRequest(req, res){
 									return;
 								}
 								//addL
-								fs.readFile(file, "utf8", function(err, data2){
+								fs.stat(file, function(err, stats){
 									if(err){
 										acc_ret("fe");
 										return;
 									}
-									//e.g. data2 = "-----<u0000;male;1/1/1;pass;t0001,t0000;0,0>-----"
-									var accIndex = data2.indexOf("<"+iD)+1;
-									var dAcc = data2.slice(accIndex);
-										dAcc = dAcc.slice(0, dAcc.indexOf(">"));
-									//Absolute index of the section with the links (+1 for ";")
-									var lIndex = 1+accIndex+aux.indexNOf(dAcc, ";", 4);//After the fourth ";"
-									var dBefore = data2.slice(0, lIndex);//e.g. "-----<u0000;male;1/1/1;pass;"
-									//Later, this will become the data after the links
-									var dAfter = data2.slice(lIndex); //e.g. "t0001,t0000;0,0>-----"
-									var endIndex = Math.min(dAfter.indexOf(">"), dAfter.indexOf(";"));//End of the link section 
-									var dLinks = dAfter.slice(0, endIndex);//e.g. t0000,t0001
-										dAfter = dAfter.slice(endIndex);//Includes ";" //e.g. ";0,0>-----"
-									
-									var newLData = lID;//e.g. "t0002"
-									if(dLinks != ""){
-										//verify that the account is not already linked
-										var linkedAs = dLinks.split(",");//split
-											aux.debugShout(linkedAs);
-										for(i=0; i<linkedAs.length; i++){
-											if(linkedAs[i] == lID){
-												var oldAccData = dAcc.split(";");
-												acc_ret(oldAccData);
-												newLData = "already";
-											}
-										}
-										newLData += ",";
-									}
-									if(newLData != "already,"){
-										newLData += dLinks;//append existing links //e.g. "t0002,t0001,t0000"
-										var newData =  dBefore+ newLData+ dAfter;
-										//Save the changes. Do it sync so the file doesn't get edited inbetween
-										fs.writeFileSync(file, newData, "utf8");
-										fs.readFile(file, "utf8", function(err, data3){
+									fs.open(file, "r+", function(err, fd){
+										var buffer = new Buffer(stats.size);
+										fs.read(fd, buffer, 0, buffer.length, 0, function(err, bytes, buffer){
 											if(err){
 												acc_ret("fe");
+												fs.close(fd);
 												return;
 											}
-											var people = aux.dataToEntries(data3);
-											var found = false;
-											for(i=0; i < people.length; i++){
-												if(people[i][0] == iD){
-													found = true;
-													if(people[i][3] == body.pWord)
-														acc_ret(people[i]);//Success - Return manage_account(data)
-													else
-														acc_ret("pce");//Password Confirmation Error
-													break;//Exit for
-												}
+											var data2 = buffer.toString("utf8", 0, buffer.length);
+											//e.g. data2 = "-----<t0;h;1999;u0,u1[;M;0,0]>-----"
+											var accIndex = data2.indexOf("<"+iD)+1;
+											var dAcc = data2.slice(accIndex);
+												dAcc = dAcc.slice(0, dAcc.indexOf(">"));
+											//Check password - this would only trigger if someone is hacking (you needed the password when you loaded this dynh)
+											if(body.pWord != dAcc.split(";")[1]){
+												acc_ret("pce");
+												fs.close(fd);
+												return;
 											}
-											if(!found)
-												acc_ret("anfe");//Account not found error
+											//Absolute index of the section with the links (+1 for ";")
+											var lIndex = 1 + accIndex + aux.indexNOf(dAcc, ";", 3);//After the third ";"
+											var dBefore = data2.slice(0, lIndex);//e.g. "-----<t0;h;1999;"
+											//Later, this will become the data after the links
+											var dAfter = data2.slice(lIndex); //e.g. "u0,u1[;M;0,0]>-----"
+											var endIndex = Math.min(dAfter.indexOf(">"), dAfter.indexOf(";"));//End of the link section 
+											if(endIndex == -1)
+												endIndex = dAfter.indexOf(">");
+											var dLinks = dAfter.slice(0, endIndex);//e.g. t0000,t0001
+												dAfter = dAfter.slice(endIndex);//Includes ";" //e.g. "[;M;0,0]>-----"
+											
+											var newLData = lID;//e.g. "t2"
+											if(dLinks != ""){
+												//verify that the account is not already linked
+												var linkedAs = dLinks.split(",");//split
+													aux.debugShout(linkedAs);
+												for(i=0; i<linkedAs.length; i++){
+													if(linkedAs[i] == lID){
+														var oldAccData = dAcc.split(";");
+														acc_ret(oldAccData);
+														newLData = "already";
+													}
+												}
+												newLData += ",";
+											}
+											if(newLData != "already,"){
+												newLData += dLinks;//append existing links //e.g. "t0002,t0001,t0000"
+												var newData =  dBefore+ newLData+ dAfter;
+												//Save the changes.
+												var buffer = new Buffer(newData);
+												fs.write(fd, buffer, 0, buffer.length, 0, function(err, bytes){
+													if(err){
+														acc_ret("fe");
+														fs.close(fd);
+														return;
+													}
+													var people = aux.dataToEntries(newData);
+													var found = false;
+													for(i=0; i < people.length; i++){//Some of this is probably redundant
+														if(people[i][0] == iD){
+															found = true;
+															if(people[i][1] == body.pWord)
+																acc_ret(people[i]);//Success - Return manage_account(data)
+															else
+																acc_ret("pce");//Password Confirmation Error
+															break;//Exit for
+														}
+													}
+													if(!found)
+														acc_ret("anfe");//Account not found error
+													fs.close(fd);
+												});
+											}//No need for an acc_ret() statement here, it happened earlier
+											
 										});
-									}//No need for an acc_ret() statement here, it happened earlier
+									});
+									
 								});
 							});
 						break;
@@ -631,22 +672,22 @@ function handleRequest(req, res){
 									[session control page]Append "session started at"+, show Tic Detected, Stop Session butttons
 							 */
 							 
-							var iD = body.id;
 							var pass = body.pWord;
-							var lID = body.lid;
 							var file = "./";
-							if(iD.substr(0,1) == "t")
+							
+							body.id = aux.isID(body.id);
+							body.lid = aux.isID(body.lid);
+							if(body.id === false || body.lid === false){
+								ret_error("ide", "/session/index.html");
+								break;
+							}
+							if(body.id[0] == "t"){
 								file += "trainer.data";
-							else if(iD.substr(0,1) == "u")
+							}
+							else if(body.id[0] == "u"){
 								file += "user.data";
-							else{
-								ret_error("ide", "/session/index.html");
-								return;
 							}
-							if(isNaN(iD.substr(1))){
-								ret_error("ide", "/session/index.html");
-								return;
-							}
+							
 							fs.readFile(file, "utf8", function(err, data){
 								if(err){
 									ret_error("fe", "/session/index.html", "new-session: reading "+file);
@@ -656,11 +697,11 @@ function handleRequest(req, res){
 								var found = false;
 								for(i=0; i < people.length; i++){
 									aux.debugShout("looking at "+people[i][0]);
-									if(people[i][0] == iD){
-										if(people[i][3] == pass){
-											var linkedAccounts = people[i][4].split(",");
+									if(people[i][0] == body.id){
+										if(people[i][1] == pass){
+											var linkedAccounts = people[i][3].split(",");
 											for(i2=0; i2<linkedAccounts.length; i2++){
-												if(linkedAccounts[i2] == lID){
+												if(linkedAccounts[i2] == body.lid){
 													found = true;
 												}
 											}
@@ -682,7 +723,7 @@ function handleRequest(req, res){
 							});
 							//Continue with the next step
 							function allConfirmed(){//see if a session file already exists between those users
-								if(iD.substr(0,1) == "t"){
+								if(body.id[0] == "t"){
 									//This section should never need to be used, but it handles ghost sessions. Logs a ghost session error.
 									var oldSFile = "./session/temp/session"+ body.id + body.lid + ".data";
 									fs.stat(oldSFile, function(err){
@@ -705,7 +746,7 @@ function handleRequest(req, res){
 									fs.stat(oldSFile, function(err){
 										if(err){
 											if(err.code == "ENOENT"){//Good.
-												var linkData = "<" +iD+ "," +lID+ ">";//Data entry for the waiting link
+												var linkData = "<" +body.id+ "," +body.lid+ ">";//Data entry for the waiting link
 												fs.readFile("./session/lnusers.data", "utf8", function(err,data){
 													if(err){
 														ret_error("fe", "/session/index.html", "new-session: reading lnusers.data");
@@ -738,7 +779,7 @@ function handleRequest(req, res){
 							function success(){
 								body.tryN = 0;
 								//Go to Link Loading Page
-								if(body.id.substring(0,1)=="t")
+								if(body.id[0]=="t")
 									ret_link_loading_trainer(body);
 								else{ //b.i.sub() is definitely "u" because the error would have already been caught otherwise
 									ret_link_loading_user(body);
@@ -903,7 +944,7 @@ function handleRequest(req, res){
 										for(i=0; i < people.length; i++){
 											if(people[i][0] == body.id){
 												found = true;
-												if(people[i][3] == body.pWord){
+												if(people[i][1] == body.pWord){
 													var lpData = people[i][5].split(",");
 													body.level = lpData[0];
 													body.points = lpData[1];
@@ -923,7 +964,7 @@ function handleRequest(req, res){
 											}
 										}
 										if(!found){
-											aux.debugShout("anfe 1496");
+											aux.debugShout("anfe 969");
 											ret_error("anfe");//Account not found error
 										}
 									});
@@ -1024,7 +1065,7 @@ function handleRequest(req, res){
 							var sesFile = "./session/temp/session" + body.lid + body.id + ".data";
 							var sF2 = "./session/archive/session" + body.lid + body.id + aux.time("forfile") + ".data";
 							var uFile = "./user.data";
-							//save user l & p
+							//save user l & p TO DO: switch this to fs.open() like addL, editP
 							fs.readFile(uFile, "utf8", function(err, data){
 								if(err){
 									ret_error("fe", "/session/index.html", "session_end-user: read uFile");
@@ -1033,14 +1074,16 @@ function handleRequest(req, res){
 								var accIndex = data.indexOf("<"+body.id)+1;
 								var aData = data.slice(accIndex);
 									aData = aData.slice(0, aData.indexOf(">"));
-								var pass = aData.split(";")[3];
+								var pass = aData.split(";")[1];
 								if(body.pWord != pass){
 									aux.debugShout("body.pword= "+body.pWord+"; pass= "+pass);
 									ret_error("pce");
 									return;
 								}
 								var lpIndex = 1+accIndex + aux.indexNOf(data.slice(accIndex), ";", 5);//Index of the level and points info
-								var afterlp = accIndex + Math.min(aux.indexNOf(data.slice(accIndex), ";", 6), data.slice(accIndex).indexOf(">"));
+								var afterlp = lpIndex + Math.min(data.slice(lpIndex).indexOf(";"), data.slice(lpIndex).indexOf(">"));
+								if(afterlp < lpIndex)//last user, no ";" found (-1)
+									afterlp = lpIndex + data.slice(lpIndex).indexOf(">");
 								var dBefore = data.slice(0, lpIndex);
 								var dAfter = data.slice(afterlp);
 								var newLp = body.level + "," + body.points;
@@ -1116,6 +1159,13 @@ function handleRequest(req, res){
 					ret_report_sent(body);
 				break;
 				case "/error/ghses.html":
+					body.tid = aux.isID(body.tid);
+					body.uid = aux.isID(body.uid);
+					if(body.tid === false || body.uid === false){
+						ret_error("ide", "/error/ghses.html");
+						break;
+					}
+					
 					var tFile = "./trainer.data";
 					fs.readFile(tFile, "utf8", function(err, data){
 						if(err){
@@ -1127,7 +1177,7 @@ function handleRequest(req, res){
 						for(i=0; i<people.length; i++){
 							if(people[i][0] == body.tid){
 								found = true;
-								if(people[i][3] == body.pWord){ //Good
+								if(people[i][1] == body.pWord){ //Good
 									var sesFile = "./session/temp/session"+ body.tid + body.uid + ".data";
 									fs.stat(sesFile, function(err){
 										if(err){
@@ -1188,6 +1238,7 @@ var server = http.createServer(handleRequest);
 
 //Start server
 server.listen(PORT, function(){
-    //Callback triggered when server is successfully listening.
-    console.log("Server listening on: http://localhost:" + PORT);
+	//Callback triggered when server is successfully listening.
+	console.log("Started at "+aux.time());
+	console.log("Server listening on: http://localhost:" + PORT);
 });

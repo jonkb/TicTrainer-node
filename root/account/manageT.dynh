@@ -11,7 +11,7 @@
 			<div class='header-navbar'>
 				<a href='/' class='logo'></a>
 				<h1>Manage Trainer Account</h1>
-				<h2>**[id]** : **[fn]**</h2>
+				<h2>**[id]**</h2>
 				<div style='clear: both;'></div>
 			</div>
 		</section>
@@ -38,19 +38,16 @@
 				</fieldset>
 			</form>
 			<form method='POST'>
-				<input type='hidden' name='source' value='editA'>
+				<input type='hidden' name='source' value='editP'>
 				<input type='hidden' name='id' value='**[id]**'>
+				<input type='hidden' name='oldPass' value='**[pw]**'>
 				<fieldset>
-					<legend>Edit Account</legend>
-					First Name:<br>
-					<input type='text' name='fName' value='**[fn]**' required> <br>
-					Birth Date:<br>
-					<input type='text' name='birth' value='**[birth]**' placeholder='mm/dd/yyyy' required> <br>
+					<legend>Change Password</legend>	
 					Old Password:<br>
 					**[pw]**<br>
 					New Password:<br>
-					<input type='password' name='pWord' required> <br>
-					<input type='submit' value='Save Changes' class="btn">
+					<input type='password' name='pass' required> <br>
+					<input type='submit' value='Change Password' class="btn">
 				</fieldset>
 			</form>
 			<a href='/index.html' class='btn'>Return to Home</a>

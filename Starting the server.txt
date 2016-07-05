@@ -1,6 +1,6 @@
 1 start aws ec2
 2 Use aws elastic ip
-3 Set value of debugging in server.js to 0
+3 Set value of debugging in auxiliary.js to 0
 4 ssh newest version to server
 5 link TicTrainer.com to aws elastic ip - godaddy
 
@@ -10,4 +10,4 @@ navigate to the root directory
 
 .../root$ nohup node server.js &> ../"Project Files"/log.txt
 
- - "&>" pipes error and regular output to log.txt
+ - &> pipes error and regular output to log.txt

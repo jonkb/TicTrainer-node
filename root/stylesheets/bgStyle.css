@@ -2,7 +2,7 @@ body {
   padding: 0;
   margin: 0;
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 16px;
+  /*font-size: 16px;*/
   line-height: 1.5;
   color: #2f3537; /*Darker*/
 	background-color: #fff;
@@ -17,7 +17,14 @@ a {
   text-decoration: none; }
   a:hover {
     text-decoration: underline; }
-	
+
+button {
+	cursor: -webkit-pointer;
+  cursor: -khtml-pointer;
+  cursor: -moz-pointer;
+	cursor: pointer;
+}
+		
 footer {
   padding-top: 2rem;
   margin-top: 4rem;
@@ -75,6 +82,15 @@ footer {
 }
 
 .main-content .btn {
+	-webkit-user-select: none;/*You can't select the text in the btn label*/
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  user-select: none; 
+	cursor: -webkit-pointer;
+  cursor: -khtml-pointer;
+  cursor: -moz-pointer;
+	cursor: pointer;
+	
   margin-bottom: .3rem;
   text-align: center;
 	color: #fff;
@@ -93,6 +109,11 @@ footer {
   border-color: #4be799;
   }
 .page-header .btn {
+	-webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  user-select: none; 
+	
   margin: .25rem;
 	color: #fff;
   background-color: rgba(255, 255, 255, 0.08);
@@ -106,6 +127,7 @@ footer {
 	text-decoration: none;
   background-color: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.9); }	
+
 .main-content form .btn {
 	margin: .5rem 0 0 0; 
 	margin-bottom: 0;
@@ -113,6 +135,15 @@ footer {
 }
 
 .bigBtn {
+	-webkit-user-select: none;/*You can't select the text in the btn label*/
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  user-select: none; 
+	cursor: -webkit-pointer;
+  cursor: -khtml-pointer;
+  cursor: -moz-pointer;
+	cursor: pointer;
+	
   margin: .25rem auto;
   text-align: center;
   color: #fff;
@@ -156,7 +187,7 @@ footer {
 }
   
 /*Conditional on screen size:*/
-@media (min-width: 60rem) {/*BIG*/
+@media (min-width: 1000px){/*60rem) {/*BIG*/
   .page-header h1{ font-size: 3.25rem; }
   .page-header h2{ font-size: 1.5rem; }
   .main-content {
@@ -194,7 +225,7 @@ footer {
 	}
 }
 
-@media (min-width: 30rem) and (max-width: 60rem) {/*MED*/
+@media (min-width: 500px) and (max-width: 1000px){/*30rem) and (max-width: 60rem) {/*MED*/
   .page-header h1{ font-size: 2.25rem; }
   .page-header h2{ font-size: 1.2rem; }
   .main-content {
@@ -230,7 +261,7 @@ footer {
 	}
 }
 
-@media (max-width: 30rem){/*480px) {Phone*/
+@media (max-width: 500px) {/*Phone*/
   .page-header h1{ font-size: 1.75rem; }
   .page-header h2{ font-size: 1rem; }
   .main-content {

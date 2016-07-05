@@ -16,13 +16,13 @@
 			</div>
     </section>
     <section class="main-content">
-      <form method="POST" name="report" onsubmit="return validateForm();">
+      <form method="POST" name="report" onsubmit="return checkForm();">
         <fieldset>
           <legend>Send a Report</legend>
-          First Name:<br>
-          <input type="text" name="fName" required> <br>
-					E-Mail:<br>
-					<input type="text" name="email" required> <br>
+          First Name: (Optional)<br>
+          <input type="text" name="fName"> <br>
+					E-Mail: (Optional)<br>
+					<input type="text" name="email"> <br>
 					Message:<br>
 					<textarea name="message" style="width:80%; height:6em;"></textarea><br>
 					<input type="submit" class="btn">
@@ -30,14 +30,16 @@
       </form>
     </section>
 		<script>
-			function validateForm() {
-					var x = document.forms["report"]["email"].value;
+			function checkForm() {
+				var x = document.forms["report"]["email"].value;
+				if(x != ""){
 					var atpos = x.indexOf("@");
 					var dotpos = x.lastIndexOf(".");
 					if (atpos<1 || dotpos<atpos+2 || dotpos+2>=x.length) {
 							alert("Not a valid e-mail address");
 							return false;
 					}
+				}
 			}
 		</script>
   </body>

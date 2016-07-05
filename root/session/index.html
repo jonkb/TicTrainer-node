@@ -15,7 +15,7 @@
 			</div>
     </section>
     <section class="main-content">
-			<form method="POST" name="newSession">
+			<form method="POST" name="newSession" onsubmit="return checkForm();">
 				<input type="hidden" name="source" value="newSession">
 				<fieldset>
 					<legend>New Session</legend>
@@ -29,5 +29,19 @@
 				</fieldset>
 			</form>
     </section>
+		<script>
+			function checkForm(){
+				var id = document.forms["newSession"]["id"].value.toLowerCase();
+				var lid = document.forms["newSession"]["lid"].value.toLowerCase();
+				if("ut".indexOf(id[0]) == -1 || id.length < 2){
+					alert("Invalid ID");
+					return false;
+				}
+				if("ut".indexOf(lid[0]) == -1 || lid.length < 2){
+					alert("Invalid user ID");
+					return false;
+				}
+			}
+		</script>
 	</body>
 </html>

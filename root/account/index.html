@@ -15,7 +15,7 @@
 			</div>
     </section>
     <section class="main-content">
-			<form method="POST" name="manageAccount">
+			<form method="POST" name="manageAccount" onsubmit="return checkForm();">
 				<input type="hidden" name="source" value="manageAccount">
 				<fieldset>
 					<legend>Manage Account</legend>
@@ -27,5 +27,21 @@
 				</fieldset>
 			</form>
     </section>
+		<script>
+			function checkForm(){
+				var id = document.forms["manageAccount"]["id"].value.toLowerCase();
+				var pw = document.forms["manageAccount"]["pWord"].value.toLowerCase();
+				
+				if(!id || !pw){
+					alert("Please finish the form");
+					return false;
+				}
+				if("ut".indexOf(id[0]) == -1 || id.length < 2){
+					alert("Invalid ID");
+					return false;
+				}
+				return true;
+			}
+		</script>
 	</body>
 </html>

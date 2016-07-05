@@ -19,13 +19,11 @@
 	
     <section class="main-content">
       <!--FORM-->
-      <form method="POST" name="addTrainer">
+      <form method="POST" name="addTrainer" onsubmit="return checkForm();">
         <fieldset>
           <legend>New Account</legend>
-          First Name:<br>
-          <input type="text" name="fName" required> <br>
-          Birth Date:<br>
-          <input type="text" name="birth" placeholder="mm/dd/yyyy" required> <br>
+          Birth Year:<br>
+          <input type="text" name="birth" placeholder="yyyy" required> <br>
           Password:<br>
           <input type="password" name="pWord" required> <br>
           Confirm Password:<br>
@@ -34,5 +32,52 @@
         </fieldset>
       </form>
     </section>
+		<script>
+			function checkForm() {
+				var y = document.forms["addTrainer"]["birth"].value;
+				var pw = document.forms["addTrainer"]["pWord"].value;
+				var pwC = document.forms["addTrainer"]["pWordConf"].value;
+				if(pw != pwC){
+					alert("Passwords do not match");
+					return false;
+				}
+				if(!y || !pw || !pwC){
+					alert("Please finish the form");
+					return false;
+				}
+				if(pw.indexOf(";") != -1 || pw.indexOf("<") != -1 || pw.indexOf(">") != -1){
+					alert("Please do not include \";\", \"<\", or \">\" in your password");
+					return false;
+				}
+				if(isNaN(y)){
+					alert("Invalid year");
+					return false;
+				}
+				
+				var now = new Date();
+				if(y.length == 2){//Really, they shouldn't use this
+					if(parseInt(y)+2000 < now.getFullYear())//y is between 00 and 15(in 2016)
+						y = "20"+y;
+					else
+						y = "19"+y;
+						
+						document.forms["addTrainer"]["birth"].value = y;
+				}
+				else if(y.length == 4){
+					if(parseInt(y) > now.getFullYear()){
+						alert("Invalid year");
+						return false;
+					}
+					if(now.getFullYear() - parseInt(y) > 89){
+						document.forms["addTrainer"]["birth"].value = now.getFullYear() - 90;
+					}
+				}
+				else{
+					alert("Invalid year");
+					return false;
+				}
+				return true;
+			}
+		</script>
   </body>
 </html>

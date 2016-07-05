@@ -1,24 +1,39 @@
 To Do:
+IN PROGRESS:
+- Checking everything still works
+  - session_end-user saving l,p
+
 FUNCTIONAL:
+- Register
+
 ARE WE READY TO GO PUBLIC?
 - BEFORE WE DO:
-  - Dad edit index paragraphs
+  - Dad edit home paragraphs
+- Bug Report: name& email optional
+- get rid of birth date for trainers or check minimum age. Why is it there?
+  - trainer year
+  - user + random
+  - change "edit account" to "change password"
 
 VISUAL:
+- "Note 4: After the person saves the form on which it asks their birth month and year, I'd like the server to respond with a (non-editable) reply like this: "Great. FYI, the fake birthdate we will use for you is [June 13, 1999 -- whatever we actually just saved]. There's a small chance (less than 3%) that it is your real birthday, but if so, that's just a lucky guess. All we know on our end is that it's within a couple of months of your real birthday."
+[FYI: http://bit.ly/290iX3G -- and the likelihood is even lower if the person was born on a day other than the 15th.] "
 
+- Add a dynh page for fe, se
 DEEPER:
 - check form errors client-side
-- Use more fs.open ?
-- Convert everything in the session to 307 redirects
-- get rid of birth date for trainers or check minimum age. Why is it there?
+- Use more fs.open ?: eliminate sync functions
+- Convert everything in the session to 307 redirects?
 - move more things to aux?
 - Should I make it check password each step of the session for safety -- would that be taxing
 
 MAYBE:
 - add leaderboard
-- look up dragonfable level up ratios   - (100*level^2)http://dfwiki.com/w/Experience_Chart   - http://epicduelwiki.com/w/Experience#Experience_by_Level
+- look up dragonfable level up ratios
+   - (100*level^2)http://dfwiki.com/w/Experience_Chart
+   - http://epicduelwiki.com/w/Experience#Experience_by_Level
 - convert points into coins on each levelUp, add a store
   - buy decorations, stickers?
 - Maybe use ajax instead for linkloading-trainer?
 - use json? ajaj? instead of ajax and .data and xml
-- move reports out of error and into report folders
+- move reports out of error and into report folder

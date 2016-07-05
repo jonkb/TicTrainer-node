@@ -34,7 +34,7 @@
 					<td>**[linked_accounts]**</td>
 				</tr>
 			</table>
-			<form method='POST'>
+			<form method='POST'>			
 				<input type='hidden' name='source' value='addL'>
 				<input type='hidden' name='id' value='**[id]**'>
 				<input type='hidden' name='pWord' value='**[pw]**'>
@@ -46,19 +46,15 @@
 				</fieldset>
 			</form>
 			<form method='POST'>
-				<input type='hidden' name='source' value='editA'>
+				<input type='hidden' name='source' value='editP'>
 				<input type='hidden' name='id' value='**[id]**'>
+				<input type='hidden' name='oldPass' value='**[pw]**'>
 				<fieldset>
-					<legend>Edit Account</legend>
-					Sex (**[sex]**):<br>
-					<input type='radio' name='sex' value='male'> Male<br>
-					<input type='radio' name='sex' value='female'> Female<br>
-					Birth Date:<br>
-					<input type='text' name='birth' value='**[birth]**' placeholder='mm/dd/yyyy' required><br>
+					<legend>Change Password</legend>
 					Old Password:<br>
 					**[pw]**<br>
 					New Password:<br>
-					<input type='password' name='pWord' required> <br>
+					<input type='password' name='pass' required> <br>
 					<input type='submit' value='Save Changes' class="btn">
 				</fieldset>
 			</form>
