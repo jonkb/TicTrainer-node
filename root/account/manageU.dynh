@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Manage User Account</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+	</head>
+	<body>
+		<section class='page-header'>
+			<div class='header-navbar'>
+				<a href='/' class='logo'></a>
+				<h1>Manage User Account</h1>
+				<h2>**[id]**</h2>
+				<div style='clear: both;'></div>
+			</div>
+		</section>
+		<section class='main-content' id='mainC'>
+			<table>
+				<tr>
+					<td>ID: </td>
+					<td>**[id]**</td>
+				</tr>
+				<tr>
+					<td>Level: </td>
+					<td>**[level]**</td>
+				</tr>
+				<tr>
+					<td>Points: </td>
+					<td>**[points]**</td>
+				</tr>
+				<tr>
+					<td>Linked Trainers:</td>
+					<td>**[linked_accounts]**</td>
+				</tr>
+			</table>
+			<form method='POST'>			
+				<input type='hidden' name='source' value='addL'>
+				<input type='hidden' name='id' value='**[id]**'>
+				<input type='hidden' name='pWord' value='**[pw]**'>
+				<fieldset>
+					<legend>Add Trainer</legend>
+					Trainer Account ID:<br>
+					<input type='text' name='lid' placeholder='t0000' required> <br>
+					<input type='submit' value='Link' class="btn">
+				</fieldset>
+			</form>
+			<form method='POST'>
+				<input type='hidden' name='source' value='editP'>
+				<input type='hidden' name='id' value='**[id]**'>
+				<input type='hidden' name='oldPass' value='**[pw]**'>
+				<fieldset>
+					<legend>Change Password</legend>
+					Old Password:<br>
+					**[pw]**<br>
+					New Password:<br>
+					<input type='password' name='pass' required> <br>
+					<input type='submit' value='Save Changes' class="btn">
+				</fieldset>
+			</form>
+			<a href='/index.html' class='btn'>Return to Home</a>
+		</section>
+	</body>
+</html>

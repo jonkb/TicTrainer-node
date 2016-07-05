@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>TicTrainer bug report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+  </head>
+  <body>
+    <section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>TicTrainer bug report</h1>
+				<div style="clear: both;"></div>
+			</div>
+    </section>
+    <section class="main-content">
+      <form method="POST" name="report" onsubmit="return checkForm();">
+        <fieldset>
+          <legend>Send a Report</legend>
+          First Name: (Optional)<br>
+          <input type="text" name="fName"> <br>
+					E-Mail: (Optional)<br>
+					<input type="text" name="email"> <br>
+					Message:<br>
+					<textarea name="message" style="width:80%; height:6em;"></textarea><br>
+					<input type="submit" class="btn">
+        </fieldset>
+      </form>
+    </section>
+		<script>
+			function checkForm() {
+				var x = document.forms["report"]["email"].value;
+				if(x != ""){
+					var atpos = x.indexOf("@");
+					var dotpos = x.lastIndexOf(".");
+					if (atpos<1 || dotpos<atpos+2 || dotpos+2>=x.length) {
+							alert("Not a valid e-mail address");
+							return false;
+					}
+				}
+			}
+		</script>
+  </body>
+</html>

@@ -5,36 +5,82 @@
     <title>TicTrainer by KBMD</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
   </head>
   <body>
     <section class="page-header">
       <h1>TicTrainer</h1>
       <h2>TicTrainer&#8482; web page -- BETA</h2>
 			<a href="register/" class="btn">Register</a>
-			<a href="account.html" class="btn">Manage Account</a>
+			<a href="account/" class="btn">Manage Account</a>
 			<a href="session/" class="btn">New Session</a>
     </section>
 
     <section class="main-content">
-      <h2>Welcome to TicTrainer</h2>
+      <h2 style='margin-top:0;'>Welcome to TicTrainer&#8482;</h2>
       <p>
-				The TicTrainer&#8482; software aims to treat Tourette's syndrome through RE-ERP 
-				(Reward-Enhanced Exposure and Response Prevention). Essentially, this means trying not to tic for 
-				as long as possible, with rewards for long periods without a tic. All user data is kept anonymous, 
-				but may be used for research by <a href="http://www.nil.wustl.edu/labs/kevin/">Kevin Black, MD</a>.
+				TicTrainer&#8482; is a web tool meant to help you build your ability to fight tics.
 			</p>
-			<h2>How to use TicTrainer</h2>
+			<h2>How to use TicTrainer&#8482;</h2>
 			<p>
-				First, trainer and user both <a href="register/">register</a> an account. 
-				Then, each goes to <a href="account.html">Manage Account</a> to link to the other.
+				First, trainer and user each <a href="register/">register</a> their own accounts. 
+				(The &#8220;user&#8221; is the person with tics, and the &#8220;trainer&#8221; 
+				may be a parent, a psychologist or a physician.)
+				Then, each goes to <a href="account/">Manage Account</a> to link to the other.
 				Then, you can <a href="session/">start a session</a> from two devices. 
-				The user will see a counter with their points and the current rate they recieve points, 
-				and the trainer will see two buttons. The trainer must carefully watch the user and press the 
-				"Tic Detected" button when the user tics. When the training session is over, press "End Session"
-				and the user's points and level will be saved.
+				The user will see a counter with their points and the current rate at which 
+				they receive points, and the trainer will see two buttons. The trainer must 
+				carefully watch the user and press the &#8220;Tic Detected&#8221; button when the 
+				user tics. When the training session is over, press &#8220;End Session&#8221; and 
+				the user&#8217;s points and level will be saved.
 			</p>
-
+			<h2>The rationale for TicTrainer&#8482;</h2>
+			<p>
+				ERP (Exposure and Response Prevention) is a method previously used to treat Tourette&#8217;s
+				syndrome. The idea behind ERP is that by suppressing tics for a very long time, 
+				eventually the urge to tic will fade away. It is usually done with a trained 
+				psychologist over the course of about ten 90-minute behavior therapy sessions. 
+				ERP is not just an interesting idea, it works. ERP was compared to the best-proven 
+				behavior therapy for tics,
+				(<a href=http://tourette.wikispaces.com/CBIT_for_tics>CBIT</a>), in a randomized
+				controlled trial, and
+				<a href=http://www.ncbi.nlm.nih.gov/pubmed/15033497>both were similarly effective</a>.
+				Unfortunately, although <a href=http://www.ncbi.nlm.nih.gov/pubmed/25879205>three
+				fourths of parents</a> would like behavior therapy available to their children with tics, 
+				<a href=http://www.ncbi.nlm.nih.gov/pubmed/25879205>many do not have access</a>
+				to an appropriately trained therapist.
+			</p>
+			<p>
+				So we have designed an alternative method in hopes that it may help you gain more 
+				control over your tics. The TicTrainer&#8482; app is used in what we call RE-ERP
+				(Reward-Enhanced Exposure and Response Prevention). The app is meant to build your 
+				ability to suppress tics by giving you frequent rewards, kind of like a video game 
+				does. You get points, shown on a web page, for holding back your tics for a period 
+				of time. Initially you get points for suppressing tics for only about 10 seconds, 
+				but as you keep training and your ability grows, you earn points much more quickly 
+				when you suppress for longer intervals. 
+			</p>
+			<p>
+				We know you can probably find ways to &#8220;game&#8221; the system, but we hope you 
+				don&#8217;t. Mostly that&#8217;s because that probably won&#8217;t help your tics! But also, 
+				we want to see how TicTrainer&#8482 works for you so we can improve it for others, 
+				and fake progress will make that harder to do. 
+			</p>
+			<h2>Privacy Assurance</h2>
+			<p>
+				TicTrainer&#8482; never asks you for your name or any other personal information, so 
+				there is no privacy risk. (We do ask for the month and year the user was born in, 
+				but to protect privacy, we don&#8217;t even save that! Rather, we save a fake birthdate 
+				randomly chosen within a few months of the month you tell us.) We will use the 
+				anonymous data to try to learn something about how well TicTrainer&#8482 works, 
+				who it works best for, and how to improve it. 
+			</p>
+			
+			<footer>
+				The source code for this website and its server can be found on <a href="https://github.com/jonkb/TicTrainer-node">github</a>.<br>
+				Please submit any suggestions or bug reports <a href="error/report.html">here</a>.<br>
+				&copy; 2016 Jonathan K. Black and <a href="http://www.purl.org/net/kbmd">Kevin J. Black</a>
+			</footer>
     </section>
-
   </body>
 </html>

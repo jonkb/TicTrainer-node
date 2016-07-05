@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en-us">
 	<head>
-		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
 		<title>Start TicTrainer Session</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
 	</head>
 	<body>
     <section class="page-header">
@@ -15,7 +15,7 @@
 			</div>
     </section>
     <section class="main-content">
-			<form method="POST" name="newSession">
+			<form method="POST" name="newSession" onsubmit="return checkForm();">
 				<input type="hidden" name="source" value="newSession">
 				<fieldset>
 					<legend>New Session</legend>
@@ -25,9 +25,23 @@
 					<input type="password" name="pWord" required><br>
 					ID to link to:<br>
 					<input type="text" name="lid" placeholder="u0000" required><br>
-					<input type="submit" value="Link" style="margin-top: 0.5rem">
+					<input type="submit" value="Link" class="btn">
 				</fieldset>
 			</form>
     </section>
+		<script>
+			function checkForm(){
+				var id = document.forms["newSession"]["id"].value.toLowerCase();
+				var lid = document.forms["newSession"]["lid"].value.toLowerCase();
+				if("ut".indexOf(id[0]) == -1 || id.length < 2){
+					alert("Invalid ID");
+					return false;
+				}
+				if("ut".indexOf(lid[0]) == -1 || lid.length < 2){
+					alert("Invalid user ID");
+					return false;
+				}
+			}
+		</script>
 	</body>
 </html>

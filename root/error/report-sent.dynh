@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Report Sent</title>
+		<link rel='stylesheet' type='text/css' href='/stylesheets/bgStyle.css'>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+	</head>
+	<body>
+		<section class='page-header'>
+			<div class='header-navbar'>
+				<a href='/' class='logo'></a>
+				<h1>Report Sent</h1>
+			<div style='clear: both;'></div>
+			</div>
+		</section>
+		<section class='main-content'>
+			<p>
+				**[fn]**our report has been saved, and we will get working on it as soon as possible.
+				Thank you for your feedback.
+			</p>
+			<a href='/' class='bigBtn'>Return to Home</a>
+		</section>
+	</body>
+</html>

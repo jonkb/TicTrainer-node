@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<title>Loading Link</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+	</head>
+	<body onLoad='look()'>
+    <section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>Loading Link</h1>
+				<h2>**[id]** - **[lid]**</h2>
+				<div style="clear: both;"></div>
+			</div>
+    </section>
+    <section class="main-content">
+			<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>
+			<form id='lookForm' method='POST'>
+				<input type='hidden' name='source' value='linkloading-trainer'>
+				<input type='hidden' name='id' value='**[id]**'>
+				<input type='hidden' name='pWord' value='**[pw]**'>
+				<input type='hidden' name='lid' value='**[lid]**'>
+				<input type='hidden' name='tryN' value='**[tryN]**'>
+			</form>
+    </section>
+		<script>
+			function look(){
+				var form = document.getElementById('lookForm');
+				setTimeout(function(){ form.submit(); }, 2000);
+			}
+		</script>
+	</body>
+</html>

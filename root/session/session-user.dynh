@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<title>TicTrainer Session: User</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+	</head>
+	<body>
+    <section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>TicTrainer Session: User</h1>
+				<div style="clear: both;"></div>
+			</div>
+    </section>
+    <section class="main-content">
+			<table id='display' style='width:100%;'>
+			<td id='pCounter' class='bigCounter'>**[points]**</td>
+			<td id='rCounter' class='medCounter'>+0</td></table>
+    </section>
+		<script>
+			var salido = false;//salido -sp- left
+			window.onbeforeunload = endS;
+			window.onpagehide = endS;
+			//document.addEventListener('visibilitychange', function(){if(document.hidden){endS();}}, false);
+
+			var points = **[points]**;
+			var level = **[level]**;
+			if(level == 0){
+				level = 1;
+				alert('It appears to be your first session. Try not to tic.');//First time spiel
+			}
+			var nextLevel = 1000*level*level*level;
+			var cap = 10*level*level;
+			var rate = 0;
+			var lastL = **[sesL]**;
+			update_display();
+			frame();
+			function frame(){
+				var xhr = new XMLHttpRequest();
+				var url = '/session/index.html';
+				var reqBody = 'source=session-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&sesL='+lastL;
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Content-type', 'text/plain');//application/x-www-form-urlencoded
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4) {//4: request finished & response ready - readystate codes:http://www.w3schools.com/ajax/ajax_xmlhttprequest_onreadystatechange.asp
+						if(xhr.status == 200){
+							var tic = 0;
+							var end = 0;
+							var fields = xhr.responseText.split('&');
+							lastL = fields[0];
+							for(i=1; i<fields.length; i++){
+								if(fields[i] == 'tic') tic++;
+								if(fields[i] == 'end') end++;
+							}
+							if(end == 0){
+							  if(tic == 0){
+                  /* Continue with the frame*/
+                  if(rate < cap){
+                  	rate += level*level;
+                  	if(rate > cap)//Overshot
+                  		rate = cap;
+                  }
+                  points += rate;
+                  if(points > nextLevel)
+                  	levelUp();
+                }
+                else{ ticTrigger(); }
+								update_display();
+								setTimeout(function(){ frame(); }, 1000*level);
+							}
+							else{ endS(); }
+						}
+						else{//Like an Error Page
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}//ERROR
+					}
+				};
+				xhr.send(reqBody);
+			}
+			function ticTrigger(){//Flash red
+			  rate = 0;
+			  document.getElementById('display').setAttribute('style', 'background-color:red; width:100%;');
+			  setTimeout(function(){document.getElementById('display').setAttribute('style', 'width:100%;');}, 1000)
+			}
+			function endS(){
+				if(!salido){
+					var xhr = new XMLHttpRequest();
+					var url = '/session/index.html'
+					//source,id,pWord,lid,level,points
+					var reqBody = 'source=session_end-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&level='+level+'&points='+points;
+					xhr.open('POST', url, true);
+					xhr.onreadystatechange = function(){
+						if(xhr.readyState == 4){
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
+					}
+					xhr.send(reqBody);
+					salido = true;
+				}
+			}
+			function levelUp(){
+				level++;
+				nextLevel = 1000*level*level*level;
+				cap = 10*level*level;
+				//Flash green (this green is 10% lighter than the green in the page header)
+			  document.getElementById('display').setAttribute('style', 'background-color:#1fe080; width:100%;');
+			  setTimeout(function(){document.getElementById('display').setAttribute('style', 'width:100%;');}, 1000)
+			}
+			function update_display(){
+				document.getElementById('pCounter').innerHTML = points;
+				document.getElementById('rCounter').innerHTML = '+'+rate;
+			}
+		</script>
+	</body>
+</html>

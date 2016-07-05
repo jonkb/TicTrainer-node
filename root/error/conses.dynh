@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Error: Concurrent Session</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+		<link rel='stylesheet' type='text/css' href='/stylesheets/bgStyle.css'>
+	</head>
+	<body>
+		<section class='page-header'>
+			<div class='header-navbar'>
+				<a href='/' class='logo'></a>
+				<h1>Error: Concurrent Session</h1>
+			<div style='clear: both;'></div>
+			</div>
+		</section>
+		<section class='main-content' id='mainC'>
+			Either a session is already in progress between these two accounts,
+			or the previous session was ended improperly. 
+			You can end the previous session and 
+			<a href='**[retry]**' class='btn'>Try Again</a>
+			or, if you believe there is no session currently in progress, visit the 
+			<a href='/error/ghses.html' class='btn'>Ghost Session</a> termination page.
+		</section>
+	</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<title>Loading Link</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+	</head>
+	<body>
+    <section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>Loading Link</h1>
+				<h2>**[id]** - **[lid]**</h2>
+				<div style="clear: both;"></div>
+			</div>
+    </section>
+    <section class="main-content">
+			<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>
+    </section>
+		<script>
+			var tryN = 0;
+			var salido = false;//salido -sp- left
+			window.onbeforeunload = leave;
+			window.onpagehide = leave;
+			//document.addEventListener('visibilitychange', function(){if(document.hidden){leave();}}, false);
+			
+			look();//automatic
+			function look(){
+				if(tryN < 30){
+					var xhr = new XMLHttpRequest();
+					var url = '/session/index.html';
+					var reqBody = 'source=linkloading-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=exists';
+					xhr.open('POST', url, true);
+					xhr.setRequestHeader('Content-type', 'text/plain');
+					xhr.onreadystatechange = function(){
+						if(xhr.readyState == 4){
+							if(xhr.responseText == 'wait'){//retry
+								setTimeout(look, 2000);//loop
+							}
+							else{
+								document.open();
+								document.write(xhr.responseText);
+								document.close();
+							}
+						}
+					};
+					xhr.send(reqBody);
+					tryN++;
+				}
+				else{//Timeout
+					var xhr = new XMLHttpRequest();
+					var url = '/session/index.html';
+					var reqBody = 'source=linkloading-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=timeout';
+					xhr.open('POST', url, true);
+					xhr.setRequestHeader('Content-type', 'text/plain');
+					xhr.onreadystatechange = function(){
+						if(xhr.readyState == 4){
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
+					};
+					xhr.send(reqBody);
+				}
+			}
+			function leave(){
+				if(!salido){
+					var xhr = new XMLHttpRequest();
+					var url = '/session/index.html'
+					var reqBody = 'source=linkloading-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=leave';
+					xhr.open('POST', url, true);
+					xhr.setRequestHeader('Content-type', 'text/plain');
+					xhr.send(reqBody);
+					salido = true;
+				}
+			}
+		</script>
+	</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel='stylesheet' type='text/css' href='/stylesheets/bgStyle.css'>
+		<title>Account Successfully Created</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+	</head>
+	<body>
+		<section class='page-header'>
+			<div class='header-navbar'>
+				<a href='/' class='logo'></a>
+				<h1>Account Successfully Created</h1>
+				<div style='clear: both;'></div>
+			</div>
+		</section>
+		<section class='main-content' id='mainC'>
+			Your account id is:
+			<div class="alertText">**[id]**</div>
+			Your password is:
+			<div class="alertText">**[pw]**</div>
+			Be sure to <b>record this information</b>, as it is needed to log in. <br><br>
+			<a href='/' class='btn'>Return to Home</a>
+			**[bd]**
+		</section>
+	</body>
+</html>
