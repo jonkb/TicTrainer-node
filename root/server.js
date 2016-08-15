@@ -118,6 +118,7 @@ function handleRequest(req, res){
 		else if(data[0][0] == "u"){
 			var level = data[5].split(",")[0];
 			var points = data[5].split(",")[1];
+			var coins = data[5].split(",")[2];
 			var lnacc = "";
 			if(data[3] == ""){
 				lnacc = "No Linked Accounts";
@@ -132,7 +133,8 @@ function handleRequest(req, res){
 				"linked_accounts": lnacc, //from data[3]
 				"sex": data[4],
 				"level": level, //from data[5]
-				"points": points //from data[5]
+				"points": points, //from data[5]
+				"coins": coins //from data[5]
 			};
 			aux.dynamic("./account/manageU.dynh", dynd, function(page){
 				res.writeHead(200, {"Content-Type": "text/html"});
@@ -207,6 +209,7 @@ function handleRequest(req, res){
 			"lid": data.lid,
 			"level": data.level,
 			"points": data.points,
+			"coins": data.coins,
 			"sesL": data.sesL
 		};
 		aux.dynamic("./session/session-user.dynh", dynd, function(page){
@@ -275,15 +278,20 @@ function handleRequest(req, res){
 				if (err) {
 					// HTTP Status: 404 : NOT FOUND
 					res.writeHead(404, {"Content-Type": 'text/html'});
-					// Send the response
-					res.end();
-				}else{
-					aux.debugShout("returning "+pathN+" which is of type "+cType, 3);
-					// HTTP Status: 200 : OK
-					res.writeHead(200, {"Content-Type": cType});	
-					// Write the content of the file to response body
-					res.write(data, function(err){res.end();});
+					fs.readFile("./error/404.html", function(err, data2){
+						if(err){
+							res.end();
+							return;
+						}
+						res.write(data2, function(err){res.end();});
+					});
+					return;
 				}
+				aux.debugShout("returning "+pathN+" which is of type "+cType, 3);
+				// HTTP Status: 200 : OK
+				res.writeHead(200, {"Content-Type": cType});	
+				// Write the content of the file to response body
+				res.write(data, function(err){res.end();});
 			});
 		}
 	}
@@ -365,7 +373,7 @@ function handleRequest(req, res){
 						break;
 					}
 					if(isNaN(bD)){//catches undefined 
-						ret_error("ife", "/register/user.html");
+						ret_error("dfe", "/register/user.html");
 						//I could check and do it anyway if they submitted month and year, but why be that courteous
 						break;
 					}
@@ -397,7 +405,7 @@ function handleRequest(req, res){
 						if(iD == "uError")
 							ret_error("fe", "/register/user.html", "register-user: decTo36");
 						else{
-							var uData = "\n<"+iD+";"+pass+";"+bD+";;"+sex+";0,0>";//;links; level,points
+							var uData = "\n<"+iD+";"+pass+";"+bD+";;"+sex+";0,0,0>";//;links; level,points,coins
 							fs.appendFile("./user.data", uData, function(err){
 								if(err)
 									ret_error("fe", "/register/user.html", "register-user: reading user.data");
@@ -443,7 +451,7 @@ function handleRequest(req, res){
 								acc_ret("fe");
 							else{
 								var people = aux.dataToEntries(data);
-								aux.debugShout("413 "+people, 3);
+								aux.debugShout("449 "+people, 3);
 								var found = false;
 								for(i=0; i < people.length; i++){
 									if(people[i][0] == iD){
@@ -476,63 +484,23 @@ function handleRequest(req, res){
 								file += "user.data";
 							
 							aux.debugShout("Editing "+iD, 1);
-							fs.stat(file, function(err, stats){
+							aux.editData(file, iD, 1, function(dEntry){//return new PW
+								if(dEntry[1] !== opw){
+									aux.debugShout("484|" + dEntry[1] + "|" + opw + "|" + pw);
+									acc_ret("pce");
+									return "<cancel>";
+								}
+								return pw;
+							}, function(err, dEntry){//callback
 								if(err){
-									acc_ret("fe");
+									if(err !== "canceled"){
+										if(dEntry)
+											aux.debugShout(dEntry);
+										acc_ret(err);
+									}
 									return;
 								}
-								fs.open(file, "r+", function(err, fd){
-									var buffer = new Buffer(stats.size);
-									fs.read(fd, buffer, 0, buffer.length, 0, function(err, bytes, buffer){
-										if(err){
-											acc_ret("fe");
-											fs.close(fd);
-											return;
-										}
-										var data = buffer.toString("utf8", 0, buffer.length);
-										var accIndex = data.indexOf("<"+iD) + 1;
-										var accData = data.slice(accIndex);
-											accData = accData.slice(0, accData.indexOf(">"));
-											
-										var iPW = accData.indexOf(";")+1;
-										var iPWE = aux.indexNOf(accData, ";", 2);
-											
-										if(accData.slice(iPW, iPWE) != opw){
-											acc_ret("pce");
-											fs.close(fd);
-											return;
-										}
-										accData =  accData.slice(0, iPW)+ pw +accData.slice(iPWE);
-										var dBefore = data.substring(0, accIndex);
-										var dAfter = data.substring(accIndex);
-											dAfter = dAfter.slice(dAfter.indexOf(">"));
-										var newData =  dBefore+ accData+ dAfter;
-										
-										var buffer = new Buffer(newData);
-										fs.write(fd, buffer, 0, buffer.length, 0, function(err, bytes){
-											if(err){
-												acc_ret("fe");
-												fs.close(fd);
-												return;
-											}
-											var people = aux.dataToEntries(newData);
-											var found = false;
-											for(i=0; i < people.length; i++){
-												if(people[i][0] == iD){
-													found = true;
-													if(people[i][1] == pw)
-														acc_ret(people[i]);//Success - Return manage_account(data)
-													else
-														acc_ret("pce");//Password Confirmation Error
-													break;//Exit for
-												}
-											}
-											if(!found)
-												acc_ret("anfe");//Account not found error
-											fs.close(fd);
-										});
-									});
-								});
+								acc_ret(dEntry.split(";"));
 							});
 						break;
 						case "addL"://Add Account Link
@@ -570,87 +538,35 @@ function handleRequest(req, res){
 									return;
 								}
 								//addL
-								fs.stat(file, function(err, stats){
-									if(err){
-										acc_ret("fe");
-										return;
+								aux.editData(file, iD, 3, function(dEntry){
+									if(dEntry[1] !== body.pWord){
+										acc_ret("pce");
+										return "<cancel>";
 									}
-									fs.open(file, "r+", function(err, fd){
-										var buffer = new Buffer(stats.size);
-										fs.read(fd, buffer, 0, buffer.length, 0, function(err, bytes, buffer){
-											if(err){
-												acc_ret("fe");
-												fs.close(fd);
-												return;
+									var dLinks = dEntry[3];
+									var newLData = lID;//e.g. "t2"
+									if(dLinks != ""){
+										//verify that the account is not already linked
+										var linkedAs = dLinks.split(",");//split
+										for(var i=0; i < linkedAs.length; i++){
+											if(linkedAs[i] == lID){
+												acc_ret(dEntry);
+												return "<cancel>";//already linked
 											}
-											var data2 = buffer.toString("utf8", 0, buffer.length);
-											//e.g. data2 = "-----<t0;h;1999;u0,u1[;M;0,0]>-----"
-											var accIndex = data2.indexOf("<"+iD)+1;
-											var dAcc = data2.slice(accIndex);
-												dAcc = dAcc.slice(0, dAcc.indexOf(">"));
-											//Check password - this would only trigger if someone is hacking (you needed the password when you loaded this dynh)
-											if(body.pWord != dAcc.split(";")[1]){
-												acc_ret("pce");
-												fs.close(fd);
-												return;
-											}
-											//Absolute index of the section with the links (+1 for ";")
-											var lIndex = 1 + accIndex + aux.indexNOf(dAcc, ";", 3);//After the third ";"
-											var dBefore = data2.slice(0, lIndex);//e.g. "-----<t0;h;1999;"
-											//Later, this will become the data after the links
-											var dAfter = data2.slice(lIndex); //e.g. "u0,u1[;M;0,0]>-----"
-											var endIndex = Math.min(dAfter.indexOf(">"), dAfter.indexOf(";"));//End of the link section 
-											if(endIndex == -1)
-												endIndex = dAfter.indexOf(">");
-											var dLinks = dAfter.slice(0, endIndex);//e.g. t0000,t0001
-												dAfter = dAfter.slice(endIndex);//Includes ";" //e.g. "[;M;0,0]>-----"
-											
-											var newLData = lID;//e.g. "t2"
-											if(dLinks != ""){
-												//verify that the account is not already linked
-												var linkedAs = dLinks.split(",");//split
-													aux.debugShout(linkedAs);
-												for(i=0; i<linkedAs.length; i++){
-													if(linkedAs[i] == lID){
-														var oldAccData = dAcc.split(";");
-														acc_ret(oldAccData);
-														newLData = "already";
-													}
-												}
-												newLData += ",";
-											}
-											if(newLData != "already,"){
-												newLData += dLinks;//append existing links //e.g. "t0002,t0001,t0000"
-												var newData =  dBefore+ newLData+ dAfter;
-												//Save the changes.
-												var buffer = new Buffer(newData);
-												fs.write(fd, buffer, 0, buffer.length, 0, function(err, bytes){
-													if(err){
-														acc_ret("fe");
-														fs.close(fd);
-														return;
-													}
-													var people = aux.dataToEntries(newData);
-													var found = false;
-													for(i=0; i < people.length; i++){//Some of this is probably redundant
-														if(people[i][0] == iD){
-															found = true;
-															if(people[i][1] == body.pWord)
-																acc_ret(people[i]);//Success - Return manage_account(data)
-															else
-																acc_ret("pce");//Password Confirmation Error
-															break;//Exit for
-														}
-													}
-													if(!found)
-														acc_ret("anfe");//Account not found error
-													fs.close(fd);
-												});
-											}//No need for an acc_ret() statement here, it happened earlier
-											
-										});
-									});
-									
+										}
+										newLData += "," + dLinks; //e.g. "t2"+","+"t1,t0"
+									}
+									return newLData;
+								}, function(err, dEntry){
+									if(err){
+										if(err !== "canceled"){
+											if(dEntry)
+												aux.debugShout(dEntry);
+											acc_ret(err);
+										}
+										return;//canceled - do nothing
+									}
+									acc_ret(dEntry.split(";"));
 								});
 							});
 						break;
@@ -687,7 +603,7 @@ function handleRequest(req, res){
 							else if(body.id[0] == "u"){
 								file += "user.data";
 							}
-							
+							//Check linked, pw
 							fs.readFile(file, "utf8", function(err, data){
 								if(err){
 									ret_error("fe", "/session/index.html", "new-session: reading "+file);
@@ -722,9 +638,10 @@ function handleRequest(req, res){
 									ret_error("anfe", "/session/index.html");//Account not found error
 							});
 							//Continue with the next step
-							function allConfirmed(){//see if a session file already exists between those users
+							//	see if a session file already exists between those users
+							function allConfirmed(){
 								if(body.id[0] == "t"){
-									//This section should never need to be used, but it handles ghost sessions. Logs a ghost session error.
+									//This section should hopefully never need to be used, but it handles ghost sessions. Logs a ghost session error.
 									var oldSFile = "./session/temp/session"+ body.id + body.lid + ".data";
 									fs.stat(oldSFile, function(err){
 										if(err){
@@ -766,7 +683,7 @@ function handleRequest(req, res){
 														success();
 												});
 											}
-											else
+											else//why? weird error.
 												ret_error("fe", "/session/index.html", "new-session: checking if oldSFile exists");
 										}
 										else{//Bad, it's an old ghost session. Or it's concurrent.
@@ -781,7 +698,7 @@ function handleRequest(req, res){
 								//Go to Link Loading Page
 								if(body.id[0]=="t")
 									ret_link_loading_trainer(body);
-								else{ //b.i.sub() is definitely "u" because the error would have already been caught otherwise
+								else{ //b.i[0] is definitely "u" because the error would have already been caught otherwise
 									ret_link_loading_user(body);
 								}
 							}
@@ -948,7 +865,8 @@ function handleRequest(req, res){
 													var lpData = people[i][5].split(",");
 													body.level = lpData[0];
 													body.points = lpData[1];
-													var startLPEntry = "\nstarting user level,points|"+ lpData[0]+","+lpData[1];
+													body.coins = lpData[2];
+													var startLPEntry = "\nstarting user l,p,c|"+ lpData[0]+","+lpData[1]+","+lpData[2];
 													fs.appendFile(searchFile, startLPEntry, function(err){
 														if(err){
 															ret_error("fe", "/session/index.html", "start_session-user: append to sesFile");
@@ -997,46 +915,71 @@ function handleRequest(req, res){
 						case "session-user"://body: source, id, pWord, lid
 							//Requests made from the ongoing user session
 							/*Check the session file here for tic detected or session ended*/
-							var lpEntry = "\nuser level,points|" +body.level+ "," +body.points + "|" +aux.time();
 							var oldL = body.sesL;
 							var sesFile = "./session/temp/session"+ body.lid + body.id + ".data";
-							fs.appendFile(sesFile, lpEntry, function(err){
+							fs.readFile(sesFile, "utf8", function(err, data){
+								if(err){
+									ret_error("fe", "/session/index.html", "session-user: read sesFile");
+									return;
+								}
+								var newL = data.length;
+								
+								aux.debugShout("old: "+oldL+"new:"+newL+"sub: "+data.slice(oldL+1));
+								var entries = data.slice(oldL).split("\n");// = cut off first ""\n
+								aux.debugShout("deltadata == "+entries);
+								var retMessage = data.length.toString();//new sesL
+								for(i = 1; i<entries.length; i++){//i=1 cut off first ""\n
+									var entryType = entries[i].split("|")[0];//First part
+									switch(entryType){
+										case "tic detected":
+											retMessage += "&tic";
+										break;
+										case "session ended":
+											retMessage += "&end";
+										break;
+										case "user l,p,c":
+										break;
+										default:
+											retMessage += "&?";
+										break;
+									}
+								}
+								res.writeHead(200, {"Content-Type": "text/plain"});
+								res.write(retMessage, function(err){res.end();});
+							});
+						break;//session-user
+						case "loglpc"://id, pass, l,p,c
+							var sesFile = "./session/temp/session"+ body.lid + body.id + ".data";
+							var lpcEntry = "\nuser l,p,c|" +body.level+ "," +body.points+ "," +body.coins+ "|" +aux.time();
+							fs.appendFile(sesFile, lpcEntry, function(err){
 								if(err){
 									ret_error("fe", "/session/index.html", "session-user: append to sesFile");
 									return;
 								}
-								fs.readFile(sesFile, "utf8", function(err, data){
-									if(err){
-										ret_error("fe", "/session/index.html", "session-user: read sesFile");
-										return;
-									}
-									var newL = data.length;
-									
-									aux.debugShout("old: "+oldL+"new:"+newL+"sub: "+data.slice(oldL+1));
-									var entries = data.slice(oldL).split("\n");// = cut off first ""\n
-									aux.debugShout("deltadata == "+entries);
-									var retMessage = data.length.toString();//new sesL
-									for(i = 1; i<entries.length; i++){//i=1 cut off first ""\n
-										var entryType = entries[i].split("|")[0];//First part
-										switch(entryType){
-											case "tic detected":
-												retMessage += "&tic";
-											break;
-											case "session ended":
-												retMessage += "&end";
-											break;
-											case "user level,points":
-											break;
-											default:
-												retMessage += "&?";
-											break;
-										}
-									}
-									res.writeHead(200, {"Content-Type": "text/plain"});
-									res.write(retMessage, function(err){res.end();});
-								});
+								res.writeHead(200);
+								res.end();
 							});
-						break;
+						break;//loglpc
+						case "savelpc"://id, pass, l,p,c
+							var uFile = "./user.data";
+							var newlpc = body.level +","+ body.points +","+ body.coins;
+							aux.editData(uFile, body.id, 5, function(dEntry){
+								if(body.pWord !== dEntry[1]){
+									ret_error("pce");
+									return "<cancel>";
+								}
+								return newlpc;
+							}, function(err, data){
+								if(err){
+									if(err !== "canceled"){
+										ret_error(err, "/session/index.html", data);
+									}
+									return;//res.end happened already (ret_error("pce"))
+								}
+								res.writeHead(200);
+								res.end();
+							});
+						break;// savelpc
 						case "session_end-trainer":
 							aux.debugShout("997", 3);
 							var sesFile = "./session/temp/session" + body.id + body.lid + ".data";
@@ -1062,33 +1005,26 @@ function handleRequest(req, res){
 							});
 						break;
 						case "session_end-user":
+							aux.debugShout("SE-U");
 							var sesFile = "./session/temp/session" + body.lid + body.id + ".data";
 							var sF2 = "./session/archive/session" + body.lid + body.id + aux.time("forfile") + ".data";
 							var uFile = "./user.data";
-							//save user l & p TO DO: switch this to fs.open() like addL, editP
-							fs.readFile(uFile, "utf8", function(err, data){
-								if(err){
-									ret_error("fe", "/session/index.html", "session_end-user: read uFile");
-									return;
-								}
-								var accIndex = data.indexOf("<"+body.id)+1;
-								var aData = data.slice(accIndex);
-									aData = aData.slice(0, aData.indexOf(">"));
-								var pass = aData.split(";")[1];
-								if(body.pWord != pass){
-									aux.debugShout("body.pword= "+body.pWord+"; pass= "+pass);
+							var newlpc = body.level +","+ body.points +","+ body.coins;
+							//save user l & p
+							aux.editData(uFile, body.id, 5, function(dEntry){
+								if(body.pWord != dEntry[1]){
+									aux.debugShout("body.pword= "+body.pWord+"; pass= "+dEntry[1]);
 									ret_error("pce");
+									return "cancel";
+								}
+								return newlpc;
+							}, function(err, data){
+								if(err){
+									if(err !== "canceled"){
+										ret_error(err, "/session/index.html", data);
+									}
 									return;
 								}
-								var lpIndex = 1+accIndex + aux.indexNOf(data.slice(accIndex), ";", 5);//Index of the level and points info
-								var afterlp = lpIndex + Math.min(data.slice(lpIndex).indexOf(";"), data.slice(lpIndex).indexOf(">"));
-								if(afterlp < lpIndex)//last user, no ";" found (-1)
-									afterlp = lpIndex + data.slice(lpIndex).indexOf(">");
-								var dBefore = data.slice(0, lpIndex);
-								var dAfter = data.slice(afterlp);
-								var newLp = body.level + "," + body.points;
-								var newData = dBefore + newLp + dAfter;
-								fs.writeFileSync(uFile, newData, "utf8");//If you let the edit be postponed, it could be edited inbetween. 
 								//End and archive session
 								fs.readFile(sesFile, "utf8", function(err, data){
 									if(err){
@@ -1152,7 +1088,7 @@ function handleRequest(req, res){
 							});
 						break;
 					}
-				break;
+				break; // "/session/index.html"
 				case "/error/report.html":
 					var content = body.fName+";"+body.email+";"+body.message;
 					aux.log_error("report", content);
@@ -1166,6 +1102,7 @@ function handleRequest(req, res){
 						break;
 					}
 					
+					//verify password
 					var tFile = "./trainer.data";
 					fs.readFile(tFile, "utf8", function(err, data){
 						if(err){
@@ -1227,7 +1164,7 @@ function handleRequest(req, res){
 				break;
 			}
 		});
-	}
+	}//POST
 	else{
 		ret_requested_file(pathname);
 	}

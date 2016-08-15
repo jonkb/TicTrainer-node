@@ -72,6 +72,31 @@
 					return false;
 				}
 				
+				if(isNaN(y)){
+					alert("Invalid year");
+					return false;
+				}
+				var now = new Date();
+				if(y.length == 2){//Really, they shouldn't use this
+					if(parseInt(y)+2000 < now.getFullYear())//y is between 00 and 15(in 2016)
+						y = "20"+y;
+					else
+						y = "19"+y;
+				}
+				else if(y.length == 4){
+					if(parseInt(y) > now.getFullYear()){
+						alert("Invalid year");
+						return false;
+					}
+				}
+				else{
+					alert("Invalid year");
+					return false;
+				}
+				if(now.getFullYear() - parseInt(y) > 89){
+					y = now.getFullYear() - 90;
+				}
+				
 				var d1 = new Date(y, m, 15);//Guess middle of month
 				var d2 = randDate(d1);
 				document.forms["addUser"]["birth"].value = d2;
@@ -79,7 +104,7 @@
 			}
 			//Gets a date within 45 days of the given date
 			function randDate(d){
-				var o = norm(0, 15, 45);//in math-ext
+				var o = norm(0, 15, 45);//math-ext.norm
 				return d.setDate(d.getDate() + o);
 			}
 		</script>

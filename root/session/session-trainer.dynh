@@ -14,20 +14,32 @@
 			</div>
     </section>
     <section class="main-content">
-			<div class='tr_btns'>
+			<div id='tr_btns'>
 				<button type='button' class='bigBtn' id='ticBtn'>Tic Detected</button><br>
 				<button type='button' class='bigBtn' id='endBtn'>End Session</button>
 			</div>
-			<table class='paying_attention'>
-				<tr>
-					<td style='width:100%;'>
-						<div id='animation' style='height:100%; float:right; background-color:#808080; width:100%;'></div>
-					</td>
-					<td id='here_btn' class='btn' style='white-space:nowrap; margin:0;'>
+			
+			<div id='paying_attention'>
+				<div style="float:right; margin:0;">
+					<div id='here_btn' class='btn' style="white-space:nowrap; margin: 0;">
 						I'm Here
-					</td>
-				</tr>
-			</table>
+					</div>
+				</div>
+				<div style="height:100%; overflow:hidden;">
+					<div id='animation' style='height:100%; width:100%; float:right; background-color:#808080;'></div>
+				</div>
+			</div>
+			<!--div id='paying_attention'>
+				<div style="display: table-cell; width: 100%; height: 1rem;">
+					<div id='animation' style='height:100%; width:100%; float:right; background-color:#808080;'></div>
+					<div style="clear: both;"></div>
+				</div>
+				<div id='here_btn' class='btn' style="display: table-cell; white-space:nowrap; margin: 0;">
+					I'm Here
+				</div>
+			
+			</div-->
+			
     </section>
 		<script>
 			var salido = false;//salido -sp- left

@@ -1,0 +1,25 @@
+session started|2016-07-31T00:18:29.311Z
+starting user l,p,c|1,27,0
+user l,p,c|1,28,0|2016-07-31T00:18:30.318Z
+user l,p,c|1,30,0|2016-07-31T00:18:31.342Z
+user l,p,c|1,33,0|2016-07-31T00:18:32.393Z
+user l,p,c|1,37,0|2016-07-31T00:18:33.425Z
+user l,p,c|1,42,0|2016-07-31T00:18:34.454Z
+user l,p,c|1,48,0|2016-07-31T00:18:35.483Z
+user l,p,c|1,48,0|2016-07-31T00:18:49.899Z
+user l,p,c|1,37,0|2016-07-31T00:18:49.904Z
+user l,p,c|1,33,0|2016-07-31T00:18:49.915Z
+user l,p,c|1,30,0|2016-07-31T00:18:49.911Z
+session ended|2016-07-31T00:18:49.894Z
+user l,p,c|1,28,0|2016-07-31T00:18:49.934Z
+user l,p,c|1,42,0|2016-07-31T00:18:49.939Z
+user l,p,c|1,28,0|2016-07-31T00:18:53.292Z
+user l,p,c|1,42,0|2016-07-31T00:18:53.298Z
+****************
+Report:
+session length|20583
+levels gained|0
+points earned|15
+number of tics|0
+longest tic free interval|20583
+number of 10s tic free intervals|0

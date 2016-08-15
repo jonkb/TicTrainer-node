@@ -68,13 +68,13 @@
 						alert("Invalid year");
 						return false;
 					}
-					if(now.getFullYear() - parseInt(y) > 89){
-						document.forms["addTrainer"]["birth"].value = now.getFullYear() - 90;
-					}
 				}
 				else{
 					alert("Invalid year");
 					return false;
+				}
+				if(now.getFullYear() - parseInt(y) > 89){
+					document.forms["addTrainer"]["birth"].value = now.getFullYear() - 90;
 				}
 				return true;
 			}

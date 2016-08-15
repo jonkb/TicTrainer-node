@@ -11,3 +11,5 @@ navigate to the root directory
 .../root$ nohup node server.js &> ../"Project Files"/log.txt
 
  - &> pipes error and regular output to log.txt
+
+make sure that the const PORT in server.js is 80, then run as root
