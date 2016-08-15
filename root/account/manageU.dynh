@@ -30,6 +30,10 @@
 					<td>**[points]**</td>
 				</tr>
 				<tr>
+					<td>Coins: </td>
+					<td>**[coins]**</td>
+				</tr>
+				<tr>
 					<td>Linked Trainers:</td>
 					<td>**[linked_accounts]**</td>
 				</tr>

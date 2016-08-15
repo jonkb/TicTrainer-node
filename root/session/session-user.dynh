@@ -14,23 +14,42 @@
 			</div>
     </section>
     <section class="main-content">
-			<table id='display' style='width:100%;'>
-			<td id='pCounter' class='bigCounter'>**[points]**</td>
-			<td id='rCounter' class='medCounter'>+0</td></table>
+			
+			<div id='counter_panel'>
+				<div>
+					<div id='rCounter' class='supCounter'>+0</div>
+					<div id='pCounter' class='bigCounter'>**[points]**</div>
+				</div>
+				<div>
+					Level: 
+					<span id='lCounter' class='medCounter'>**[level]**</span>
+					(<span id='lUp'></span> points to level up)
+				</div>
+				<div>
+					Coins: 
+					<span id='cCounter' class='medCounter'>**[coins]**</span>
+				</div>
+			</div>
+			
     </section>
 		<script>
 			var salido = false;//salido -sp- left
 			window.onbeforeunload = endS;
 			window.onpagehide = endS;
 			//document.addEventListener('visibilitychange', function(){if(document.hidden){endS();}}, false);
-
-			var points = **[points]**;
+			
 			var level = **[level]**;
+			var points = **[points]**;
+			var coins = **[coins]**;
+			
 			if(level == 0){
 				level = 1;
-				alert('It appears to be your first session. Try not to tic.');//First time spiel
+				//First time spiel
+				alert('It appears to be your first session. Try not to tic.');
 			}
-			var nextLevel = 1000*level*level*level;
+			var mspf = 500;//ms per frame. fps=2
+			var framesSince = 0;
+			var nextLevel = 1000*level*level;
 			var cap = 10*level*level;
 			var rate = 0;
 			var lastL = **[sesL]**;
@@ -41,33 +60,41 @@
 				var url = '/session/index.html';
 				var reqBody = 'source=session-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&sesL='+lastL;
 				xhr.open('POST', url, true);
-				xhr.setRequestHeader('Content-type', 'text/plain');//application/x-www-form-urlencoded
+				xhr.setRequestHeader('Content-type', 'text/plain');//'application/x-www-form-urlencoded'
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4) {//4: request finished & response ready - readystate codes:http://www.w3schools.com/ajax/ajax_xmlhttprequest_onreadystatechange.asp
 						if(xhr.status == 200){
 							var tic = 0;
 							var end = 0;
 							var fields = xhr.responseText.split('&');
-							lastL = fields[0];
+							lastL = fields[0];//The first field is the newest length of the session file.
 							for(i=1; i<fields.length; i++){
 								if(fields[i] == 'tic') tic++;
 								if(fields[i] == 'end') end++;
 							}
 							if(end == 0){
 							  if(tic == 0){
-                  /* Continue with the frame*/
-                  if(rate < cap){
-                  	rate += level*level;
-                  	if(rate > cap)//Overshot
-                  		rate = cap;
-                  }
-                  points += rate;
-                  if(points > nextLevel)
-                  	levelUp();
+									framesSince++;
+									if(framesSince >= (level * 1000 / mspf)){
+										/* Now, (level) seconds have passed since the last reward/tic, so it is time to increment rate and give reward*/
+										framesSince = 0;
+										if(rate < cap){
+											rate += level*level;
+											if(rate > cap)//Overshot
+												rate = cap;
+										}
+										points += rate;
+										if(points > nextLevel)
+											levelUp();
+										loglpc();//record the new points (it changed)
+										update_display();
+									}
                 }
-                else{ ticTrigger(); }
-								update_display();
-								setTimeout(function(){ frame(); }, 1000*level);
+                else{
+									ticTrigger(); 
+									update_display();
+								}
+								setTimeout(function(){ frame(); }, mspf);
 							}
 							else{ endS(); }
 						}
@@ -80,17 +107,18 @@
 				};
 				xhr.send(reqBody);
 			}
-			function ticTrigger(){//Flash red
+			function ticTrigger(){//Flash red. Sound a bell?
+				framesSince = 0;
 			  rate = 0;
-			  document.getElementById('display').setAttribute('style', 'background-color:red; width:100%;');
-			  setTimeout(function(){document.getElementById('display').setAttribute('style', 'width:100%;');}, 1000)
+			  document.getElementById('counter_panel').setAttribute('style', 'background-color:red;');
+			  setTimeout(function(){document.getElementById('counter_panel').setAttribute('style', '');}, 1000);
 			}
 			function endS(){
 				if(!salido){
 					var xhr = new XMLHttpRequest();
 					var url = '/session/index.html'
 					//source,id,pWord,lid,level,points
-					var reqBody = 'source=session_end-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&level='+level+'&points='+points;
+					var reqBody = 'source=session_end-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
 					xhr.open('POST', url, true);
 					xhr.onreadystatechange = function(){
 						if(xhr.readyState == 4){
@@ -105,15 +133,57 @@
 			}
 			function levelUp(){
 				level++;
-				nextLevel = 1000*level*level*level;
+				points -= nextLevel;
+				coins += nextLevel;
+				savelpc();
+				nextLevel = 1000*level*level;
 				cap = 10*level*level;
 				//Flash green (this green is 10% lighter than the green in the page header)
-			  document.getElementById('display').setAttribute('style', 'background-color:#1fe080; width:100%;');
-			  setTimeout(function(){document.getElementById('display').setAttribute('style', 'width:100%;');}, 1000)
+			  document.getElementById('counter_panel').setAttribute('style', 'background-color:#1fe080');
+			  setTimeout(function(){document.getElementById('counter_panel').setAttribute('style', '');}, 1000);
 			}
 			function update_display(){
 				document.getElementById('pCounter').innerHTML = points;
 				document.getElementById('rCounter').innerHTML = '+'+rate;
+				document.getElementById('lCounter').innerHTML = level;
+				document.getElementById('cCounter').innerHTML = coins;
+				document.getElementById('lUp').innerHTML = nextLevel;
+			}
+			//Make an entry in the session file.
+			function loglpc(){
+				var xhr = new XMLHttpRequest();
+				var url = '/session/index.html'
+				//source,id,pWord,lid,level,points
+				var reqBody = 'source=loglpc&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
+				xhr.open('POST', url, true);
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(xhr.status != 200){//Display Error Page
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
+					}
+				}
+				xhr.send(reqBody);
+			}
+			//Actually save the progress to the server.
+			function savelpc(){
+				var xhr = new XMLHttpRequest();
+				var url = '/session/index.html'
+				//source,id,pWord,lid,level,points
+				var reqBody = 'source=savelpc&id=**[id]**&pWord=**[pw]**&level='+level+'&points='+points+'&coins='+coins;
+				xhr.open('POST', url, true);
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(xhr.status != 200){//Display Error Page
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
+					}
+				}
+				xhr.send(reqBody);
 			}
 		</script>
 	</body>

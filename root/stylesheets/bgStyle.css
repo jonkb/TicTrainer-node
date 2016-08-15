@@ -98,7 +98,7 @@ footer {
   background-image: linear-gradient(120deg, #1866b4, #18b466); 
   border-color: #1fe080;
   border-style: solid;
-  border-width: 1px;
+  border-width: 0.0625rem;
   border-radius: 0.3rem;
   transition: background-image 0.3s, background-color 0.3s, border-color 0.3s; 
 	}
@@ -169,23 +169,32 @@ footer {
 }
 .medCounter {
 	font-family: Impact, Charcoal, sans-serif;
+	width: 3em;
+}
+.supCounter {
+	font-family: Impact, Charcoal, sans-serif;
 	vertical-align: super;
 	width: 3em;
 }
 
-.paying_attention {
+#paying_attention {
 	width: 100%;
-	height: 2rem;
 	border: 1px solid #000;
   border-radius: 0.3rem;
 	padding: 0rem;
 }
-
-.tr_btns{
+#tr_btns{
   text-align: center;
 	margin: 0 auto .25rem auto;
 }
-  
+#pCounter{
+	width: 100%;
+}
+#rCounter{
+	float: right;
+}
+	
+	
 /*Conditional on screen size:*/
 @media (min-width: 1000px){/*60rem) {/*BIG*/
   .page-header h1{ font-size: 3.25rem; }
@@ -204,19 +213,17 @@ footer {
 		line-height: 8rem;
 		width: 85%;
 	}
-	.paying_attention{
-		/*width: 20%;*/
-		/*height: 21rem;*/
+	#paying_attention{
+		height: 3rem;
 	}
 	.bigCounter{
 		font-size: 7rem;
 	}
 	.medCounter{
 		font-size: 4.3rem;
-	}
-	.tr_btns{
-		/*width: 85%;*/
-		margin: 0 0;
+	} 
+	.supCounter{
+		font-size: 4.3rem;
 	}
 	.logo{
 		padding: 0 .5rem; 
@@ -241,9 +248,8 @@ footer {
 		line-height: 6rem;
 		width: 90%;
 	}
-	.paying_attention{
-		/*width: 15%;*/
-		/*height: 16rem;*/
+	#paying_attention{
+		height: 2.6rem;
 	}
 	.bigCounter{
 		font-size: 5rem;
@@ -251,8 +257,8 @@ footer {
 	.medCounter{
 		font-size: 3rem;
 	}
-	.tr_btns{
-		/*width: 90%;*/
+	.supCounter{
+		font-size: 3rem;
 	}
 	.logo{
 		padding: 0 .5rem; 
@@ -277,9 +283,8 @@ footer {
 		line-height: 4rem;
 		width: 95%;
 	}
-	.paying_attention{
-		/*width: 10%;*/
-		/*height: 11rem;*/
+	#paying_attention{
+		height: 2.4rem;
 	}
 	.bigCounter{
 		font-size: 3rem;
@@ -287,8 +292,8 @@ footer {
 	.medCounter{
 		font-size: 1.85rem;
 	}
-	.tr_btns{
-		/*width: 95%;*/
+	.supCounter{
+		font-size: 1.85rem;
 	}
 	.logo{
 		padding: 0 .25rem; 
