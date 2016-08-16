@@ -400,11 +400,11 @@ function genReport(data){
 			case "tic detected":
 				tics++;
 				var ticTime = new Date(entryParts[1]);
-				if(ticTime - lastTic > 10e3)//10s
-					tenSIntervals++;
-				if(ticTime - lastTic > longestInterval)
-					longestInterval = ticTime - lastTic;
+				var ticFree = ticTime - lastTic;
 				lastTic = ticTime;
+				if(ticFree > longestInterval)
+					longestInterval = ticFree;
+				tenSIntervals += Math.floor(ticFree / 1e4);
 			break;
 			case "session ended":
 				endT = new Date(entryParts[1]);
