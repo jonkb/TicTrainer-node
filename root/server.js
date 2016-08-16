@@ -332,7 +332,7 @@ function handleRequest(req, res){
 					
 					//Get the next available iD number
 					var iD = "t0";
-					fs.readFile("./trainer.data", "utf8", function(err, data){
+					fs.readFile("./account/trainer.data", "utf8", function(err, data){
 						if(err){
 							ret_error("fe", "/register/trainer.html", "register-trainer: reading trainer.data");
 							return;
@@ -345,7 +345,7 @@ function handleRequest(req, res){
 							ret_error("fe", "/register/trainer.html", "register-trainer: decTo36");
 						else{
 							var tData = "\n<"+iD+";"+pass+";"+bD+";>";//the empty section is for lnacc
-							fs.appendFile("./trainer.data", tData, function(err){
+							fs.appendFile("./account/trainer.data", tData, function(err){
 								if(err)
 									ret_error("fe", "/register/trainer.html", "register-trainer: reading trainer.data");
 								else{
@@ -387,7 +387,7 @@ function handleRequest(req, res){
 					
 					//Get the next available iD number
 					var iD = "u0";
-					fs.readFile("./user.data", "utf8", function(err, data){
+					fs.readFile("./account/user.data", "utf8", function(err, data){
 						if(err){
 							ret_error("fe", "/register/user.html", "register-user: reading user.data");
 							return;
@@ -400,7 +400,7 @@ function handleRequest(req, res){
 							ret_error("fe", "/register/user.html", "register-user: decTo36");
 						else{
 							var uData = "\n<"+iD+";"+pass+";"+bD+";;"+sex+";0,0,0>";//;links; level,points,coins
-							fs.appendFile("./user.data", uData, function(err){
+							fs.appendFile("./account/user.data", uData, function(err){
 								if(err)
 									ret_error("fe", "/register/user.html", "register-user: reading user.data");
 								else
@@ -428,7 +428,7 @@ function handleRequest(req, res){
 						case "manageAccount"://Log on page
 						var pass = body.pWord;
 						var iD = body.id;
-						var file = "./";
+						var file = "./account/";
 						
 						iD = aux.isID(iD);
 						if(iD === false){
@@ -466,7 +466,7 @@ function handleRequest(req, res){
 							var iD = body.id;
 							var opw = body.oldPass;
 							var pw = body.pass;
-							var file = "./";
+							var file = "./account/";
 							iD = aux.isID(iD);
 							if(iD === false){
 								acc_ret("ide");
@@ -500,8 +500,8 @@ function handleRequest(req, res){
 						case "addL"://Add Account Link
 							var iD = body.id;// body = {source, id, lid, pWord}
 							var lID = body.lid;
-							var file = "./";
-							var lFile = "./";
+							var file = "./account/";
+							var lFile = file;
 							
 							iD = aux.isID(iD);
 							lID = aux.isID(lID);
@@ -583,7 +583,7 @@ function handleRequest(req, res){
 							 */
 							 
 							var pass = body.pWord;
-							var file = "./";
+							var file = "./account/";
 							
 							body.id = aux.isID(body.id);
 							body.lid = aux.isID(body.lid);
@@ -845,7 +845,7 @@ function handleRequest(req, res){
 										return;
 									}
 									//load level and points from user.data and start session
-									fs.readFile("./user.data", "utf8", function(err, data2){
+									fs.readFile("./account/user.data", "utf8", function(err, data2){
 										if(err){
 											ret_error("fe", "/session/index.html", "start_session-user: read user.data");
 											return;
@@ -955,7 +955,7 @@ function handleRequest(req, res){
 							});
 						break;//loglpc
 						case "savelpc"://id, pass, l,p,c
-							var uFile = "./user.data";
+							var uFile = "./account/user.data";
 							var newlpc = body.level +","+ body.points +","+ body.coins;
 							aux.editData(uFile, body.id, 5, function(dEntry){
 								if(body.pWord !== dEntry[1]){
@@ -1002,7 +1002,7 @@ function handleRequest(req, res){
 							aux.debugShout("SE-U");
 							var sesFile = "./session/temp/session" + body.lid + body.id + ".data";
 							var sF2 = "./session/archive/session" + body.lid + body.id + aux.time("forfile") + ".data";
-							var uFile = "./user.data";
+							var uFile = "./account/user.data";
 							var newlpc = body.level +","+ body.points +","+ body.coins;
 							//save user l & p
 							aux.editData(uFile, body.id, 5, function(dEntry){
@@ -1097,7 +1097,7 @@ function handleRequest(req, res){
 					}
 					
 					//verify password
-					var tFile = "./trainer.data";
+					var tFile = "./account/trainer.data";
 					fs.readFile(tFile, "utf8", function(err, data){
 						if(err){
 							ret_error("fe", "/error/ghses.html", "ghost session: reading trainer.data");
