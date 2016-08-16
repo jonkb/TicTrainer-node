@@ -5,6 +5,7 @@ IN PROGRESS:
 FUNCTIONAL:
 - Add store for coins
   - buy decorations, stickers
+- ?Set up email response to reports?
 
 VISUAL:
 - ?add leaderboard?
