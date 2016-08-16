@@ -98,7 +98,7 @@
 							}
 							else{ endS(); }
 						}
-						else{//Like an Error Page
+						else{//For an Error Page
 							document.open();
 							document.write(xhr.responseText);
 							document.close();
