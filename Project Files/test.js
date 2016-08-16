@@ -9,17 +9,20 @@ var file3 = "test.data";
 
 console.log("A");
 
-var x = "a";
-var y = "a";
-if(x == y)
-	console.log("yes1");
-if(x === y)
-	console.log("yes2");
-if(x != y)
-	console.log("no1");
-if(x !== y)
-	console.log("no2");
+var t1 = 
+	[["a", 10, 1],
+	["b", 20, 1],
+	["c", 20, 2],
+	["d", 5, 1]]
 
+var t2 = [];
+t2[0] = ["A", "B"];
+t2[1] = ["A", "B"];	
+
+var testData = "<a,b,c><d,e,f><g,h,i>";
+	
+console.log(60 == "<");
+	
 console.log("Z");
 
 

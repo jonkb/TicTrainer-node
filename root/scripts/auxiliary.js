@@ -13,6 +13,7 @@ module.exports.isID = isID;
 module.exports.parse36ToDec = parse36ToDec;
 module.exports.decTo36 = decTo36;
 module.exports.dataToEntries = dataToEntries;
+module.exports.sort2d = sort2d;
 module.exports.genReport = genReport;
 module.exports.toData = toData;
 module.exports.time = time;
@@ -360,7 +361,9 @@ function dataToEntries(data){
 	var current = "";
 	var entryN = 0;
 	var lookingAtData = false;
+	debugShout("converting "+data+ "to entries", 3);
 	for(var i = 0; i< data.length; i++){
+		debugShout(" "+data[i], 3);
 		switch(data[i]){
 			case "<":
 				lookingAtData = true;
@@ -379,6 +382,24 @@ function dataToEntries(data){
 	}
 	return entries;
 }
+
+//returns a sorted copy of the given 2d array. Sorted by the goven column
+//data in sortColumn should be numerical
+function sort2d(inArray, sortColumn){
+	var res_table = [];
+	while(inArray.length > 0){//use Array.splice
+		var biggest = [0,0];//id,points
+		for(var i = 0; i < inArray.length; i++){
+			if(inArray[i][sortColumn] > biggest[1]){
+				biggest = [i, inArray[i][sortColumn]];
+			}
+		}
+		res_table.push(inArray[biggest[0]]);
+		inArray.splice(biggest[0], 1);//cut out the biggest
+	}
+	return res_table;
+}
+
 //Generates a report for the end of a session
 function genReport(data){
 	var tics = 0, tenSIntervals = 0, longestInterval = 0;

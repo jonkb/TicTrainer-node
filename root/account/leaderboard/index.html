@@ -5,6 +5,11 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
     <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+		<style>
+			th {
+				text-align: left;
+			}
+		</style>
 	</head>
 	<body>
     <section class="page-header">
@@ -15,19 +20,46 @@
 			</div>
     </section>
     <section class="main-content">
-			<button type="button" class="btn" onclick="load()">Refresh</button>
-			<table id="board">
+			<button type="button" class="btn" onclick="refresh()">Refresh</button>
+			<table id="board" style="width:100%;">
+				<tr>
+					<th style='width:4em;'>Rank</th>
+					<th style='width:6em;'>ID</th>
+					<th>Level</th>
+					<th>Points</th>
+				</tr>
 			</table>
     </section>
+		<script src="/scripts/math-ext.js"></script>
 		<script>
-			var url = '/account/leaderboard/get_leaderboard';
+			var url = '/account/leaderboard/leaderboard.gj';
+			var lastLoaded = 0;
 			load();
 			function load(){
 				var xhr = new XMLHttpRequest();
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
 						if(xhr.status == 200){
+							lastLoaded = new Date().getTime();
+							
 							var res = JSON.parse(xhr.responseText);
+							//sort by points, then by level
+							var res_sort = sort2d(sort2d(res, 2), 1);//math-ext.sort2d
+							var table = "<tr>"+	
+									"<th style='width:4em;'>Rank</th>"+
+									"<th style='width:6em;'>ID</th>"+
+									"<th>Level</th>"+
+									"<th>Points</th>"+
+								"</tr>";
+							for(var i = 0; i < res_sort.length; i++){
+								table += "<tr>";
+								table += "<td>"+(i+1)+"</td>";//rank
+								table += "<td>"+res_sort[i][0]+"</td>";//id
+								table += "<td>"+res_sort[i][1]+"</td>";//level
+								table += "<td>"+res_sort[i][2]+"</td>";//points
+								table += "</tr>";
+							}
+							document.getElementById("board").innerHTML = table;
 						}
 						else{//For an Error Page
 							document.open();
@@ -38,6 +70,11 @@
 				}
 				xhr.open('GET', url, true);
 				xhr.send();
+			}
+			function refresh(){
+				var time = new Date().getTime();
+				if(time - lastLoaded > 1000)
+					load();
 			}
 		</script>
 	</body>

@@ -240,31 +240,67 @@ function handleRequest(req, res){
 		}
 		//Choose the appropriate content type based on the file extension
 		var ext = pathN.slice(pathN.lastIndexOf("."));
-		var cType = "text/plain";
+		var cType = "text/plain";//MIME type
 		switch(ext){
 			case ".html":
 				cType = "text/html";
-				break;
+			break;
 			case ".js":
 				cType = "text/javascript";
-				break;
+			break;
 			case ".css":
 				cType = "text/css";
-				break;
+			break;
+			case ".gj"://personal extension for getting json data (GetJson)
+				cType = "application/json";
+			break;
 			case ".ico":
 				cType = "image/x-icon";
-				break;
+			break;
 			case ".png":
 				cType = "image/png";
-				break;
+			break;
 			case ".gif":
 				cType = "image/gif";
-				break;
+			break;
 		}
 		if(ext == ".data"){
 			// Don't serve sensitive data
 			res.writeHead(403, {"Content-Type": "text/html"});
 			res.end();
+		}
+		else if(ext == ".gj"){
+			switch(pathN){
+				case "./account/leaderboard/leaderboard.gj":
+					aux.debugShout("275");
+					fs.readFile("./account/user.data", 'utf8', function(err, data){
+						if(err){
+							ret_error("fe");
+							return;
+						}
+						var people = aux.dataToEntries(data);
+						aux.debugShout("people: "+people, 3);
+						var res_table = [];
+						/*["id", "level", "points"]
+						  [u0  , 1      , 100]
+							...  , ...    , ...
+						*/
+						var len = people.length;
+						if(len > 100)
+							len = 100;
+						for(var i = 0; i < len; i++){
+							var id = people[i][0];
+							var lp = people[i][5].split(",");
+							res_table[i] = [id, lp[0], lp[1]];
+						}
+						aux.debugShout("res_table: "+res_table, 3);
+						var resFinal = JSON.stringify(res_table);
+						aux.debugShout("resFinal: "+resFinal, 3);
+						res.writeHead(200, {"Content-Type": cType});
+						res.write(resFinal, function(err){res.end();});
+					});
+				break;
+			}
 		}
 		else{
 			// Read the requested file content and send it
