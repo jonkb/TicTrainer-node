@@ -5,22 +5,21 @@ IN PROGRESS:
 FUNCTIONAL:
 - Add store for coins
   - buy decorations, stickers
-- Justify: Why do I do the session the way I do? Why require both user and trainer to link prior to sessions. Avoid bizarre typos? t0 types t0-u1 and u1 types u1-t0 *at the same time* *On accident* It's not really necessary, but it adds a level of insurance.
 
 VISUAL:
-- Add an error page for fe, se - meh
+- ?add leaderboard?
+- ?meh Make order obvious and implicit (Reg > Man > Ses) ? (/index.html)
 
 DEEPER:
-- make sure all forms are checked on both sides
+- double check that all forms are checked on both sides
+- ?Convert everything in the session to 307 redirects?
+- Use more fs.open ?: eliminate sync functions 
+- ?move more things to aux?
+- ?Should I make it check password each step of the session for safety -- would that be taxing?
+- ?Maybe use ajax instead of form for linkloading-trainer?
+- ?use json? ajaj? instead of ajax and .data and xml?
+- ?move reports out of error and into report folder?
+- ?Make a backdoor where I can request(edit?) a data file by adding identification to the body of an html request.
 
-MAYBE:
-- Use more fs.open ?: eliminate sync functions
-- Convert everything in the session to 307 redirects?
-- move more things to aux?
-- Should I make it check password each step of the session for safety -- would that be taxing
-- add leaderboard
-- Maybe use ajax instead of form for linkloading-trainer
-- use json? ajaj? instead of ajax and .data and xml
-- move reports out of error and into report folder
-- ? Make order obvious and implicit (Reg > Man > Ses) ? (/index.html)
-- Make a backdoor where I can request a data file by adding identification to the body of an html request.
+NOTES:
+- Justify: Why do I do the session the way I do? Why require both user and trainer to link prior to sessions. Avoid bizarre typos? t0 types t0-u1 and u1 types u1-t0 *at the same time* *On accident* It's not really necessary, but it adds a level of insurance.
