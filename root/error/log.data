@@ -10,3 +10,5 @@
 <ghost session;2016-07-31T00:52:10.075Z;ghost session archived between t0 and u3>
 <ghost session;2016-07-31T00:59:43.626Z;ghost session archived between t0 and u0>
 <fe;2016-08-15T19:55:17.193Z;linkloading-user: where did the lnusers entry go?>
+<fe;2016-08-16T19:11:24.356Z;session-user: read sesFile>
+<fe;2016-08-16T19:13:09.077Z;session-user: read sesFile>

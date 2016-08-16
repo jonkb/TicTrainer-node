@@ -42,20 +42,14 @@ function handleRequest(req, res){
 		var dynd = {"retry": retry};
 		switch(error_type){
 			case "fe":
-				res.writeHead(500, {"Content-Type": "text/html"});
-				res.end();
-				aux.log_error(error_type, message);
-			break;
 			case "se":
 				res.writeHead(500, {"Content-Type": "text/html"});
-				res.end();
-				aux.log_error(error_type, message);
 			break;
 			default:
 				res.writeHead(400, {"Content-Type": "text/html"});
-				aux.dynamic("./error/"+error_type+".dynh", dynd, finish_up);
 			break;
 		}
+		aux.dynamic("./error/"+error_type+".dynh", dynd, finish_up);
 		function finish_up(page){
 			res.write(page, function(err){res.end();});
 			if(message)
