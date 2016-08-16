@@ -18,7 +18,9 @@
 			<div class="alertText">**[id]**</div>
 			Your password is:
 			<div class="alertText">**[pw]**</div>
-			Be sure to <b>record this information</b>, as it is needed to log in. <br><br>
+			Be sure to <b>record this information</b>, as it is needed to log in. <br>
+			The next step is to link your account to another. <br><br>
+			<a href='/account/' class='btn'>Manage Account</a>
 			<a href='/' class='btn'>Return to Home</a>
 			**[bd]**
 		</section>
