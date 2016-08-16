@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Error: File System</title>
+		<title>Error 500: File System</title>
 		<meta name='viewport' content='width=device-width, initial-scale=1'>
 		<link rel='stylesheet' type='text/css' href='/stylesheets/bgStyle.css'>
 	</head>
@@ -9,12 +9,12 @@
 		<section class='page-header'>
 			<div class='header-navbar'>
 				<a href='/' class='logo'></a>
-				<h1>Error: File System</h1>
+				<h1>Error 500: File System</h1>
 			<div style='clear: both;'></div>
 			</div>
 		</section>
 		<section class='main-content' id='mainC'>
-			Something horrible and surprising happened on our servers. We are very sorry.
+			Something horrible and surprising happened on our servers. We are very sorry.<br>
 			<a href='**[retry]**' class='btn'>Return</a>
 		</section>
 	</body>
