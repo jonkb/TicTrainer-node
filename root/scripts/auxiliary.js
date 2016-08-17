@@ -67,8 +67,8 @@ function dynamic(template_path, data, callback){
 				next_index = file_left.indexOf("**[");
 			}
 			else{
-				debugShout("Server error, not enough data supplied. It wanted '"+dyn_field+"'", 1);
-				callback("se");
+				debugShout("Not enough data supplied. It wanted '"+dyn_field+"'", 1);
+				callback("ife");
 				return;
 			}
 		}
@@ -91,7 +91,7 @@ function dynamic(template_path, data, callback){
 		entryID - the value which describes the entry to be edited (the first value)
 		fldInd - which value index to edit <0,1,2,3>
 		newVal - new value or 
-			a function which is passed the whole old entry and returns the new value
+			a function which is passed the whole old entry and returns the new value (or "<cancel>")
 		callback - callback function. Returns entryData.
 */
 function editData0(file, entryID, fldInd, newVal, callback){

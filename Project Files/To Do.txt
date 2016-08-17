@@ -1,6 +1,7 @@
 To Do:
 IN PROGRESS:
 - Checking everything still works
+- Fix Leaderboard Sort
 
 FUNCTIONAL:
 - Add store for coins
@@ -12,6 +13,7 @@ VISUAL:
 - ?meh Make order obvious and implicit (Reg > Man > Ses) ? (/index.html)
 
 DEEPER:
+- finish aux.editData
 - double check that all forms are checked on both sides
 - ?Convert everything in the session to 307 redirects?
 - Use more fs.open ?: eliminate sync functions 

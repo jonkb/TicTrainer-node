@@ -15,6 +15,36 @@
 			</div>
     </section>
     <section class="main-content">
+			<form method="POST" name="enterStore" onsubmit="return checkForm();">
+				<input type="hidden" name="source" value="enterStore">
+				<fieldset>
+					<legend>Enter Store</legend>
+					Account ID:<br>
+					<input type="text" name="id" placeholder="u0000" required><br>
+					Password:<br>
+					<input type="password" name="pw" required><br>
+					<input type="submit" value="Enter" class="btn">
+				</fieldset>
+			</form>
     </section>
+		<script>
+			function checkForm(){
+				var id = document.forms["enterStore"]["id"].value.toLowerCase();
+				var pw = document.forms["enterStore"]["pw"].value.toLowerCase();
+				
+				if(!id || !pw){
+					alert("Please finish the form");
+					return false;
+				}
+				if(id[0] != 'u' || id.length < 2){
+					var message = "Invalid ID";
+					if(id[0] == 't')
+						message += "\n*Trainers cannot enter the store*";
+					alert(message);
+					return false;
+				}
+				return true;
+			}
+		</script>
 	</body>
 </html>
