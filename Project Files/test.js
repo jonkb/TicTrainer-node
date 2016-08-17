@@ -10,18 +10,44 @@ var file3 = "test.data";
 console.log("A");
 
 var t1 = 
-	[["a", 10, 1],
-	["b", 20, 1],
-	["c", 20, 2],
-	["d", 5, 1]]
+	[["a", 1, 500],
+	["b", 2, 1],
+	["c", 2, 200],
+	["d", 3, 1],
+	["e", 2, 20],
+	["f", 1, 1000],
+	["g", 2, 2000],
+	["h", 1, 200]]
 
 var t2 = [];
 t2[0] = ["A", "B"];
 t2[1] = ["A", "B"];	
 
 var testData = "<a,b,c><d,e,f><g,h,i>";
-	
-console.log(60 == "<");
+
+var t11 = t1;
+var t12 = t1;
+var t13 = t12;
+
+console.log(t1);
+
+console.log("B");
+var ts1 = aux.sort2d(t1, 1);
+console.log(ts1);
+console.log(t1);
+console.log("C");
+var ts2 = aux.sort2d(t11, 2);
+console.log(ts2);
+console.log(t1);
+console.log("D");
+
+console.log(aux.sort2d(aux.sort2d(t1, 1), 2));
+console.log("C");
+console.log(aux.sort2d(aux.sort2d(t1, 2), 1));
+console.log(t1);
+console.log("D");
+console.log("E");
+console.log(t1);
 	
 console.log("Z");
 
