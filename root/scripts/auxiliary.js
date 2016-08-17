@@ -388,13 +388,20 @@ function dataToEntries(data){
 function sort2d(inArray, sortColumn){
 	var aCopy = inArray.slice();
 	var res_table = [];
-	while(aCopy.length > 0){//use Array.splice
-		var biggest = [0,0];//id,points
+	while(aCopy.length > 0){
+		var biggest = [0,0];//index,sortVal
 		for(var i = 0; i < aCopy.length; i++){
-			if(aCopy[i][sortColumn] > biggest[1]){
-				biggest = [i, aCopy[i][sortColumn]];
+			var valHere = parseInt(aCopy[i][sortColumn]);
+			if(valHere === NaN)
+				return "ice";
+			debugShout("valHere is: "+valHere, 3);
+			debugShout("current overlord is: "+biggest, 3);
+			if(valHere > biggest[1]){
+				biggest = [i, valHere];
+				debugShout("new tallest crowned: "+biggest, 3);
 			}
 		}
+		debugShout("biggest is: "+biggest,3);
 		res_table.push(aCopy[biggest[0]]);
 		aCopy.splice(biggest[0], 1);//cut out the biggest
 	}

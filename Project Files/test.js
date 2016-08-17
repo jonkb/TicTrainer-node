@@ -29,26 +29,16 @@ var t11 = t1;
 var t12 = t1;
 var t13 = t12;
 
-console.log(t1);
 
 console.log("B");
-var ts1 = aux.sort2d(t1, 1);
-console.log(ts1);
-console.log(t1);
-console.log("C");
-var ts2 = aux.sort2d(t11, 2);
-console.log(ts2);
-console.log(t1);
-console.log("D");
 
-console.log(aux.sort2d(aux.sort2d(t1, 1), 2));
-console.log("C");
-console.log(aux.sort2d(aux.sort2d(t1, 2), 1));
-console.log(t1);
-console.log("D");
-console.log("E");
-console.log(t1);
-	
+t3 = [["u0","9","2988"],["u1","2","585"],["u2","1","69"],["u3","1","915"],["u4","0","0"],["u5","0","0"],["u6","0","0"],["u7","0","0"],["u8","0","0"],["u9","0","0"],["ua","1","485"],["ub","0","0"],["uc","0","0"],["ud","0","0"],["ue","0","0"]]
+console.log(t3);
+
+console.log(aux.sort2d(t3, 2));
+console.log(aux.sort2d(t3, 1));
+console.log(aux.sort2d(aux.sort2d(t3, 2), 1));
+
 console.log("Z");
 
 

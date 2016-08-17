@@ -30,11 +30,14 @@ function norm(median, sd, clip_radius){
 function sort2d(inArray, sortColumn){
 	var aCopy = inArray.slice();
 	var res_table = [];
-	while(aCopy.length > 0){//use Array.splice
-		var biggest = [0,0];//id,points
+	while(aCopy.length > 0){
+		var biggest = [0,0];//index,sortVal
 		for(var i = 0; i < aCopy.length; i++){
-			if(aCopy[i][sortColumn] > biggest[1]){
-				biggest = [i, aCopy[i][sortColumn]];
+			var valHere = parseInt(aCopy[i][sortColumn]);
+			if(valHere === NaN)
+				return "ice";
+			if(valHere > biggest[1]){
+				biggest = [i, valHere];
 			}
 		}
 		res_table.push(aCopy[biggest[0]]);
