@@ -1,7 +1,7 @@
 To Do:
 IN PROGRESS:
 - Checking everything still works
-- Fix Leaderboard Sort
+- Display owned medals at store, manage account, ?session?
 
 FUNCTIONAL:
 - Add store for coins
