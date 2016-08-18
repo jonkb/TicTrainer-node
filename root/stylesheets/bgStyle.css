@@ -176,6 +176,17 @@ footer {
 	text-align: center;
 }
 
+.sticker {
+	display: inline-block;
+	margin: .5rem;
+	padding: .5rem;
+	border-color: #1fe080;
+  border-style: solid;
+  border-width: 2px;
+  border-radius: 0.5rem;
+	background-color: #f2f2f2;
+}
+
 .bigCounter {
 	font-family: Impact, Charcoal, sans-serif;
 	text-align: right;

@@ -16,51 +16,80 @@
 			</div>
 		</section>
 		<section class='main-content' id='mainC'>
-			<div class='store-item'>
-				Bronze Medal<br>
-				<img src="/media/bronze.svg" alt="Bronze" height="150px"><br>
-				Price: 10&nbsp;000 coins
-				<form method="POST" name="buyB" onsubmit="return checkForm('b');">
-					<input type="hidden" name="source" value="buy">
-					<input type="hidden" name="item" value="b">
-					<input type="hidden" name="id" value="**[id]**">
-					<input type="hidden" name="pw" value="**[pw]**">
-					<input type="hidden" name="coins" value="**[coins]**">
-					<input type="submit" value="Buy" class="btn">
-				</form>
+			<div>
+				<div class='store-item'>
+					Bronze Medal<br>
+					<img src="/media/bronze.svg" alt="Bronze" height="150px"><br>
+					Price: 10&nbsp;000 coins
+					<form method="POST" name="buyB" onsubmit="return checkForm('b');">
+						<input type="hidden" name="source" value="buy">
+						<input type="hidden" name="item" value="b">
+						<input type="hidden" name="id" value="**[id]**">
+						<input type="hidden" name="pw" value="**[pw]**">
+						<input type="hidden" name="coins" value="**[coins]**">
+						<input type="submit" value="Buy" class="btn">
+					</form>
+				</div>
+				<div class='store-item'>
+					Silver Medal<br>
+					<img src="/media/silver.svg" alt="Silver" height="150px"><br>
+					Price: 50&nbsp;000 coins
+					<form method="POST" name="buyS" onsubmit="return checkForm('s');">
+						<input type="hidden" name="source" value="buy">
+						<input type="hidden" name="item" value="s">
+						<input type="hidden" name="id" value="**[id]**">
+						<input type="hidden" name="pw" value="**[pw]**">
+						<input type="hidden" name="coins" value="**[coins]**">
+						<input type="submit" value="Buy" class="btn">
+					</form>
+				</div>
+				<div class='store-item'>
+					Gold Medal<br>
+					<img src="/media/gold.svg" alt="Gold" height="150px"><br>
+					Price: 100&nbsp;000 coins
+					<form method="POST" name="buyG" onsubmit="return checkForm('g');">
+						<input type="hidden" name="source" value="buy">
+						<input type="hidden" name="item" value="g">
+						<input type="hidden" name="id" value="**[id]**">
+						<input type="hidden" name="pw" value="**[pw]**">
+						<input type="hidden" name="coins" value="**[coins]**">
+						<input type="submit" value="Buy" class="btn">
+					</form>
+				</div>
 			</div>
-			<div class='store-item'>
-				Silver Medal<br>
-				<img src="/media/silver.svg" alt="Silver" height="150px"><br>
-				Price: 50&nbsp;000 coins
-				<form method="POST" name="buyS" onsubmit="return checkForm('s');">
-					<input type="hidden" name="source" value="buy">
-					<input type="hidden" name="item" value="s">
-					<input type="hidden" name="id" value="**[id]**">
-					<input type="hidden" name="pw" value="**[pw]**">
-					<input type="hidden" name="coins" value="**[coins]**">
-					<input type="submit" value="Buy" class="btn">
-				</form>
-			</div>
-			<div class='store-item'>
-				Gold Medal<br>
-				<img src="/media/gold.svg" alt="Gold" height="150px"><br>
-				Price: 100&nbsp;000 coins
-				<form method="POST" name="buyG" onsubmit="return checkForm('g');">
-					<input type="hidden" name="source" value="buy">
-					<input type="hidden" name="item" value="g">
-					<input type="hidden" name="id" value="**[id]**">
-					<input type="hidden" name="pw" value="**[pw]**">
-					<input type="hidden" name="coins" value="**[coins]**">
-					<input type="submit" value="Buy" class="btn">
-				</form>
-			</div>
+			<fieldset>
+				<legend>Your Items</legend>
+				<div id="heap">
+				</div>
+			</fieldset>
 		</section>
 		<script>
 			var coins = **[coins]**;
 			var inventory = {"b":1e4,
 				"s":5e4,
 				"g":1e5};
+			genHeap();
+			function genHeap(){
+				var heap = "**[heap]**";
+				var heap2 = {};
+				var heap3 = "";
+				for(var i = 0; i< heap.length; i++){
+					if(heap2[heap[i]] != null)
+						heap2[heap[i]] = heap2[heap[i]] + 1;
+					else
+						heap2[heap[i]] = 1;
+				}
+				for(var i = 0; i< heap2.g; i++){
+					heap3 += "<div class='sticker'><img src='/media/gold.svg' alt='Gold' height='150px'></div>";
+				}
+				for(var i = 0; i< heap2.s; i++){
+					heap3 += "<div class='sticker'><img src='/media/silver.svg' alt='Silver' height='150px'></div>";
+				}
+				for(var i = 0; i< heap2.b; i++){
+					heap3 += "<div class='sticker'><img src='/media/bronze.svg' alt='Bronze' height='150px'></div>";
+				}
+				document.getElementById("heap").innerHTML = heap3;
+			}
 			function checkForm(item){
 				var price = inventory[item];
 				if(price > coins){

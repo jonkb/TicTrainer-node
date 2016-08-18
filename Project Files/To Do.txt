@@ -1,16 +1,14 @@
 To Do:
 IN PROGRESS:
-- Checking everything still works
-- Display owned medals at store, manage account, ?session?
+- check visuals on medals
 
 FUNCTIONAL:
-- Add store for coins
-  - buy decorations, stickers
-- ?Set up email response to reports?
+- Add more things to store
+- ?Set up auto email response to reports?
 
 VISUAL:
-- ?add leaderboard?
-- ?meh Make order obvious and implicit (Reg > Man > Ses) ? (/index.html)
+- ?Display owned medals at session?
+- NO-it's good?meh Make order obvious and implicit (Reg > Man > Ses) ? (/index.html)
 
 DEEPER:
 - finish aux.editData

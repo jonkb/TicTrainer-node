@@ -128,7 +128,8 @@ function handleRequest(req, res){
 				"sex": data[4],
 				"level": level, //from data[5]
 				"points": points, //from data[5]
-				"coins": coins //from data[5]
+				"coins": coins, //from data[5]
+				"heap": data[6]
 			};
 			aux.dynamic("./account/manageU.dynh", dynd, function(page){
 				res.writeHead(200, {"Content-Type": "text/html"});
@@ -1233,6 +1234,7 @@ function handleRequest(req, res){
 								}
 								var lpc = dc1.slice(aux.indexNOf(dc1, ";", 5)+1, aux.indexNOf(dc1, ";", 6));
 								body.coins = lpc.split(",")[2];
+								body.heap = dc1.slice(aux.indexNOf(dc1, ";", 6)+1, dc1.indexOf(">"));
 								aux.debugShout("1232 "+JSON.stringify(body), 3);
 								//go to store
 								ret_store(body);
@@ -1286,6 +1288,7 @@ function handleRequest(req, res){
 									}
 									var lpc = dEntry.split(";")[5].split(",");
 									body.coins = lpc[2];
+									body.heap = dEntry.split(";")[6];
 									aux.debugShout("1232 "+JSON.stringify(body), 3);
 									ret_store(body);
 								});
