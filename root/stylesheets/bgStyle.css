@@ -178,8 +178,9 @@ footer {
 }
 
 .sticker {
+	line-height: 0;/*Removes white space below image*/
 	display: inline-block;
-	margin: .5rem;
+	margin: .25rem;
 	padding: .5rem;
 	border-color: #1fe080;
   border-style: solid;
