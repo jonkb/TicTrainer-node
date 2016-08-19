@@ -5,6 +5,7 @@ IN PROGRESS:
 FUNCTIONAL:
 - Add more things to store
 - ?Set up auto email response to reports?
+- check out err log ln 21
 
 VISUAL:
 - ?Display owned medals at session?

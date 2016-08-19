@@ -31,7 +31,11 @@
 				</div>
 			</div>
 			
+			<div id="heap">
+			</div>
+			
     </section>
+		<script src="/scripts/store.js"></script>
 		<script>
 			var salido = false;//salido -sp- left
 			window.onbeforeunload = endS;
@@ -55,6 +59,7 @@
 			var lastL = **[sesL]**;
 			update_display();
 			frame();
+			genHeap("**[heap]**");
 			function frame(){
 				var xhr = new XMLHttpRequest();
 				var url = '/session/index.html';
@@ -134,7 +139,7 @@
 			function levelUp(){
 				level++;
 				points -= nextLevel;
-				coins += nextLevel;
+				coins += nextLevel/1000;
 				savelpc();
 				nextLevel = 1000*level*level;
 				cap = 10*level*level;

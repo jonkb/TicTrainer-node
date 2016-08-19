@@ -2,7 +2,7 @@ var http = require("http");
 var fs = require('fs');
 var url = require('url');
 var aux = require("./scripts/auxiliary.js");
-
+var inventory = require("./scripts/store.js").inv;
 const PORT = 8888;
 
 function handleRequest(req, res){
@@ -205,7 +205,8 @@ function handleRequest(req, res){
 			"level": data.level,
 			"points": data.points,
 			"coins": data.coins,
-			"sesL": data.sesL
+			"sesL": data.sesL,
+			"heap": data.heap
 		};
 		aux.dynamic("./session/session-user.dynh", dynd, function(page){
 			res.writeHead(200, {"Content-Type": "text/html"});
@@ -908,6 +909,7 @@ function handleRequest(req, res){
 													body.level = lpData[0];
 													body.points = lpData[1];
 													body.coins = lpData[2];
+													body.heap = people[i][6];
 													var startLPEntry = "\nstarting user l,p,c|"+ lpData[0]+","+lpData[1]+","+lpData[2];
 													fs.appendFile(searchFile, startLPEntry, function(err){
 														if(err){
@@ -1241,9 +1243,6 @@ function handleRequest(req, res){
 							});
 						break;
 						case "buy":
-							var inventory = {"b":1e4,
-								"s":5e4,
-								"g":1e5};
 							var file = "./account/user.data";
 							body.id = aux.isID(body.id);
 							if(body.id === false || body.id[0] !== "u"){

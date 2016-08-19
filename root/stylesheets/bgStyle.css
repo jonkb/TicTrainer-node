@@ -165,8 +165,9 @@ footer {
 	
 .store-item {
 	display: inline-block;
-	margin: 1rem;
-	padding: .5rem;
+	margin: .5rem;
+	padding: 1rem;
+	width: 140px;
 	border-color: #1fe080;
   border-style: solid;
   border-width: 2px;
