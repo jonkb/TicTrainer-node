@@ -62,7 +62,16 @@
 					<input type='submit' value='Save Changes' class="btn">
 				</fieldset>
 			</form>
+			<fieldset>
+				<legend>Your Items</legend>
+				<div id="heap">
+				</div>
+			</fieldset>
 			<a href='/index.html' class='btn'>Return to Home</a>
 		</section>
+		<script src="/scripts/store.js"></script>
+		<script>
+			genHeap("**[heap]**");
+		</script>
 	</body>
 </html>

@@ -13,6 +13,7 @@ module.exports.isID = isID;
 module.exports.parse36ToDec = parse36ToDec;
 module.exports.decTo36 = decTo36;
 module.exports.dataToEntries = dataToEntries;
+module.exports.sort2d = sort2d;
 module.exports.genReport = genReport;
 module.exports.toData = toData;
 module.exports.time = time;
@@ -66,8 +67,8 @@ function dynamic(template_path, data, callback){
 				next_index = file_left.indexOf("**[");
 			}
 			else{
-				debugShout("Server error, not enough data supplied. It wanted '"+dyn_field+"'", 1);
-				callback("se");
+				debugShout("Not enough data supplied. It wanted '"+dyn_field+"'", 1);
+				callback("ife");
 				return;
 			}
 		}
@@ -90,7 +91,7 @@ function dynamic(template_path, data, callback){
 		entryID - the value which describes the entry to be edited (the first value)
 		fldInd - which value index to edit <0,1,2,3>
 		newVal - new value or 
-			a function which is passed the whole old entry and returns the new value
+			a function which is passed the whole old entry and returns the new value (or "<cancel>")
 		callback - callback function. Returns entryData.
 */
 function editData0(file, entryID, fldInd, newVal, callback){
@@ -360,7 +361,9 @@ function dataToEntries(data){
 	var current = "";
 	var entryN = 0;
 	var lookingAtData = false;
+	debugShout("converting "+data+ "to entries", 3);
 	for(var i = 0; i< data.length; i++){
+		debugShout(" "+data[i], 3);
 		switch(data[i]){
 			case "<":
 				lookingAtData = true;
@@ -379,6 +382,32 @@ function dataToEntries(data){
 	}
 	return entries;
 }
+
+//returns a sorted copy of the given 2d array. Sorted by the goven column
+//data in sortColumn should be numerical
+function sort2d(inArray, sortColumn){
+	var aCopy = inArray.slice();
+	var res_table = [];
+	while(aCopy.length > 0){
+		var biggest = [0,0];//index,sortVal
+		for(var i = 0; i < aCopy.length; i++){
+			var valHere = parseInt(aCopy[i][sortColumn]);
+			if(valHere === NaN)
+				return "ice";
+			debugShout("valHere is: "+valHere, 3);
+			debugShout("current overlord is: "+biggest, 3);
+			if(valHere > biggest[1]){
+				biggest = [i, valHere];
+				debugShout("new tallest crowned: "+biggest, 3);
+			}
+		}
+		debugShout("biggest is: "+biggest,3);
+		res_table.push(aCopy[biggest[0]]);
+		aCopy.splice(biggest[0], 1);//cut out the biggest
+	}
+	return res_table;
+}
+
 //Generates a report for the end of a session
 function genReport(data){
 	var tics = 0, tenSIntervals = 0, longestInterval = 0;

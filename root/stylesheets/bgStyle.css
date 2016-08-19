@@ -163,6 +163,32 @@ footer {
   border-color: #4be799;
  }
 	
+.store-item {
+	display: inline-block;
+	margin: .5rem;
+	padding: 1rem;
+	width: 140px;
+	border-color: #1fe080;
+  border-style: solid;
+  border-width: 2px;
+  border-radius: 0.5rem;
+	background-color: #e6e6e6;
+	
+	text-align: center;
+}
+
+.sticker {
+	line-height: 0;/*Removes white space below image*/
+	display: inline-block;
+	margin: .25rem;
+	padding: .5rem;
+	border-color: #1fe080;
+  border-style: solid;
+  border-width: 2px;
+  border-radius: 0.5rem;
+	background-color: #f2f2f2;
+}
+
 .bigCounter {
 	font-family: Impact, Charcoal, sans-serif;
 	text-align: right;

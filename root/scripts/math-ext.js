@@ -1,4 +1,4 @@
-module.exports.norm = norm;
+//module.exports.norm = norm;
 
 //Approximate Normal Distribution   -   default: (-6, 6) sd 1 median 0
 function norm(median, sd, clip_radius){
@@ -23,4 +23,25 @@ function norm(median, sd, clip_radius){
 	}
 	
 	return sd * x + median;
+}
+
+//returns a sorted copy of the given 2d array. Sorted by the goven column
+//data in sortColumn should be numerical
+function sort2d(inArray, sortColumn){
+	var aCopy = inArray.slice();
+	var res_table = [];
+	while(aCopy.length > 0){
+		var biggest = [0,0];//index,sortVal
+		for(var i = 0; i < aCopy.length; i++){
+			var valHere = parseInt(aCopy[i][sortColumn]);
+			if(valHere === NaN)
+				return "ice";
+			if(valHere > biggest[1]){
+				biggest = [i, valHere];
+			}
+		}
+		res_table.push(aCopy[biggest[0]]);
+		aCopy.splice(biggest[0], 1);//cut out the biggest
+	}
+	return res_table;
 }

@@ -9,16 +9,35 @@ var file3 = "test.data";
 
 console.log("A");
 
-var x = "a";
-var y = "a";
-if(x == y)
-	console.log("yes1");
-if(x === y)
-	console.log("yes2");
-if(x != y)
-	console.log("no1");
-if(x !== y)
-	console.log("no2");
+var t1 = 
+	[["a", 1, 500],
+	["b", 2, 1],
+	["c", 2, 200],
+	["d", 3, 1],
+	["e", 2, 20],
+	["f", 1, 1000],
+	["g", 2, 2000],
+	["h", 1, 200]]
+
+var t2 = [];
+t2[0] = ["A", "B"];
+t2[1] = ["A", "B"];	
+
+var testData = "<a,b,c><d,e,f><g,h,i>";
+
+var t11 = t1;
+var t12 = t1;
+var t13 = t12;
+
+
+console.log("B");
+
+t3 = [["u0","9","2988"],["u1","2","585"],["u2","1","69"],["u3","1","915"],["u4","0","0"],["u5","0","0"],["u6","0","0"],["u7","0","0"],["u8","0","0"],["u9","0","0"],["ua","1","485"],["ub","0","0"],["uc","0","0"],["ud","0","0"],["ue","0","0"]]
+console.log(t3);
+
+console.log(aux.sort2d(t3, 2));
+console.log(aux.sort2d(t3, 1));
+console.log(aux.sort2d(aux.sort2d(t3, 2), 1));
 
 console.log("Z");
 

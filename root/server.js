@@ -2,7 +2,7 @@ var http = require("http");
 var fs = require('fs');
 var url = require('url');
 var aux = require("./scripts/auxiliary.js");
-
+var inventory = require("./scripts/store.js").inv;
 const PORT = 8888;
 
 function handleRequest(req, res){
@@ -128,7 +128,8 @@ function handleRequest(req, res){
 				"sex": data[4],
 				"level": level, //from data[5]
 				"points": points, //from data[5]
-				"coins": coins //from data[5]
+				"coins": coins, //from data[5]
+				"heap": data[6]
 			};
 			aux.dynamic("./account/manageU.dynh", dynd, function(page){
 				res.writeHead(200, {"Content-Type": "text/html"});
@@ -204,7 +205,8 @@ function handleRequest(req, res){
 			"level": data.level,
 			"points": data.points,
 			"coins": data.coins,
-			"sesL": data.sesL
+			"sesL": data.sesL,
+			"heap": data.heap
 		};
 		aux.dynamic("./session/session-user.dynh", dynd, function(page){
 			res.writeHead(200, {"Content-Type": "text/html"});
@@ -225,6 +227,14 @@ function handleRequest(req, res){
 			res.write(page, function(err){res.end();});
 		});
 	}
+	//Return the TT Store. Requires id, pw, coins
+	function ret_store(data){
+		aux.dynamic("./account/store/store.dynh", data, function(page){
+			res.writeHead(200, {"Content-Type": "text/html"});
+			res.write(page, function(err){res.end();});
+		});
+	}
+	
 	// Redirect to the specified URL
 	function ret_redirect(pathN){
 		res.writeHead(303, {"Location": pathN});
@@ -240,31 +250,70 @@ function handleRequest(req, res){
 		}
 		//Choose the appropriate content type based on the file extension
 		var ext = pathN.slice(pathN.lastIndexOf("."));
-		var cType = "text/plain";
+		var cType = "text/plain";//MIME type
 		switch(ext){
 			case ".html":
 				cType = "text/html";
-				break;
+			break;
 			case ".js":
 				cType = "text/javascript";
-				break;
+			break;
 			case ".css":
 				cType = "text/css";
-				break;
+			break;
+			case ".gj"://personal extension for getting json data (GetJson)
+				cType = "application/json";
+			break;
 			case ".ico":
 				cType = "image/x-icon";
-				break;
+			break;
 			case ".png":
 				cType = "image/png";
-				break;
+			break;
 			case ".gif":
 				cType = "image/gif";
-				break;
+			break;
+			case ".svg":
+				cType = "image/svg+xml";
+			break;
 		}
 		if(ext == ".data"){
 			// Don't serve sensitive data
 			res.writeHead(403, {"Content-Type": "text/html"});
 			res.end();
+		}
+		else if(ext == ".gj"){
+			switch(pathN){
+				case "./account/leaderboard/leaderboard.gj":
+					aux.debugShout("275");
+					fs.readFile("./account/user.data", 'utf8', function(err, data){
+						if(err){
+							ret_error("fe");
+							return;
+						}
+						var people = aux.dataToEntries(data);
+						aux.debugShout("people: "+people, 3);
+						var res_table = [];
+						/*["id", "level", "points"]
+						  [u0  , 1      , 100]
+							...  , ...    , ...
+						*/
+						var len = people.length;
+						if(len > 100)
+							len = 100;
+						for(var i = 0; i < len; i++){
+							var id = people[i][0];
+							var lp = people[i][5].split(",");
+							res_table[i] = [id, lp[0], lp[1]];
+						}
+						aux.debugShout("res_table: "+res_table, 3);
+						var resFinal = JSON.stringify(res_table);
+						aux.debugShout("resFinal: "+resFinal, 3);
+						res.writeHead(200, {"Content-Type": cType});
+						res.write(resFinal, function(err){res.end();});
+					});
+				break;
+			}
 		}
 		else{
 			// Read the requested file content and send it
@@ -399,7 +448,7 @@ function handleRequest(req, res){
 						if(iD == "uError")
 							ret_error("fe", "/register/user.html", "register-user: decTo36");
 						else{
-							var uData = "\n<"+iD+";"+pass+";"+bD+";;"+sex+";0,0,0>";//;links; level,points,coins
+							var uData = "\n<"+iD+";"+pass+";"+bD+";;"+sex+";0,0,0;>";//;links; level,points,coins;[store-bought items]
 							fs.appendFile("./account/user.data", uData, function(err){
 								if(err)
 									ret_error("fe", "/register/user.html", "register-user: reading user.data");
@@ -860,6 +909,7 @@ function handleRequest(req, res){
 													body.level = lpData[0];
 													body.points = lpData[1];
 													body.coins = lpData[2];
+													body.heap = people[i][6];
 													var startLPEntry = "\nstarting user l,p,c|"+ lpData[0]+","+lpData[1]+","+lpData[2];
 													fs.appendFile(searchFile, startLPEntry, function(err){
 														if(err){
@@ -1156,6 +1206,95 @@ function handleRequest(req, res){
 						}
 					});
 				break;
+				case "/account/store/index.html":
+					switch(body.source){
+						case "enterStore":
+							var file = "./account/user.data";
+							//verify form
+							body.id = aux.isID(body.id);
+							if(body.id === false || body.id[0] !== "u"){
+								ret_error("ide", "/session/index.html");
+								break;
+							}
+							fs.readFile(file, "utf8", function(err, data){
+								if(err){
+									ret_error("fe", "/account/store/index.html", "enter store: accessing user data file");
+									return;
+								}
+								var iId = data.indexOf("<"+ body.id);
+								if(iId == -1){
+									ret_error("anfe", "/account/store/index.html");
+									return;
+								}
+								//dataChunk1
+								var dc1 = data.slice(iId);//<u0;h;...
+								var dc2 = dc1.slice(dc1.indexOf(";")+1);
+								var pass = dc2.slice(0, dc2.indexOf(";"));
+								if(body.pw != pass){
+									ret_error("pce", "/account/store/index.html");
+									return;
+								}
+								var lpc = dc1.slice(aux.indexNOf(dc1, ";", 5)+1, aux.indexNOf(dc1, ";", 6));
+								body.coins = lpc.split(",")[2];
+								body.heap = dc1.slice(aux.indexNOf(dc1, ";", 6)+1, dc1.indexOf(">"));
+								aux.debugShout("1232 "+JSON.stringify(body), 3);
+								//go to store
+								ret_store(body);
+							});
+						break;
+						case "buy":
+							var file = "./account/user.data";
+							body.id = aux.isID(body.id);
+							if(body.id === false || body.id[0] !== "u"){
+								ret_error("ide");
+								break;
+							}
+							if(isNaN(inventory[body.item])){//is not in inventory(may give a false positive)
+								ret_error("ife");//I'm ok with this because it would only be triggered by hackers, who I feel no need to be courteous to
+								break;
+							}
+							//Subtract the needed coins
+							aux.editData(file, body.id, 5, function(dEntry){
+								if(dEntry[1] !== body.pw){
+									ret_error("pce");
+									return "<cancel>";
+								}
+								var lpc = dEntry[5].split(",");
+								if(lpc[2] < inventory[body.item]){
+									ret_error("ife");
+									return "<cancel>";
+								}
+								var newlpc = lpc[0]+ "," +lpc[1]+ "," +(lpc[2]-inventory[body.item]);
+								return newlpc;
+							}, function(err, dEntry){
+								if(err){
+									if(err !== "canceled"){
+										if(dEntry)
+											aux.debugShout("1267 "+dEntry);
+										ret_error(err);
+									}
+									return;//already returned - ret_error
+								}
+								//add the item to their loot pile
+								aux.editData(file, body.id, 6, function(dEntry){
+									return body.item + dEntry[6];
+								}, function(err, dEntry){//callback
+									if(err){
+										if(dEntry)
+											aux.debugShout("1278 "+dEntry);
+										ret_error(err);
+										return;//already returned - ret_error
+									}
+									var lpc = dEntry.split(";")[5].split(",");
+									body.coins = lpc[2];
+									body.heap = dEntry.split(";")[6];
+									aux.debugShout("1232 "+JSON.stringify(body), 3);
+									ret_store(body);
+								});
+							});
+						break;
+					}
+				break;//store
 			}
 		});
 	}//POST
