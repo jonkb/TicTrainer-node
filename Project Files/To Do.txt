@@ -1,6 +1,5 @@
 To Do:
 IN PROGRESS:
-- check visuals on medals
 
 FUNCTIONAL:
 - Add more things to store
@@ -8,8 +7,6 @@ FUNCTIONAL:
 - check out err log ln#21
 
 VISUAL:
-- ?Display owned medals at session?
-- NO-it's good?meh Make order obvious and implicit (Reg > Man > Ses) ? (/index.html)
 
 DEEPER:
 - finish aux.editData
