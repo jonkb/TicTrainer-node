@@ -22,3 +22,5 @@ DEEPER:
 
 NOTES:
 - Justify: Why do I do the session the way I do? Why require both user and trainer to link prior to sessions. Avoid bizarre typos? t0 types t0-u1 and u1 types u1-t0 *at the same time* *On accident* It's not really necessary, but it adds a level of insurance.
+- https://www.rapid7.com/products/metasploit/
+- https://www.kali.org/
