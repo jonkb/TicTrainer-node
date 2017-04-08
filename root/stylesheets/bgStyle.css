@@ -57,6 +57,7 @@ footer {
   border-width: 1px;
   border-radius: .2rem;
 	margin: 0 .5rem 0 0;
+	transition: background-color 0.3s;
 }
 .logo::before{
 	content: 'Tt';
