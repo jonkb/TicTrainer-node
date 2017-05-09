@@ -7,7 +7,6 @@ const debugging = 2;
 */
 module.exports.dynamic = dynamic;
 module.exports.editData = editData;
-module.exports.editData1 = editData_unfinished;
 module.exports.indexNOf = indexNOf;
 module.exports.isID = isID;
 //module.exports.fixD = fixD;
@@ -106,8 +105,8 @@ function editData(file, entryID, fldInd, newVal, callback){
 		var entryData = data.slice(entryIndex);
 			entryData = entryData.slice(0, entryData.indexOf(">"));
 		//field index
-		var iF = indexNOf(entryData, ";", fldInd) + 1;
-		var iFE = indexNOf(entryData, ";", fldInd+1);
+		var iF = indexNOf(entryData, ";", fldInd) + 1;//Start after semicolon
+		var iFE = indexNOf(entryData, ";", fldInd+1);//End before next ";"
 		debugShout("ife"+iFE+"|if"+iF);
 		if(iFE < iF){//last field
 			iFE = entryData.length;
@@ -133,8 +132,11 @@ function editData(file, entryID, fldInd, newVal, callback){
 		var dAfter = data.slice(entryIndex);
 			dAfter = dAfter.slice(dAfter.indexOf(">"));
 		var newData = dBefore + entryData + dAfter;
-		fs.writeFileSync(file, newData);
-		
+		/*Sync is used here because we're editing.
+			We don't want someone else editing it inbetween.
+			Maybe if I used fs.open and fd it would work non-sync as well.
+		*/
+		fs.writeFileSync(file, newData); 
 		callback(null, entryData);
 	});
 }
@@ -142,8 +144,13 @@ function editData(file, entryID, fldInd, newVal, callback){
 /**Find the nth occurence of a substring
 	Like indexOf, but broader
 	The argument "nth" is 1-indexed (1,2,3,...), not 0-indexed (0,1,2,...)
+	This makes it more like english.
+		"Find the second comma" translates to nth=2 search=","
 */
 function indexNOf(string, search, nth){//t0000;Jonathan;05/20/1999;h;u0000;
+	if(nth == 0){
+		return 0;
+	}
 	var i1 = string.indexOf(search);
 	if(nth == 1){
 		return i1;

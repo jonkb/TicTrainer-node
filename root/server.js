@@ -393,7 +393,7 @@ function handleRequest(req, res){
 						if(iD == "tError")
 							ret_error("fe", "/register/trainer.html", "register-trainer: decTo36");
 						else{
-							var tData = "\n<"+iD+";"+pass+";"+bD+";>";//the empty section is for lnacc
+							var tData = "<"+iD+";"+pass+";"+bD+";>\n";//the empty section is for lnacc
 							fs.appendFile("./account/trainer.data", tData, function(err){
 								if(err)
 									ret_error("fe", "/register/trainer.html", "register-trainer: reading trainer.data");
@@ -448,7 +448,7 @@ function handleRequest(req, res){
 						if(iD == "uError")
 							ret_error("fe", "/register/user.html", "register-user: decTo36");
 						else{
-							var uData = "\n<"+iD+";"+pass+";"+bD+";;"+sex+";0,0,0;>";//;links; level,points,coins;[store-bought items]
+							var uData = "<"+iD+";"+pass+";"+bD+";;"+sex+";0,0,0;>\n";//;links; level,points,coins;[store-bought items]
 							fs.appendFile("./account/user.data", uData, function(err){
 								if(err)
 									ret_error("fe", "/register/user.html", "register-user: reading user.data");
@@ -628,7 +628,7 @@ function handleRequest(req, res){
 
 							(if trainer) [loading page]set timer to look for other account (in lnusers) every 2s for 1m --> 
 								[start page]create session data file, show Start button --> 
-									[session control page]Append "session started at"+, show Tic Detected, Stop Session butttons
+									[session control page]Append "session started at"+, show Tic Detected & Stop Session butttons
 							 */
 							 
 							var pass = body.pWord;
@@ -646,7 +646,9 @@ function handleRequest(req, res){
 							else if(body.id[0] == "u"){
 								file += "user.data";
 							}
-							//Check linked, pw
+							/*Check that the accounts are linked and confirm pw.
+								Note that this code is reused for users and trainers.
+							*/
 							fs.readFile(file, "utf8", function(err, data){
 								if(err){
 									ret_error("fe", "/session/index.html", "new-session: reading "+file);
@@ -668,6 +670,7 @@ function handleRequest(req, res){
 												ret_error("anle", "/session/index.html");//Account not linked error
 											}
 											else{
+												//See below. This is really just here to limit the crazy indentation.
 												allConfirmed();
 											}
 										}
@@ -680,20 +683,22 @@ function handleRequest(req, res){
 								if(!found)
 									ret_error("anfe", "/session/index.html");//Account not found error
 							});
-							//Continue with the next step
-							//	see if a session file already exists between those users
+							/*Continue with the next step.
+								See if a session file already exists between those users.
+								If so, it's called a concurrent or ghost session.
+							*/
 							function allConfirmed(){
 								if(body.id[0] == "t"){
 									//This section should hopefully never need to be used, but it handles ghost sessions. Logs a ghost session error.
 									var oldSFile = "./session/temp/session"+ body.id + body.lid + ".data";
 									fs.stat(oldSFile, function(err){
 										if(err){
-											if(err.code == "ENOENT"){//Good.
-												//Go to trainer loading page
+											if(err.code == "ENOENT"){//Does not exist. Good.
+												//Go to trainer loading page. (Again, a new function is used to decrease indentation insanity. It is reused though, so it makes sense.)
 												success();
 											}
 											else
-												ret_error("fe", "/session/index.html", "new-session: checking if oldSFile exists");
+												ret_error("fe", "/session/index.html", "new-session: checking if oldSFile exists"); //Some other bizarre error
 										}
 										else{//Bad, it's an old ghost session. Or it's concurrent.
 											ret_error("conses", "/session/index.html");
@@ -701,12 +706,11 @@ function handleRequest(req, res){
 									});
 								}
 								else{
-									//This section should never need to be used, but it handles ghost sessions. Logs a ghost session error.
 									var oldSFile = "./session/temp/session"+ body.lid + body.id + ".data";
 									fs.stat(oldSFile, function(err){
 										if(err){
 											if(err.code == "ENOENT"){//Good.
-												var linkData = "<" +body.id+ "," +body.lid+ ">";//Data entry for the waiting link
+												var linkData = "<" +body.id+ "," +body.lid+ ">";//Data entry for the new waiting link
 												fs.readFile("./session/lnusers.data", "utf8", function(err,data){
 													if(err){
 														ret_error("fe", "/session/index.html", "new-session: reading lnusers.data");
@@ -766,8 +770,9 @@ function handleRequest(req, res){
 											var newData = data.substring(0, iSE) + data.substring(iSEEnd, data.length);
 											//Cut out entry
 											fs.writeFileSync("./session/lnusers.data", newData, "utf8");
-											//make a session file - this should only exist for the duration of the session.
-											//when the session ends, rename and copy the file to an archive: ./session/archive
+											/*make a session file - this should only exist for the duration of the session.
+												when the session ends, rename and copy the file to an archive: ./session/archive
+											*/
 											var sesFileName = "./session/temp/session"+ body.id + body.lid + ".data";
 											fs.writeFile(sesFileName, "", function(err){
 												if(err)

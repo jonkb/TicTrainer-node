@@ -8,6 +8,8 @@ FUNCTIONAL:
 
 VISUAL:
 -(3,2) Add more things to store
+  - I could add more decorations
+  - Streak bonuses like duolingo
 -(2,3) make better documentation
   - Comments, README.md, 
 - convince the users that leaderboard refresh does something (flash white?, loading symbol?)
@@ -19,8 +21,9 @@ DEEPER:
     - Types: sessions (sdata), 3x account data (adata), lnusers (tdata), log (tdata)
     - tdata - Text Data
   -(4,5) Switch over to a better data storage system. MySQL database or individual files.
--(3,1) eliminate sync functions 
+-(3,2) Sync functions are used a few places for editing. Determine if that's necessary and get rid of them.
 -(3,2) double check that all forms are checked on both sides
+-(2,2) Move ret_ functions to their own file (Then res would need to be passed too)
 -(2,3) ?Maybe use ajax instead of form for linkloading-trainer?
 -(2,4) ?use json? ajaj? instead of ajax and .data and xml?
 -(2,5) ?Convert everything in the session to 307 redirects?
