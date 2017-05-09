@@ -1,6 +1,6 @@
 # TicTrainer-node
 
-This project contains the files used to serve TicTrainer™ via node.js. TicTrainer™ is a web tool meant to help people build their ability to fight their tics. It was built to implement the RE-ERP strategy developed by Kevin Black (http://www.nil.wustl.edu/labs/kevin/kevin.htm).
+This project contains the files used to serve TicTrainer™ via node.js. TicTrainer™ is a web tool meant to help people build their ability to fight their tics. It was built to implement the RE-ERP strategy developed by Kevin Black (http://www.purl.org/net/kbmd).
 
 **IMPORTANT NOTE:** Make sure not to upload real user data back to github from the server. This shouldn't be easy to do, you'd need to be a collaborator on the github project. (As of 5/9/17, that's just 2 people: jonkb and KBMD.) Just be careful not to make commits on the server that include private data and push them back to the origin with authentication. As it stands today, everything in .data files on github is just data generated during tests with fake accounts.
 
