@@ -27,6 +27,7 @@ function norm(median, sd, clip_radius){
 
 //returns a sorted copy of the given 2d array. Sorted by the goven column
 //data in sortColumn should be numerical
+//This is a copy of the function of auxiliary. Why?
 function sort2d(inArray, sortColumn){
 	var aCopy = inArray.slice();
 	var res_table = [];

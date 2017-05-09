@@ -285,7 +285,7 @@ function handleRequest(req, res){
 		else if(ext == ".gj"){
 			switch(pathN){
 				case "./account/leaderboard/leaderboard.gj":
-					aux.debugShout("275");
+					aux.debugShout("288");
 					fs.readFile("./account/user.data", 'utf8', function(err, data){
 						if(err){
 							ret_error("fe");

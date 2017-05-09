@@ -36,6 +36,7 @@
 			var lastLoaded = 0;
 			load();
 			function load(){
+				document.getElementById("board").innerHTML = "" //Flash white on reload
 				var xhr = new XMLHttpRequest();
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
