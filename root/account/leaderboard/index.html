@@ -36,7 +36,7 @@
 			var lastLoaded = 0;
 			load();
 			function load(){
-				document.getElementById("board").innerHTML = "" //Flash white on reload
+				document.getElementById("board").innerHTML = "<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>"; //Show Loading on reload
 				var xhr = new XMLHttpRequest();
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
