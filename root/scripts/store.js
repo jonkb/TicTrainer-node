@@ -4,11 +4,12 @@ inventory = {"b":10,
 	
 module.exports = {"inv": inventory};
 
-//Fills a div with the given medals. heap is of format: "gsgsbgbbbss"
-//Also, the document needs a div with id "heap"
+/**Fills a div with the given medals. heap is of format: "gsgsbgbbbss"
+	Also, the document needs a div with id "heap"
+*/
 function genHeap(heap){
-	var heap2 = {};
-	var heap3 = "";
+	var heap2 = {};//convert to object
+	var heap3 = "";//convert to html
 	for(var i = 0; i< heap.length; i++){
 		if(heap2[heap[i]] != null)
 			heap2[heap[i]]++;

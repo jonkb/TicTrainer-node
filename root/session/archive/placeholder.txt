@@ -1,0 +1,2 @@
+This file ensures that this folder exists, even if it's empty.
+Github doesn't keep empty folders, and having this folder gone breaks the sessions.

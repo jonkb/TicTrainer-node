@@ -1,5 +1,9 @@
-To Do:
-IN PROGRESS:(priority,difficulty) (0-5,0-5)
+To Do: (priority,difficulty) (0-5,0-5)
+IN PROGRESS:
+- Fixing everything so it works with the new data system
+	- Replace editData with editAcc
+	- Make sure there isn't any weird code that parses through /account/user.data
+	- make sure I'm not creating or pointing to .data files (look in session)
 
 FUNCTIONAL:
 -(3,2) ?Set up auto email response to reports?
@@ -17,8 +21,8 @@ VISUAL:
 DEEPER: 
 -(4,5) Do something to make the data storage nicer (more sturdy and able to handle high numbers and lots of traffic)
   -(2,3) Maybe make more unique data extensions. One that can be .gitignored? Just for clarity?
-    - Types: sessions (sdata), 3x account data (adata), lnusers (tdata), log (tdata)
-    - tdata - Text Data
+    - Types: sessions (sdta), 3x account data (adta), lnusers (tdta), log (tdta)
+    - tdta - Text Data
   -(4,5) Switch over to a better data storage system. MySQL database or individual files.
 -(3,2) Sync functions are used a few places for editing. Determine if that's necessary and get rid of them.
 -(3,2) double check that all forms are checked on both sides

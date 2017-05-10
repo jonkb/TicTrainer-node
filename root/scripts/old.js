@@ -4,6 +4,70 @@ Used to be at the bottom of auxiliary.js
 OLD:
 */
 
+/**
+	edit the given *.data file
+	data files are of the format 
+		<asdf;asdf;adsf;asdf;asdf>\n
+		<asdf;asdf;asdf>\n
+		<asdf;asdf;asdf>
+	The first value is generally an identifier (e.g. "t0")
+	args:
+		file - data file to edit - "file.data"
+		entryID - the value which identifies the entry to be edited (index 0)
+		fldInd - which field index to edit <0,1,2,3>
+		newVal - either the new value which will replace the indicated field 
+			or a function which is passed the whole old entry and returns the new value (or "<cancel>")
+		callback - callback function. Called with (err, entryData).
+*/
+function editData(file, entryID, fldInd, newVal, callback){
+	if(file.slice(file.lastIndexOf(".")) != ".data"){
+		callback("se", "not a data file");
+		return;
+	}//implied else
+	fs.readFile(file, "utf8", function(err, data){
+		if(err){
+			callback("fe");
+			return;
+		}
+		var entryIndex = data.indexOf("<"+entryID) + 1;
+		var entryData = data.slice(entryIndex);
+			entryData = entryData.slice(0, entryData.indexOf(">"));
+		//field index
+		var iF = indexNOf(entryData, ";", fldInd) + 1;//Start after semicolon
+		var iFE = indexNOf(entryData, ";", fldInd+1);//End before next ";"
+		debugShout("ife"+iFE+"|if"+iF);
+		if(iFE < iF){//last field
+			iFE = entryData.length;
+		}
+		if(typeof(newVal) === "function"){
+			var nv = newVal(entryData.split(";"));
+			if(nv === "<cancel>"){
+				callback("canceled");
+				return;
+			}
+			else{
+				entryData = entryData.slice(0,iF) + 
+					nv + 
+					entryData.slice(iFE);
+			}
+		}
+		else{
+			entryData = entryData.slice(0,iF) + 
+				newVal + 
+				entryData.slice(iFE);
+		}
+		var dBefore = data.slice(0, entryIndex);
+		var dAfter = data.slice(entryIndex);
+			dAfter = dAfter.slice(dAfter.indexOf(">"));
+		var newData = dBefore + entryData + dAfter;
+		/*Sync is used here because we're editing.
+			We don't want someone else editing it inbetween.
+			Maybe if I used fs.open and fd it would work non-sync as well.
+		*/
+		fs.writeFileSync(file, newData); 
+		callback(null, entryData);
+	});
+}
 /**New, unfinished version of editData
 	The goal here was to use less RAM by using streams
 	Parsing through the file one character at a time 

@@ -59,13 +59,12 @@ function handleRequest(req, res){
 	/* Returns a message that the account has been successfully created (/register/)
 	*/
 	function ret_created(data){
-		if(data.indexOf("<") != -1)
-			data = data.slice(data.indexOf("<")+1, data.indexOf(">"));
-		var splitd = data.split(";");//id,pass,bd,links, sex, l/p
-		var ID = splitd[0];
+		//[id,pass,bd,links,sex,l/p/c,inventory]
+		var dataEntries = aux.dataToEntries(data);
+		var ID = dataEntries[0];
 		var birthText = "";
 		if(ID[0] == "u"){
-			var birthD = new Date(parseInt(splitd[2]));
+			var birthD = new Date(parseInt(dataEntries[2]));
 			birthText += "<br><br>"+
 				"FYI, the fake birthdate we will use for you is "+birthD.toLocaleDateString()+". \n"+
 				"There's a small chance (less than 3%) that this is your real birthday, but if so, \n"+
@@ -74,7 +73,7 @@ function handleRequest(req, res){
 		}
 		var dynd = {
 			"id": ID,
-			"pw": splitd[1],
+			"pw": dataEntries[1],
 			"bd": birthText
 		};
 		aux.dynamic("./register/created.dynh", dynd, function(page){
@@ -95,7 +94,7 @@ function handleRequest(req, res){
 			if(data[3] == ""){
 				lnacc = "No Linked Accounts";
 			}
-			else{//Data Format is: id;pw;DoB;[link1][,link2][,...]
+			else{//Data Format is: [id,pass,bd,"link1,link2"]
 				lnacc = data[3].replace(new RegExp('[,]', 'g'), ", ");
 			}
 			var dynd = {//dynamic data
@@ -117,7 +116,7 @@ function handleRequest(req, res){
 			if(data[3] == ""){
 				lnacc = "No Linked Accounts";
 			}
-			else{//Data Format is: id;pw;DoB;[link1][,link2][,...],m/f,l/p
+			else{//Data Format is: [id,pass,bd,links("link1,link2,link3"),sex,l/p/c,inventory]
 				lnacc = data[3].replace(new RegExp('[,]', 'g'), ", ");
 			}
 			var dynd = {//dynamic data
@@ -276,34 +275,36 @@ function handleRequest(req, res){
 			case ".svg":
 				cType = "image/svg+xml";
 			break;
+			/*.ttad - Tt account data
+				.ttsd - Tt session data
+				.ttd - other Tt data (lnusers, err/log) (still uses <~><~>)
+				Maybe ttsd and ttd could be available through the admin interface one day.
+			*/
+			case ".ttad":
+			case ".ttsd":
+			case ".ttd":
+				// Don't serve sensitive data
+				res.writeHead(403, {"Content-Type": "text/html"});
+				res.end();
+			return;
 		}
-		if(ext == ".data"){
-			// Don't serve sensitive data
-			res.writeHead(403, {"Content-Type": "text/html"});
-			res.end();
-		}
-		else if(ext == ".gj"){
+		if(ext == ".gj"){
 			switch(pathN){
 				case "./account/leaderboard/leaderboard.gj":
 					aux.debugShout("288");
-					fs.readFile("./account/user.data", 'utf8', function(err, data){
-						if(err){
-							ret_error("fe");
-							return;
-						}
-						var people = aux.dataToEntries(data);
-						aux.debugShout("people: "+people, 3);
+					aux.loadAllUsers(function(err,users){
+						aux.debugShout("people: "+users, 3);
 						var res_table = [];
 						/*["id", "level", "points"]
 						  [u0  , 1      , 100]
 							...  , ...    , ...
 						*/
-						var len = people.length;
+						var len = users.length;
 						if(len > 100)
 							len = 100;
 						for(var i = 0; i < len; i++){
-							var id = people[i][0];
-							var lp = people[i][5].split(",");
+							var id = users[i][0];
+							var lp = users[i][5].split(",");
 							res_table[i] = [id, lp[0], lp[1]];
 						}
 						aux.debugShout("res_table: "+res_table, 3);
@@ -381,9 +382,9 @@ function handleRequest(req, res){
 					
 					//Get the next available iD number
 					var iD = "t0";
-					fs.readFile("./account/trainer.data", "utf8", function(err, data){
+					fs.readFile("./account/trainer.ttad", "utf8", function(err, data){
 						if(err){
-							ret_error("fe", "/register/trainer.html", "register-trainer: reading trainer.data");
+							ret_error("fe", "/register/trainer.html", "register-trainer: reading trainer.ttad");
 							return;
 						}
 						var last = data.slice(data.lastIndexOf("<")+1, data.lastIndexOf(">"));
@@ -394,9 +395,9 @@ function handleRequest(req, res){
 							ret_error("fe", "/register/trainer.html", "register-trainer: decTo36");
 						else{
 							var tData = "<"+iD+";"+pass+";"+bD+";>\n";//the empty section is for lnacc
-							fs.appendFile("./account/trainer.data", tData, function(err){
+							fs.appendFile("./account/trainer.ttad", tData, function(err){
 								if(err)
-									ret_error("fe", "/register/trainer.html", "register-trainer: reading trainer.data");
+									ret_error("fe", "/register/trainer.html", "register-trainer: reading trainer.ttad");
 								else{
 									ret_created(tData);
 								}
@@ -434,28 +435,19 @@ function handleRequest(req, res){
 						break;
 					}
 					
-					//Get the next available iD number
-					var iD = "u0";
-					fs.readFile("./account/user.data", "utf8", function(err, data){
+					aux.getNextID("u", function(err, ID){
 						if(err){
-							ret_error("fe", "/register/user.html", "register-user: reading user.data");
+							ret_error("fe", "/register/user.html", "register-user: getNextID");
 							return;
 						}
-						var last = data.slice(data.lastIndexOf("<")+1, data.lastIndexOf(">"));
-						var lastID = last.split(";")[0];
-						var nID = aux.parse36ToDec(lastID.slice(1))+1;
-						iD = "u"+aux.decTo36(nID);
-						if(iD == "uError")
-							ret_error("fe", "/register/user.html", "register-user: decTo36");
-						else{
-							var uData = "<"+iD+";"+pass+";"+bD+";;"+sex+";0,0,0;>\n";//;links; level,points,coins;[store-bought items]
-							fs.appendFile("./account/user.data", uData, function(err){
-								if(err)
-									ret_error("fe", "/register/user.html", "register-user: reading user.data");
-								else
-									ret_created(uData);
-							});
-						}
+						var newUFile = "./account/user_data/"+ID+".ttad";
+						var uData = aux.newU(ID,pass,bD,sex);
+						fs.writeFile(newUFile, uData, function(err){
+							if(err)
+								ret_error("fe", "/register/user.html", "register-user: write newUFile");
+							else
+								ret_created(uData);
+						});
 					});
 				break;
 				case "/account/index.html":
@@ -475,81 +467,45 @@ function handleRequest(req, res){
 					}
 					switch(body.source){
 						case "manageAccount"://Log on page
-						var pass = body.pWord;
-						var iD = body.id;
-						var file = "./account/";
-						
-						iD = aux.isID(iD);
-						if(iD === false){
-							acc_ret("ide");
-							break;
-						}
-						if(iD[0] == "t")
-							file += "trainer.data";
-						else if(iD[0] == "u")
-							file += "user.data";
-						
-						fs.readFile(file, "utf8", function(err, data){
-							if(err)
-								acc_ret("fe");
-							else{
-								var people = aux.dataToEntries(data);
-								aux.debugShout("449 "+people, 3);
-								var found = false;
-								for(i=0; i < people.length; i++){
-									if(people[i][0] == iD){
-										found = true;
-										if(people[i][1] == pass)
-											acc_ret(people[i]);//Success
-										else
-											acc_ret("pce");//Password Confirmation Error
-										break;//Exit for
-									}
-								}
-								if(!found)
-									acc_ret("anfe");//Account not found error
+						aux.loadAcc(body.id, function(err,user){
+							if(err){
+								acc_ret(err);
+								return;
 							}
+							if(user[1] == body.pWord)
+								acc_ret(user);
+							else
+								acc_ret("pce");
 						});
 						break;
+						
 						case "editP"://Source: editP, id, oldPass, pass
 							var iD = body.id;
 							var opw = body.oldPass;
 							var pw = body.pass;
-							var file = "./account/";
-							iD = aux.isID(iD);
-							if(iD === false){
-								acc_ret("ide");
-								break;
-							}
-							if(iD[0] == "t")
-								file += "trainer.data";
-							else if(iD[0] == "u")
-								file += "user.data";
-							
 							aux.debugShout("Editing "+iD, 1);
-							aux.editData(file, iD, 1, function(dEntry){//return new PW
+							aux.editAcc(iD, 1, function(dEntry){//return new PW
 								if(dEntry[1] !== opw){
-									aux.debugShout("484|" + dEntry[1] + "|" + opw + "|" + pw);
+									aux.debugShout("489|" + dEntry[1] + "|" + opw + "|" + pw);
 									acc_ret("pce");
 									return "<cancel>";
 								}
 								return pw;
 							}, function(err, dEntry){//callback
 								if(err){
-									if(err !== "canceled"){
+									if(err != "canceled"){
 										if(dEntry)
 											aux.debugShout(dEntry);
 										acc_ret(err);
 									}
 									return;
 								}
-								acc_ret(dEntry.split(";"));
+								acc_ret(dEntry);
 							});
 						break;
 						case "addL"://Add Account Link
 							var iD = body.id;// body = {source, id, lid, pWord}
 							var lID = body.lid;
-							var file = "./account/";
 							var lFile = file;
 							
 							iD = aux.isID(iD);
@@ -559,58 +515,57 @@ function handleRequest(req, res){
 								break;
 							}
 							if(iD[0] == "t"){
-								file += "trainer.data";
-								lFile += "user.data";
+								lFile += "user_data/"+lID+".ttad";
 							}
 							else if(iD[0] == "u"){
-								file += "user.data";
-								lFile += "trainer.data";
+								lFile += "trainer_data/"+lID+".ttad";
 							}
 							
 							aux.debugShout("Linking " + lID + " to " + iD, 1);
-							
-							//Check that the user exists -- this can stay as "readFile" because I'm not editing it
-							fs.readFile(lFile, "utf8", function(err, data){
-								if(err){
-									acc_ret("fe");
-									return;
-								}
-								var lIndex = data.indexOf("<"+lID);
-								if(lIndex == -1){
-									acc_ret("anfe");
-									return;
-								}
-								//addL
-								aux.editData(file, iD, 3, function(dEntry){
-									if(dEntry[1] !== body.pWord){
-										acc_ret("pce");
-										return "<cancel>";
-									}
-									var dLinks = dEntry[3];
-									var newLData = lID;//e.g. "t2"
-									if(dLinks != ""){
-										//verify that the account is not already linked
-										var linkedAs = dLinks.split(",");//split
-										for(var i=0; i < linkedAs.length; i++){
-											if(linkedAs[i] == lID){
-												acc_ret(dEntry);
-												return "<cancel>";//already linked
+							//Check that the other account exists
+							fs.stat(lFile, function(err, stat){
+								if(err == null) {
+									//Link to the account
+									//addL
+									aux.editAcc(iD, 3, function(dEntry){
+										if(dEntry[1] !== body.pWord){
+											acc_ret("pce");
+											return "<cancel>";
+										}
+										var dLinks = dEntry[3];
+										var newLData = lID;//e.g. "t2"
+										if(dLinks != ""){
+											//verify that the account is not already linked
+											var linkedAccs = dLinks.split(",");//split
+											for(var i=0; i < linkedAccs.length; i++){
+												if(linkedAccs[i] == lID){
+													acc_ret(dEntry);//do nothing
+													return "<cancel>";//already linked
+												}
 											}
+											newLData += "," + dLinks; //e.g. "t2"+","+"t1,t0"
 										}
-										newLData += "," + dLinks; //e.g. "t2"+","+"t1,t0"
-									}
-									return newLData;
-								}, function(err, dEntry){
-									if(err){
-										if(err !== "canceled"){
-											if(dEntry)
-												aux.debugShout(dEntry);
-											acc_ret(err);
+										return newLData;
+									}, function(err, dEntry){
+										if(err){
+											if(err !== "canceled"){
+												if(dEntry)
+													aux.debugShout(dEntry);
+												acc_ret(err);
+											}
+											return;//canceled - page has already been returned
 										}
-										return;//canceled - do nothing
-									}
-									acc_ret(dEntry.split(";"));
-								});
+										acc_ret(dEntry);
+									});
+								} 
+								else if(err.code == 'ENOENT') {
+									//File does not exist
+									acc_ret("anfe");
+								} 
+								else {
+									//Other error
+									acc_ret("fe");
+								}
 							});
 						break;
 					}//Switch (body.source) (Within /account/index.html)
@@ -641,10 +596,10 @@ function handleRequest(req, res){
 								break;
 							}
 							if(body.id[0] == "t"){
-								file += "trainer.data";
+								file += "trainer.ttad";
 							}
 							else if(body.id[0] == "u"){
-								file += "user.data";
+								file += "user.ttad";
 							}
 							/*Check that the accounts are linked and confirm pw.
 								Note that this code is reused for users and trainers.
@@ -710,7 +665,10 @@ function handleRequest(req, res){
 									fs.stat(oldSFile, function(err){
 										if(err){
 											if(err.code == "ENOENT"){//Good.
-												var linkData = "<" +body.id+ "," +body.lid+ ">";//Data entry for the new waiting link
+												/*Data entry for the new waiting link
+													Format: <uN,tM> [no \n]
+												*/
+												var linkData = "<" +body.id+ "," +body.lid+ ">";
 												fs.readFile("./session/lnusers.data", "utf8", function(err,data){
 													if(err){
 														ret_error("fe", "/session/index.html", "new-session: reading lnusers.data");
@@ -898,10 +856,10 @@ function handleRequest(req, res){
 										res.write("wait", function(err){res.end();});
 										return;
 									}
-									//load level and points from user.data and start session
-									fs.readFile("./account/user.data", "utf8", function(err, data2){
+									//load level and points from user.ttad and start session
+									fs.readFile("./account/user.ttad", "utf8", function(err, data2){
 										if(err){
-											ret_error("fe", "/session/index.html", "start_session-user: read user.data");
+											ret_error("fe", "/session/index.html", "start_session-user: read user.ttad");
 											return;
 										}
 										var people = aux.dataToEntries(data2);
@@ -1010,7 +968,7 @@ function handleRequest(req, res){
 							});
 						break;//loglpc
 						case "savelpc"://id, pass, l,p,c
-							var uFile = "./account/user.data";
+							var uFile = "./account/user.ttad";
 							var newlpc = body.level +","+ body.points +","+ body.coins;
 							aux.editData(uFile, body.id, 5, function(dEntry){
 								if(body.pWord !== dEntry[1]){
@@ -1057,7 +1015,7 @@ function handleRequest(req, res){
 							aux.debugShout("SE-U");
 							var sesFile = "./session/temp/session" + body.lid + body.id + ".data";
 							var sF2 = "./session/archive/session" + body.lid + body.id + aux.time("forfile") + ".data";
-							var uFile = "./account/user.data";
+							var uFile = "./account/user.ttad";
 							var newlpc = body.level +","+ body.points +","+ body.coins;
 							//save user l & p
 							aux.editData(uFile, body.id, 5, function(dEntry){
@@ -1152,10 +1110,10 @@ function handleRequest(req, res){
 					}
 					
 					//verify password
-					var tFile = "./account/trainer.data";
+					var tFile = "./account/trainer.ttad";
 					fs.readFile(tFile, "utf8", function(err, data){
 						if(err){
-							ret_error("fe", "/error/ghses.html", "ghost session: reading trainer.data");
+							ret_error("fe", "/error/ghses.html", "ghost session: reading trainer.ttad");
 							return;
 						}
 						var people = aux.dataToEntries(data);
@@ -1214,7 +1172,7 @@ function handleRequest(req, res){
 				case "/account/store/index.html":
 					switch(body.source){
 						case "enterStore":
-							var file = "./account/user.data";
+							var file = "./account/user.ttad";
 							//verify form
 							body.id = aux.isID(body.id);
 							if(body.id === false || body.id[0] !== "u"){
@@ -1248,7 +1206,7 @@ function handleRequest(req, res){
 							});
 						break;
 						case "buy":
-							var file = "./account/user.data";
+							var file = "./account/user.ttad";
 							body.id = aux.isID(body.id);
 							if(body.id === false || body.id[0] !== "u"){
 								ret_error("ide");
