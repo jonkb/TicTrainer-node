@@ -12,7 +12,6 @@ VISUAL:
   - Streak bonuses like duolingo
 -(2,3) make better documentation
   - Comments, README.md, 
-- convince the users that leaderboard refresh does something (flash white?, loading symbol?)
 - add links to tictrainer.com from places like KJB website & tics-r.us
 
 DEEPER: 
