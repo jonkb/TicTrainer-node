@@ -20,3 +20,7 @@
 <fe;2016-08-19T18:32:43.706Z;session-user: read sesFile>
 <fe;2017-04-08T04:44:17.096Z;linkloading-trainer: making session file>
 <fe;2017-04-08T04:44:22.855Z;linkloading-user: where did the lnusers entry go?>
+<fe;2017-05-11T20:09:38.695Z;enter store: accessing user data file>
+<fe;2017-05-11T20:23:56.582Z;register-trainer: reading trainer.ttad>
+<fe;2017-05-11T20:33:22.358Z;new-session: reading ./account/user.ttad>
+<report;2017-05-11T23:16:19.066Z;Jonathan;jonathan.knight.black@gmail.com;Test, yo!>

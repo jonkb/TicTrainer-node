@@ -6,13 +6,17 @@ const debugging = 2;
 /**Exported Functions
 */
 module.exports.dynamic = dynamic;
-module.exports.editData = editData;
 module.exports.indexNOf = indexNOf;
 module.exports.isID = isID;
-//module.exports.fixD = fixD;
 module.exports.parse36ToDec = parse36ToDec;
 module.exports.decTo36 = decTo36;
 module.exports.dataToEntries = dataToEntries;
+module.exports.editAcc = editAcc;
+module.exports.loadAcc = loadAcc;
+module.exports.loadAllUsers = loadAllUsers;
+module.exports.getNextID = getNextID;
+module.exports.newU = newU;
+module.exports.newT = newT;
 module.exports.sort2d = sort2d;
 module.exports.genReport = genReport;
 module.exports.toData = toData;
@@ -74,70 +78,6 @@ function dynamic(template_path, data, callback){
 		}
 		edited_page += file_left;//after the last dynamic field
 		callback(edited_page);
-	});
-}
-/**
-	edit the given *.data file
-	data files are of the format 
-		<asdf;asdf;adsf;asdf;asdf>\n
-		<asdf;asdf;asdf>\n
-		<asdf;asdf;asdf>
-	The first value is generally an identifier (e.g. "t0")
-	args:
-		file - data file to edit - "file.data"
-		entryID - the value which identifies the entry to be edited (index 0)
-		fldInd - which field index to edit <0,1,2,3>
-		newVal - either the new value which will replace the indicated field 
-			or a function which is passed the whole old entry and returns the new value (or "<cancel>")
-		callback - callback function. Called with (err, entryData).
-*/
-function editData(file, entryID, fldInd, newVal, callback){
-	if(file.slice(file.lastIndexOf(".")) != ".data"){
-		callback("se", "not a data file");
-		return;
-	}//implied else
-	fs.readFile(file, "utf8", function(err, data){
-		if(err){
-			callback("fe");
-			return;
-		}
-		var entryIndex = data.indexOf("<"+entryID) + 1;
-		var entryData = data.slice(entryIndex);
-			entryData = entryData.slice(0, entryData.indexOf(">"));
-		//field index
-		var iF = indexNOf(entryData, ";", fldInd) + 1;//Start after semicolon
-		var iFE = indexNOf(entryData, ";", fldInd+1);//End before next ";"
-		debugShout("ife"+iFE+"|if"+iF);
-		if(iFE < iF){//last field
-			iFE = entryData.length;
-		}
-		if(typeof(newVal) === "function"){
-			var nv = newVal(entryData.split(";"));
-			if(nv === "<cancel>"){
-				callback("canceled");
-				return;
-			}
-			else{
-				entryData = entryData.slice(0,iF) + 
-					nv + 
-					entryData.slice(iFE);
-			}
-		}
-		else{
-			entryData = entryData.slice(0,iF) + 
-				newVal + 
-				entryData.slice(iFE);
-		}
-		var dBefore = data.slice(0, entryIndex);
-		var dAfter = data.slice(entryIndex);
-			dAfter = dAfter.slice(dAfter.indexOf(">"));
-		var newData = dBefore + entryData + dAfter;
-		/*Sync is used here because we're editing.
-			We don't want someone else editing it inbetween.
-			Maybe if I used fs.open and fd it would work non-sync as well.
-		*/
-		fs.writeFileSync(file, newData); 
-		callback(null, entryData);
 	});
 }
 
@@ -217,7 +157,8 @@ function decTo36(dec){
 	}
 	return b36;
 }
-/**Takes the string text of a data file and returns an array of entry arrays
+/**Takes the string text of a data file and returns an array of entries
+	"<0> blah <1> <2> blah blah <3> blah" --> [0,1,2,3]
 */
 function dataToEntries(data){
 	var entries = [];
@@ -233,7 +174,7 @@ function dataToEntries(data){
 				lookingAtData = true;
 			break;
 			case ">":
-				entries[entryN] = current.split(";");
+				entries[entryN] = current;
 				current = "";
 				lookingAtData = false;
 				entryN++;
@@ -246,7 +187,186 @@ function dataToEntries(data){
 	}
 	return entries;
 }
-
+/**Loads the specified account's data into an array
+	id - user or trainer id
+	fldInd - which field index to edit <0>~<1>~<2>~<3>~
+	newVal - either the new value which will replace the indicated field 
+		or a function which is passed the old values and returns the new value (or "<cancel>")
+	callback = function(err, [accData]).
+}
+*/
+function editAcc(id, fldInd, newVal, callback){
+	//Check that it's a proper id
+	iD = isID(id);
+	if(iD === false){
+		callback("ide");
+		return;
+	}
+	var file = "./account/";
+	if(iD[0] == "t")
+		file += "trainer_data/"+iD+".ttad";
+	else if(iD[0] == "u")
+		file += "user_data/"+iD+".ttad";
+	
+	fs.readFile(file, "utf8", function(err,data){
+		if(err){
+			callback("anfe");//assuming it's file not found
+			return;
+		}
+		accData = dataToEntries(data);
+		var nv = null;
+		if(typeof(newVal) === "function"){
+			nv = newVal(accData);
+			if(nv == "<cancel>"){
+				callback("canceled");
+				return;
+			}
+		}
+		else{
+			nv = newVal;
+		}
+		//write nv in the appropriate field
+		insertIndex = indexNOf(data, "<", fldInd+1) + 1;
+		before = data.slice(0,insertIndex);
+		after = data.slice(insertIndex);
+			after = after.slice(after.indexOf(">"));
+		fs.writeFile(file, before+nv+after, function(err){
+			if(err){
+				callback("fe");
+				return;
+			}
+			accData[fldInd] = nv;//return the new value
+			callback(null, accData);
+		});
+	});
+}
+/**Loads the specified account's data into an array
+	callback = function(err,user)
+	user: [id,pw,bd,"links",sex,"lpc",heap]
+}
+*/
+function loadAcc(id, callback){
+	var iD = isID(id);
+	if(iD === false){
+		callback("ide");
+		return;
+	}
+	var file = "./account/";
+	if(iD[0] == "t")
+		file += "trainer_data/"+iD+".ttad";
+	else if(iD[0] == "u")
+		file += "user_data/"+iD+".ttad";
+	fs.readFile(file, "utf8", function(err,data){
+		if(err){
+			//assuming it's file not found
+			//I should actually check that
+			callback("anfe");
+			return;
+		}
+		callback(null, dataToEntries(data));
+	});
+}
+/**Loads all users from /account/user_data
+	callback = function(err,users)
+*/
+function loadAllUsers(callback){
+	var dirstem = "./account/user_data/";
+	fs.readdir(dirstem, function(err, files){
+		if(err){
+			callback(err, null);
+			return;
+		}
+		var users = [];
+		var done = 0;
+		//Files is an array of the filenames in the user_data directory
+		for(i=0; i< files.length; i++){
+			var fName = files[i];
+			if(fName.slice(fName.lastIndexOf(".")) == ".ttad"){
+				fs.readFile(dirstem+fName, 'utf8', function(err,data){
+					if(err){
+						callback(err, null);
+						return;
+					}
+					users.push(dataToEntries(data));
+					done++;
+					if(done == files.length){
+						callback(null, users);
+					}
+				});
+			}
+			else{
+				done++;
+				if(done == files.length){
+					callback(null, users);
+				}
+			}
+		}
+	});
+}
+/**Gets the next available ID
+	type: "u" or "t"
+	function callback(err, ID)
+*/
+function getNextID(type, callback){
+	var file = "./account/last_IDs.ttad";
+	fs.readFile(file, "utf8", function(err,data){
+		if(err){
+			callback("fe");
+			return;
+		}
+		var ids = dataToEntries(data);
+		var last = "";
+		if(ids[0][0] == type){
+			last = ids[0];
+		}
+		else if(ids[1][0] == type){
+			last = ids[1];
+		}
+		else{
+			callback("ide");
+			return;
+		}
+		var nextN = parse36ToDec(last.slice(1))+1;
+		var nextID = type + decTo36(nextN);
+		//update lastID before returning nextID
+		var cutIndex = data.indexOf(type)
+		var after = data.slice(cutIndex);
+			after = after.slice(after.indexOf(">"))
+		var newText = data.slice(0, cutIndex) + nextID + after;
+		fs.writeFile(file, newText, function(err){
+			if(err){
+				callback("fe");
+				return;
+			}
+			callback(null, nextID);
+		});
+	});
+}
+/**Generates the content for a new user file
+*/
+function newU(id, pass, bd, sex){
+	var open_char = "<";
+	var close_char = ">";
+	var s = open_char +	id		+ close_char + "\n";
+		s += 	open_char +	pass	+ close_char + "\n";
+		s += 	open_char +	bd		+ close_char + "\n";
+		s += 	open_char			+			close_char + "\n";//links
+		s += 	open_char +	sex		+ close_char + "\n";
+		s += 	open_char +"0,0,0"+ close_char + "\n";//level,points,coins
+		s += 	open_char 		+			close_char + "\n";//store-bought items
+	return s;
+}
+/**Generates the content for a new trainer file
+*/
+function newT(id, pass, bd){
+	var open_char = "<";
+	var close_char = ">";
+	var s = open_char +	id		+ close_char + "\n";
+		s += 	open_char +	pass	+ close_char + "\n";
+		s += 	open_char +	bd		+ close_char + "\n";
+		s += 	open_char			+			close_char + "\n";//links
+	return s;
+}
 /**Returns a sorted copy of the given 2d array. 
 	The column it's sorted by is given by the integer value in sortColumn.
 	Used by the leaderboard. (/leaderboard/index.html)
@@ -375,7 +495,7 @@ function time(type){
 		break;
 	}
 }
-/**A simple cover for console.log()
+/**A simple wrapper for console.log()
 	By setting the value of the debugging constant, the person running the server
 	can decide how many messages to see.
 	depth 0: always show the message, even with debugging 0
@@ -393,10 +513,10 @@ function debugShout(message, depth){
 			console.log(message);
 	}
 }
-/**Writes an error to the error log (/error/log.data)
+/**Writes an error to the error log (/error/log.ttd)
 */
 function log_error(error_type, message){
 	message = message || "-";
 	var eEntry = "<"+error_type+";"+time()+";"+message+">\n";
-	fs.appendFile("./error/log.data", eEntry, function(err){});
+	fs.appendFile("./error/log.ttd", eEntry, function(err){});
 }
