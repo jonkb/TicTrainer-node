@@ -192,16 +192,17 @@ function dataToEntries(data){
 	fldInd - which field index to edit <0>~<1>~<2>~<3>~
 	newVal - either the new value which will replace the indicated field 
 		or a function which is passed the old values and returns the new value (or "<cancel>")
-	callback = function(err, accData).
+	callback = function(err, [accData]).
 }
 */
 function editAcc(id, fldInd, newVal, callback){
 	//Check that it's a proper id
-	iD = aux.isID(id);
+	iD = isID(id);
 	if(iD === false){
 		callback("ide");
 		return;
 	}
+	var file = "./account/";
 	if(iD[0] == "t")
 		file += "trainer_data/"+iD+".ttad";
 	else if(iD[0] == "u")
@@ -234,6 +235,7 @@ function editAcc(id, fldInd, newVal, callback){
 				callback("fe");
 				return;
 			}
+			accData[fldInd] = nv;//return the new value
 			callback(null, accData);
 		});
 	});
@@ -244,18 +246,21 @@ function editAcc(id, fldInd, newVal, callback){
 }
 */
 function loadAcc(id, callback){
-	iD = aux.isID(id);
+	var iD = isID(id);
 	if(iD === false){
 		callback("ide");
 		return;
 	}
+	var file = "./account/";
 	if(iD[0] == "t")
 		file += "trainer_data/"+iD+".ttad";
 	else if(iD[0] == "u")
 		file += "user_data/"+iD+".ttad";
 	fs.readFile(file, "utf8", function(err,data){
 		if(err){
-			callback("anfe");//assuming it's file not found
+			//assuming it's file not found
+			//I should actually check that
+			callback("anfe");
 			return;
 		}
 		callback(null, dataToEntries(data));
@@ -265,17 +270,17 @@ function loadAcc(id, callback){
 	callback = function(err,users)
 */
 function loadAllUsers(callback){
-	dirstem = "./account/user_data/";
+	var dirstem = "./account/user_data/";
 	fs.readdir(dirstem, function(err, files){
 		if(err){
 			callback(err, null);
 			return;
 		}
-		users = [];
-		done = 0;
+		var users = [];
+		var done = 0;
 		//Files is an array of the filenames in the user_data directory
 		for(i=0; i< files.length; i++){
-			fName = files[i];
+			var fName = files[i];
 			if(fName.slice(fName.lastIndexOf(".")) == ".ttad"){
 				fs.readFile(dirstem+fName, 'utf8', function(err,data){
 					if(err){
@@ -303,26 +308,38 @@ function loadAllUsers(callback){
 	function callback(err, ID)
 */
 function getNextID(type, callback){
-	file = "./account/last_IDs.ttad";
+	var file = "./account/last_IDs.ttad";
 	fs.readFile(file, "utf8", function(err,data){
 		if(err){
-			callback(err, null);
+			callback("fe");
 			return;
 		}
-		ids = dataToEntries(data);
-		last = "";
-		if(ids[0][0] = type){
+		var ids = dataToEntries(data);
+		var last = "";
+		if(ids[0][0] == type){
 			last = ids[0];
 		}
-		else if(ids[1][0] = type){
+		else if(ids[1][0] == type){
 			last = ids[1];
 		}
 		else{
-			callback("ide", null);
+			callback("ide");
 			return;
 		}
-		nextN = parse36ToDec(last.slice(1))+1;
-		callback(null, type + decTo36(nextN));
+		var nextN = parse36ToDec(last.slice(1))+1;
+		var nextID = type + decTo36(nextN);
+		//update lastID before returning nextID
+		var cutIndex = data.indexOf(type)
+		var after = data.slice(cutIndex);
+			after = after.slice(after.indexOf(">"))
+		var newText = data.slice(0, cutIndex) + nextID + after;
+		fs.writeFile(file, newText, function(err){
+			if(err){
+				callback("fe");
+				return;
+			}
+			callback(null, nextID);
+		});
 	});
 }
 /**Generates the content for a new user file
@@ -478,7 +495,7 @@ function time(type){
 		break;
 	}
 }
-/**A simple cover for console.log()
+/**A simple wrapper for console.log()
 	By setting the value of the debugging constant, the person running the server
 	can decide how many messages to see.
 	depth 0: always show the message, even with debugging 0
@@ -496,10 +513,10 @@ function debugShout(message, depth){
 			console.log(message);
 	}
 }
-/**Writes an error to the error log (/error/log.data)
+/**Writes an error to the error log (/error/log.ttd)
 */
 function log_error(error_type, message){
 	message = message || "-";
 	var eEntry = "<"+error_type+";"+time()+";"+message+">\n";
-	fs.appendFile("./error/log.data", eEntry, function(err){});
+	fs.appendFile("./error/log.ttd", eEntry, function(err){});
 }

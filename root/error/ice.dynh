@@ -10,7 +10,7 @@
 			<div class='header-navbar'>
 				<a href='/' class='logo'></a>
 				<h1>Input Error: Invalid Character</h1>
-				<h2>Do not include ";" or "\n" in your form submissions</h2>
+				<h2>Do not include ";", "<", or ">" in your form submissions</h2>
 				<div style='clear: both;'></div>
 			</div>
 		</section>

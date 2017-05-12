@@ -15,7 +15,7 @@ function handleRequest(req, res){
 	else if(filename.indexOf(".") == -1){
 		pathname += "/index.html";
 	}
-	aux.debugShout(req.method + " request for " + pathname + " received.", 1);
+	aux.debugShout(req.method + " request for " + pathname + " received.");
 	/**
 	* Functions which return dynamic web pages
 	*/
@@ -35,7 +35,7 @@ function handleRequest(req, res){
 	retry is the url the Try Again button links to
 		generally the page the error came from.
 		Defaults to /index.html
-	a message can be passed and logged in ./error/log.data
+	a message can be passed and logged in ./error/log.ttd
 	*/
 	function ret_error(error_type, retry, message){
 		retry = retry || "/index.html";
@@ -86,7 +86,7 @@ function handleRequest(req, res){
 		});
 	}
 	/*Return the manage account web page
-	var data is a single account entry in a .data file (an array)
+		data is an array with account data
 	*/
 	function ret_manage_account(data){
 		if(data[0][0] == "t"){
@@ -370,7 +370,7 @@ function handleRequest(req, res){
 						ret_error("pce", "/register/trainer.html");
 						break;
 					}
-					//Make sure these don't include ; or \n - VITAL
+					//Make sure these don't include ; or < or > - VITAL
 					if(pass.indexOf(";") != -1 || pass.indexOf("<") != -1 || pass.indexOf(">") != -1){
 						ret_error("ice", "/register/trainer.html");//Invalid Character Error
 						break;
@@ -379,30 +379,20 @@ function handleRequest(req, res){
 						ret_error("ice", "/register/trainer.html");
 						break;
 					}
-					
 					//Get the next available iD number
-					var iD = "t0";
-					fs.readFile("./account/trainer.ttad", "utf8", function(err, data){
+					aux.getNextID("t", function(err, ID){
 						if(err){
-							ret_error("fe", "/register/trainer.html", "register-trainer: reading trainer.ttad");
+							ret_error(err);
 							return;
 						}
-						var last = data.slice(data.lastIndexOf("<")+1, data.lastIndexOf(">"));
-						var lastID = last.split(";")[0];
-						var nID = aux.parse36ToDec(lastID.slice(1))+1;
-						iD = "t"+aux.decTo36(nID);
-						if(iD == "tError")
-							ret_error("fe", "/register/trainer.html", "register-trainer: decTo36");
-						else{
-							var tData = "<"+iD+";"+pass+";"+bD+";>\n";//the empty section is for lnacc
-							fs.appendFile("./account/trainer.ttad", tData, function(err){
-								if(err)
-									ret_error("fe", "/register/trainer.html", "register-trainer: reading trainer.ttad");
-								else{
-									ret_created(tData);
-								}
-							});
-						}
+						var newTFile = "./account/trainer_data/"+ID+".ttad";
+						var tData = aux.newT(ID,pass,bD);
+						fs.writeFile(newTFile, tData, function(err){
+							if(err)
+								ret_error("fe", "/register/user.html", "register-user: write newUFile");
+							else
+								ret_created(tData);
+						});
 					});
 				break;
 				case "/register/user.html":
@@ -425,7 +415,7 @@ function handleRequest(req, res){
 						ret_error("pce", "/register/user.html");
 						break;
 					}
-					//Make sure these don't include ; or \n - VITAL
+					//Make sure these don't include ; or < or > - VITAL
 					if(pass.indexOf(";") != -1 || pass.indexOf("<") != -1 || pass.indexOf(">") != -1){
 						ret_error("ice", "/register/trainer.html");//Invalid Character Error
 						break;
@@ -506,7 +496,7 @@ function handleRequest(req, res){
 						case "addL"://Add Account Link
 							var iD = body.id;// body = {source, id, lid, pWord}
 							var lID = body.lid;
-							var lFile = file;
+							var lFile = "./account/";
 							
 							iD = aux.isID(iD);
 							lID = aux.isID(lID);
@@ -576,7 +566,7 @@ function handleRequest(req, res){
 							/**handle form submission for new session
 							verify password, 
 							check that accounts are linked,
-							(if user) add id to lnusers.data,
+							(if user) add id to lnusers.ttd,
 								[loading page]set timer to look for session file every 2s for 1m -->
 								[link successful page]set timer to look for "session started" every 2s for 1m -->
 									[counter page]start local reward timer
@@ -595,108 +585,91 @@ function handleRequest(req, res){
 								ret_error("ide", "/session/index.html");
 								break;
 							}
-							if(body.id[0] == "t"){
-								file += "trainer.ttad";
-							}
-							else if(body.id[0] == "u"){
-								file += "user.ttad";
-							}
 							/*Check that the accounts are linked and confirm pw.
 								Note that this code is reused for users and trainers.
 							*/
-							fs.readFile(file, "utf8", function(err, data){
+							aux.loadAcc(body.id, function(err, aData){
 								if(err){
-									ret_error("fe", "/session/index.html", "new-session: reading "+file);
+									ret_error(err);
 									return;
 								}
-								var people = aux.dataToEntries(data);
+								if(aData[1] != pass){
+									//Password Confirmation Error
+									ret_error("pce", "/session/index.html");
+									return;
+								}
 								var found = false;
-								for(i=0; i < people.length; i++){
-									aux.debugShout("looking at "+people[i][0]);
-									if(people[i][0] == body.id){
-										if(people[i][1] == pass){
-											var linkedAccounts = people[i][3].split(",");
-											for(i2=0; i2<linkedAccounts.length; i2++){
-												if(linkedAccounts[i2] == body.lid){
-													found = true;
-												}
-											}
-											if(!found){
-												ret_error("anle", "/session/index.html");//Account not linked error
-											}
-											else{
-												//See below. This is really just here to limit the crazy indentation.
-												allConfirmed();
-											}
-										}
-										else
-											ret_error("pce", "/session/index.html");//Password Confirmation Error						
+								var lnAcc = aData[3].split(",");
+								for(i=0; i<lnAcc.length; i++){
+									if(lnAcc[i] == body.lid){
 										found = true;
-										break;//Exit for
+										break;
 									}
 								}
-								if(!found)
-									ret_error("anfe", "/session/index.html");//Account not found error
-							});
-							/*Continue with the next step.
-								See if a session file already exists between those users.
-								If so, it's called a concurrent or ghost session.
-							*/
-							function allConfirmed(){
-								if(body.id[0] == "t"){
-									//This section should hopefully never need to be used, but it handles ghost sessions. Logs a ghost session error.
-									var oldSFile = "./session/temp/session"+ body.id + body.lid + ".data";
-									fs.stat(oldSFile, function(err){
-										if(err){
-											if(err.code == "ENOENT"){//Does not exist. Good.
-												//Go to trainer loading page. (Again, a new function is used to decrease indentation insanity. It is reused though, so it makes sense.)
-												success();
-											}
-											else
-												ret_error("fe", "/session/index.html", "new-session: checking if oldSFile exists"); //Some other bizarre error
-										}
-										else{//Bad, it's an old ghost session. Or it's concurrent.
-											ret_error("conses", "/session/index.html");
-										}
-									});
+								if(!found){
+									//Account not linked error
+									ret_error("anle", "/session/index.html");
 								}
 								else{
-									var oldSFile = "./session/temp/session"+ body.lid + body.id + ".data";
-									fs.stat(oldSFile, function(err){
-										if(err){
-											if(err.code == "ENOENT"){//Good.
-												/*Data entry for the new waiting link
-													Format: <uN,tM> [no \n]
-												*/
-												var linkData = "<" +body.id+ "," +body.lid+ ">";
-												fs.readFile("./session/lnusers.data", "utf8", function(err,data){
-													if(err){
-														ret_error("fe", "/session/index.html", "new-session: reading lnusers.data");
-														return;
-													}
-													if(data.indexOf(linkData) == -1)
-														fs.appendFile("./session/lnusers.data", linkData, function(err){
-															if(err){
-																ret_error("fe", "/session/index.html", "new-session: appending to lnusers.data");
-															}
-															else{
-																//Go to user loading page
-																success();
-															}
-														});
-													else//no need to add a new entry - should this throw an error?
-														success();
-												});
+									/*Continue with the next step.
+										See if a session file already exists between those users.
+										If so, it's called a concurrent or ghost session.
+									*/
+									if(body.id[0] == "t"){
+										//This section should hopefully never need to be used, but it handles ghost sessions. Logs a ghost session error.
+										var oldSFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
+										fs.stat(oldSFile, function(err){
+											if(err){
+												if(err.code == "ENOENT"){//Does not exist. Good.
+													//Go to trainer loading page. (Again, a new function is used to decrease indentation insanity. It is reused though, so it makes sense.)
+													success();
+												}
+												else
+													ret_error("fe", "/session/index.html", "new-session: checking if oldSFile exists"); //Some other bizarre error
 											}
-											else//why? weird error.
-												ret_error("fe", "/session/index.html", "new-session: checking if oldSFile exists");
-										}
-										else{//Bad, it's an old ghost session. Or it's concurrent.
-											ret_error("conses", "/session/index.html", "new-session: concurrent/ghost session");
-										}
-									});
+											else{//Bad, it's an old ghost session. Or it's concurrent.
+												ret_error("conses", "/session/index.html");
+											}
+										});
+									}
+									else{
+										var oldSFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
+										fs.stat(oldSFile, function(err){
+											if(err){
+												if(err.code == "ENOENT"){//Good.
+													/*Data entry for the new waiting link
+														Format: <uN,tM> [no \n]
+													*/
+													var linkData = "<" +body.id+ "," +body.lid+ ">";
+													fs.readFile("./session/lnusers.ttd", "utf8", function(err,data){
+														if(err){
+															ret_error("fe", "/session/index.html", "new-session: reading lnusers.ttd");
+															return;
+														}
+														if(data.indexOf(linkData) == -1)
+															fs.appendFile("./session/lnusers.ttd", linkData, function(err){
+																if(err){
+																	ret_error("fe", "/session/index.html", "new-session: appending to lnusers.ttd");
+																}
+																else{
+																	//Go to user loading page
+																	success();
+																}
+															});
+														else//no need to add a new entry - should this throw an error?
+															success();
+													});
+												}
+												else//why? weird error.
+													ret_error("fe", "/session/index.html", "new-session: checking if oldSFile exists");
+											}
+											else{//Bad, it's an old ghost session. Or it's concurrent.
+												ret_error("conses", "/session/index.html", "new-session: concurrent/ghost session");
+											}
+										});
+									}
 								}
-							}
+							});
 							//return the linkloading page
 							function success(){
 								body.tryN = 0;
@@ -711,9 +684,9 @@ function handleRequest(req, res){
 						case "linkloading-trainer"://source, id, pWord, lid, tryN  tryN is the try number
 							if(body.tryN < 30){
 								//All the errors for id format have been caught already
-								fs.readFile("./session/lnusers.data", "utf8", function(err, data){
+								fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
 									if(err){
-										ret_error("fe", "/session/index.html", "linkloading-trainer: reading lnusers.data");
+										ret_error("fe", "/session/index.html", "linkloading-trainer: reading lnusers.ttd");
 									}
 									else{
 										//look for other account
@@ -727,11 +700,11 @@ function handleRequest(req, res){
 											var iSEEnd = iSE + searchEntry.length;
 											var newData = data.substring(0, iSE) + data.substring(iSEEnd, data.length);
 											//Cut out entry
-											fs.writeFileSync("./session/lnusers.data", newData, "utf8");
+											fs.writeFileSync("./session/lnusers.ttd", newData, "utf8");
 											/*make a session file - this should only exist for the duration of the session.
 												when the session ends, rename and copy the file to an archive: ./session/archive
 											*/
-											var sesFileName = "./session/temp/session"+ body.id + body.lid + ".data";
+											var sesFileName = "./session/temp/session"+ body.id + body.lid + ".ttsd";
 											fs.writeFile(sesFileName, "", function(err){
 												if(err)
 													ret_error("fe", "/session/index.html", "linkloading-trainer: making session file");
@@ -751,7 +724,7 @@ function handleRequest(req, res){
 							*/
 							if(body.reqType == 'leave' || body.reqType == 'timeout'){
 								//remove entry in lnusers
-								fs.readFile("./session/lnusers.data", "utf8", function(err, data){
+								fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
 									if(err){//lnusers got destroyed?
 										ret_error("fe", "/", "linkloading-user: leave/timeout - read lnusers");//lnusers got destroyed?
 									}
@@ -762,7 +735,7 @@ function handleRequest(req, res){
 										if(iSE != -1){
 											var iSEEnd = iSE + searchEntry.length;
 											var newData = data.slice(0, iSE) + data.slice(iSEEnd);
-											fs.writeFileSync("./session/lnusers.data", newData, "utf8");//Cut out entry
+											fs.writeFileSync("./session/lnusers.ttd", newData, "utf8");//Cut out entry
 											if(body.reqType == 'timeout')
 												ret_error("toe", "/session/index.html");
 										}
@@ -773,7 +746,7 @@ function handleRequest(req, res){
 								});
 							}
 							else if(body.reqType == 'exists'){
-								var searchFile = "./session/temp/session"+ body.lid + body.id + ".data";
+								var searchFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
 								fs.stat(searchFile, function(err, stats){
 									if(err == null){//File exists
 										body.tryN = 0;
@@ -791,7 +764,7 @@ function handleRequest(req, res){
 						case "start_session-trainer"://source, id, pWord, lid
 							//If aborting, delete the session file - don't bother with archive because it hasn't even started yet
 							if(body.reqType == 'leave'){
-								var sesFile = "./session/temp/session" + body.id + body.lid + ".data";
+								var sesFile = "./session/temp/session" + body.id + body.lid + ".ttsd";
 								aux.debugShout("791", 3);
 								fs.unlink(sesFile, function(err){
 									if(err)
@@ -799,7 +772,7 @@ function handleRequest(req, res){
 								});
 							}
 							else{ //START pressed
-								var sesFile = "./session/temp/session"+ body.id + body.lid + ".data";
+								var sesFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
 								//If file does not exist, the user must have left early
 								fs.stat(sesFile, function(err){
 									if(err){
@@ -829,7 +802,7 @@ function handleRequest(req, res){
 						case "start_session-user"://source, id, pWord, lid, tryN 
 							if(body.reqType == 'leave' || body.reqType == 'timeout'){
 								//end session - it has not started yet, so just delete it
-								var sesFile = "./session/temp/session" + body.lid + body.id + ".data";
+								var sesFile = "./session/temp/session" + body.lid + body.id + ".ttsd";
 								fs.unlink(sesFile, function(err){
 									if(err){
 										ret_error("fe", "/session/index.html", "start_session-user: unlink");
@@ -841,8 +814,8 @@ function handleRequest(req, res){
 							}
 							else if(body.reqType == 'started'){
 								//has the session started
-								var searchFile = "./session/temp/session"+ body.lid + body.id + ".data";
-								fs.readFile(searchFile, "utf8", function(err, data){
+								var searchFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
+								fs.readFile(searchFile, "utf8", function(err, sfdata){
 									if(err){
 										if(err.code == "ENOENT")//trainer left
 											ret_redirect("/session/session-ended.html");
@@ -850,54 +823,42 @@ function handleRequest(req, res){
 											ret_error("fe", "/session/index.html", "start_session-user: read sesFile");
 										return;
 									}
-									if(data.indexOf("session started|") == -1){
+									if(sfdata.indexOf("session started|") == -1){
 										//return 'wait'
 										res.writeHead(200, {"Content-Type": "text/plain"});
 										res.write("wait", function(err){res.end();});
 										return;
 									}
-									//load level and points from user.ttad and start session
-									fs.readFile("./account/user.ttad", "utf8", function(err, data2){
+									//load level and points and start session
+									aux.loadAcc(body.id, function(err, uData){
 										if(err){
-											ret_error("fe", "/session/index.html", "start_session-user: read user.ttad");
+											ret_error(err);//anfe or ide
 											return;
 										}
-										var people = aux.dataToEntries(data2);
-										var found = false;
-										for(i=0; i < people.length; i++){
-											if(people[i][0] == body.id){
-												found = true;
-												if(people[i][1] == body.pWord){
-													var lpData = people[i][5].split(",");
-													body.level = lpData[0];
-													body.points = lpData[1];
-													body.coins = lpData[2];
-													body.heap = people[i][6];
-													var startLPEntry = "\nstarting user l,p,c|"+ lpData[0]+","+lpData[1]+","+lpData[2];
-													fs.appendFile(searchFile, startLPEntry, function(err){
-														if(err){
-															ret_error("fe", "/session/index.html", "start_session-user: append to sesFile");
-															return;
-														}
-														body.sesL = data.length + startLPEntry.length;//current session file length (just three lines)
-														ret_session_user(body);
-													});
-												}
-												else
-													ret_error("pce", "/session/index.html");//Password Confirmation Error
-												break;//Exit for
+										if(body.pWord != uData[1]){
+											ret_error("pce");
+											return;
+										}
+										var lpc = uData[5].split(",");
+										body.level = lpc[0];
+										body.points = lpc[1];
+										body.coins = lpc[2];
+										body.heap = uData[6];
+										var startLPEntry = "\nstarting user l,p,c|"+ lpc[0]+","+lpc[1]+","+lpc[2];
+										fs.appendFile(searchFile, startLPEntry, function(err){
+											if(err){
+												ret_error("fe", "/session/index.html", "start_session-user: append to sesFile");
+												return;
 											}
-										}
-										if(!found){
-											aux.debugShout("anfe 969");
-											ret_error("anfe");//Account not found error
-										}
+											body.sesL = sfdata.length + startLPEntry.length;//current session file length (just three lines)
+											ret_session_user(body);
+										});
 									});
 								});
 							}
 						break;
 						case "session-trainer"://Tic. body= source:session-trainer, id:t0000, pWord: , lid:u0000
-							var sesFile = "./session/temp/session"+ body.id + body.lid + ".data";
+							var sesFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
 							var tEntry = "\ntic detected|" +aux.time();
 							fs.stat(sesFile, function(err, stats){
 								if(err == null){//File exists
@@ -923,7 +884,7 @@ function handleRequest(req, res){
 							//Requests made from the ongoing user session
 							/*Check the session file here for tic detected or session ended*/
 							var oldL = body.sesL;
-							var sesFile = "./session/temp/session"+ body.lid + body.id + ".data";
+							var sesFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
 							fs.readFile(sesFile, "utf8", function(err, data){
 								if(err){
 									ret_error("fe", "/session/index.html", "session-user: read sesFile");
@@ -956,7 +917,7 @@ function handleRequest(req, res){
 							});
 						break;//session-user
 						case "loglpc"://id, pass, l,p,c
-							var sesFile = "./session/temp/session"+ body.lid + body.id + ".data";
+							var sesFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
 							var lpcEntry = "\nuser l,p,c|" +body.level+ "," +body.points+ "," +body.coins+ "|" +aux.time();
 							fs.appendFile(sesFile, lpcEntry, function(err){
 								if(err){
@@ -968,18 +929,17 @@ function handleRequest(req, res){
 							});
 						break;//loglpc
 						case "savelpc"://id, pass, l,p,c
-							var uFile = "./account/user.ttad";
 							var newlpc = body.level +","+ body.points +","+ body.coins;
-							aux.editData(uFile, body.id, 5, function(dEntry){
-								if(body.pWord !== dEntry[1]){
+							aux.editAcc(body.id, 5, function(userData){
+								if(body.pWord != userData[1]){
 									ret_error("pce");
 									return "<cancel>";
 								}
 								return newlpc;
-							}, function(err, data){
+							}, function(err, userData){
 								if(err){
 									if(err !== "canceled"){
-										ret_error(err, "/session/index.html", data);
+										ret_error(err, "/session/index.html", userData);
 									}
 									return;//res.end happened already (ret_error("pce"))
 								}
@@ -988,8 +948,8 @@ function handleRequest(req, res){
 							});
 						break;// savelpc
 						case "session_end-trainer":
-							aux.debugShout("997", 3);
-							var sesFile = "./session/temp/session" + body.id + body.lid + ".data";
+							aux.debugShout("SE-T");
+							var sesFile = "./session/temp/session" + body.id + body.lid + ".ttsd";
 							var eEntry = "\nsession ended|"+aux.time();
 							fs.stat(sesFile, function(err, stats){
 								if(err == null){//File exists
@@ -1013,83 +973,66 @@ function handleRequest(req, res){
 						break;
 						case "session_end-user":
 							aux.debugShout("SE-U");
-							var sesFile = "./session/temp/session" + body.lid + body.id + ".data";
-							var sF2 = "./session/archive/session" + body.lid + body.id + aux.time("forfile") + ".data";
-							var uFile = "./account/user.ttad";
+							var sesFile = "./session/temp/session" + body.lid + body.id + ".ttsd";
+							var sF2 = "./session/archive/session" + body.lid + body.id + aux.time("forfile") + ".ttsd";
 							var newlpc = body.level +","+ body.points +","+ body.coins;
+							//Defined here because it's used twice below
+							function archiveSession(){
+								fs.rename(sesFile, sF2, function(err){
+									if(err){
+										ret_error("fe", "/session/index.html", "session_end-user: rename sesFile");
+									}
+									else{
+										/**append report*/
+										fs.readFile(sF2, "utf8", function(err, data){
+											if(err){
+												ret_error("fe", "/session/index.html", "session_end-user: read sf2");
+												return;
+											}
+											fs.appendFile(sF2, aux.genReport(data), function(err){
+												if(err)
+													ret_error("fe", "/session/index.html", "session_end-user: append report");
+												else
+													ret_redirect("/session/session-ended.html");
+											});
+										});
+									}
+								});
+							}
 							//save user l & p
-							aux.editData(uFile, body.id, 5, function(dEntry){
-								if(body.pWord != dEntry[1]){
-									aux.debugShout("body.pword= "+body.pWord+"; pass= "+dEntry[1]);
+							aux.editAcc(body.id, 5, function(uData){
+								if(body.pWord != uData[1]){
+									aux.debugShout("body.pword= "+body.pWord+"; pass= "+uData[1]);
 									ret_error("pce");
-									return "cancel";
+									return "<cancel>";
 								}
 								return newlpc;
-							}, function(err, data){
+							}, function(err, uData){
 								if(err){
 									if(err !== "canceled"){
-										ret_error(err, "/session/index.html", data);
+										ret_error(err, "/session/index.html", uData);
 									}
 									return;
 								}
 								//End and archive session
-								fs.readFile(sesFile, "utf8", function(err, data){
+								fs.readFile(sesFile, "utf8", function(err, sData){
 									if(err){
 										ret_error("fe", "/session/index.html", "session_end-user: read sesFile");
 										return;
 									}
-									if(data.indexOf("session ended") == -1){
+									if(sData.indexOf("session ended") == -1){
+										//The session still needs to be ended
 										var eEntry = "\nsession ended|"+aux.time();
 										fs.appendFile(sesFile, eEntry, function(err){
 											if(err){
 												ret_error("fe", "/session/index.html", "session_end-user: append to sesFile");
 												return;
 											}
-											//Archive the session file under a new name
-											fs.rename(sesFile, sF2, function(err){
-												if(err){
-													ret_error("fe", "/session/index.html", "session_end-user: rename sesFile");
-												}
-												else{
-													/**append report*/
-													fs.readFile(sF2, "utf8", function(err, data){
-														if(err){
-															ret_error("fe", "/session/index.html", "session_end-user: read sf2");
-															return;
-														}
-														fs.appendFile(sF2, aux.genReport(data), function(err){
-															if(err)
-																ret_error("fe", "/session/index.html", "session_end-user: append report");
-															else
-																ret_redirect("/session/session-ended.html");
-														});
-													});
-												}
-											});
+											archiveSession();
 										});
 									}
 									else{
-										//Archive the session file under a new name
-										fs.rename(sesFile, sF2, function(err){
-											if(err){
-												ret_error("fe", "/session/index.html", "session_end-user: rename sesFile (1)");
-											}
-											else{
-												/**append report*/
-												fs.readFile(sF2, "utf8", function(err, data){
-													if(err){
-														ret_error("fe", "/session/index.html", "session_end-user: read sF2 (1)");
-														return;
-													}
-													fs.appendFile(sF2, aux.genReport(data), function(err){
-														if(err)
-															ret_error("fe", "/session/index.html", "session_end-user: append report (1)");
-														else
-															ret_redirect("/session/session-ended.html");
-													});
-												});
-											}
-										});
+										archiveSession();
 									}
 								});
 							});
@@ -1110,103 +1053,79 @@ function handleRequest(req, res){
 					}
 					
 					//verify password
-					var tFile = "./account/trainer.ttad";
-					fs.readFile(tFile, "utf8", function(err, data){
+					aux.loadAcc(body.tid, function(err, tData){
 						if(err){
-							ret_error("fe", "/error/ghses.html", "ghost session: reading trainer.ttad");
+							ret_error(err);
 							return;
 						}
-						var people = aux.dataToEntries(data);
-						var found = false;
-						for(i=0; i<people.length; i++){
-							if(people[i][0] == body.tid){
-								found = true;
-								if(people[i][1] == body.pWord){ //Good
-									var sesFile = "./session/temp/session"+ body.tid + body.uid + ".data";
-									fs.stat(sesFile, function(err){
-										if(err){
-											if(err.code == "ENOENT"){//already deleted
-												ret_redirect("/session/index.html");
+						if(tData[1] != body.pWord){
+							ret_error("pce");
+							return;
+						}
+						var sesFile = "./session/temp/session"+ body.tid + body.uid + ".ttsd";
+						fs.stat(sesFile, function(err){
+							if(err){
+								if(err.code == "ENOENT"){//already deleted
+									ret_redirect("/session/index.html");
+								}
+								else{
+									ret_error("fe", "/error/ghses.html", "ghost session: looking at ghost session file");
+								}
+							}
+							else{//legit ghost file
+								//Archive the session file under a new name
+								var sF2 = "./session/archive/session" + body.tid + body.uid + aux.time("forfile") + ".ttsd";
+								fs.rename(sesFile, sF2, function(err){
+									if(err){
+										ret_error("fe", "/error/ghses.html", "ghost session: rename sesFile");
+									}
+									else{
+										/**append report*/
+										fs.readFile(sF2, "utf8", function(err, data){
+											if(err){
+												ret_error("fe", "/error/ghses.html", "ghost session: read sf2");
+												return;
 											}
-											else{
-												ret_error("fe", "/error/ghses.html", "ghost session: looking at ghost session file");
-											}
-										}
-										else{//legit ghost file
-											//Archive the session file under a new name
-											var sF2 = "./session/archive/session" + body.tid + body.uid + aux.time("forfile") + ".data";
-											fs.rename(sesFile, sF2, function(err){
-												if(err){
-													ret_error("fe", "/error/ghses.html", "ghost session: rename sesFile");
-												}
+											fs.appendFile(sF2, aux.genReport(data), function(err){
+												if(err)
+													ret_error("fe", "/error/ghses.html", "ghost session: append report");
 												else{
-													/**append report*/
-													fs.readFile(sF2, "utf8", function(err, data){
-														if(err){
-															ret_error("fe", "/error/ghses.html", "ghost session: read sf2");
-															return;
-														}
-														fs.appendFile(sF2, aux.genReport(data), function(err){
-															if(err)
-																ret_error("fe", "/error/ghses.html", "ghost session: append report");
-															else{
-																ret_redirect("/session/index.html");
-																aux.log_error("ghost session", "ghost session archived between "+body.tid+" and "+body.uid);
-															}
-														});
-													});
+													ret_redirect("/session/index.html");
+													aux.log_error("ghost session", "ghost session archived between "+body.tid+" and "+body.uid);
 												}
 											});
-										}
-									});
-								}
-								else
-									ret_error("pce", "/error/ghses.html");
+										});
+									}
+								});
 							}
-						}
-						if(!found){
-							ret_error("anfe", "/error/ghses.html");
-						}
+						});
 					});
 				break;
 				case "/account/store/index.html":
 					switch(body.source){
 						case "enterStore":
-							var file = "./account/user.ttad";
 							//verify form
 							body.id = aux.isID(body.id);
 							if(body.id === false || body.id[0] !== "u"){
 								ret_error("ide", "/session/index.html");
 								break;
 							}
-							fs.readFile(file, "utf8", function(err, data){
+							aux.loadAcc(body.id, function(err,user){
 								if(err){
-									ret_error("fe", "/account/store/index.html", "enter store: accessing user data file");
+									ret_error(err);//anfe
 									return;
 								}
-								var iId = data.indexOf("<"+ body.id);
-								if(iId == -1){
-									ret_error("anfe", "/account/store/index.html");
-									return;
-								}
-								//dataChunk1
-								var dc1 = data.slice(iId);//<u0;h;...
-								var dc2 = dc1.slice(dc1.indexOf(";")+1);
-								var pass = dc2.slice(0, dc2.indexOf(";"));
-								if(body.pw != pass){
+								if(body.pw != user[1]){
 									ret_error("pce", "/account/store/index.html");
 									return;
 								}
-								var lpc = dc1.slice(aux.indexNOf(dc1, ";", 5)+1, aux.indexNOf(dc1, ";", 6));
-								body.coins = lpc.split(",")[2];
-								body.heap = dc1.slice(aux.indexNOf(dc1, ";", 6)+1, dc1.indexOf(">"));
-								aux.debugShout("1232 "+JSON.stringify(body), 3);
-								//go to store
+								body.coins = user[5].split(",")[2];
+								body.heap = user[6];
+								aux.debugShout("1162 "+JSON.stringify(body), 3);
 								ret_store(body);
 							});
 						break;
 						case "buy":
-							var file = "./account/user.ttad";
 							body.id = aux.isID(body.id);
 							if(body.id === false || body.id[0] !== "u"){
 								ret_error("ide");
@@ -1217,41 +1136,42 @@ function handleRequest(req, res){
 								break;
 							}
 							//Subtract the needed coins
-							aux.editData(file, body.id, 5, function(dEntry){
-								if(dEntry[1] !== body.pw){
+							aux.editAcc(body.id, 5, function(uData){
+								//Again, these really should have been caught client-side
+								if(uData[1] !== body.pw){
 									ret_error("pce");
 									return "<cancel>";
 								}
-								var lpc = dEntry[5].split(",");
+								var lpc = uData[5].split(",");
 								if(lpc[2] < inventory[body.item]){
 									ret_error("ife");
 									return "<cancel>";
 								}
 								var newlpc = lpc[0]+ "," +lpc[1]+ "," +(lpc[2]-inventory[body.item]);
 								return newlpc;
-							}, function(err, dEntry){
+							}, function(err, uData){
 								if(err){
 									if(err !== "canceled"){
-										if(dEntry)
-											aux.debugShout("1267 "+dEntry);
+										if(uData)
+											aux.debugShout("1217 "+uData);
 										ret_error(err);
 									}
 									return;//already returned - ret_error
 								}
 								//add the item to their loot pile
-								aux.editData(file, body.id, 6, function(dEntry){
-									return body.item + dEntry[6];
-								}, function(err, dEntry){//callback
+								newHeap = body.item + uData[6];
+								aux.editAcc(body.id, 6, newHeap, function(err, uData){
 									if(err){
-										if(dEntry)
-											aux.debugShout("1278 "+dEntry);
+										if(uData)
+											aux.debugShout("1204 "+uData);
 										ret_error(err);
 										return;//already returned - ret_error
 									}
-									var lpc = dEntry.split(";")[5].split(",");
+									//Fix the body object to send back to the store page
+									var lpc = uData[5].split(",");
 									body.coins = lpc[2];
-									body.heap = dEntry.split(";")[6];
-									aux.debugShout("1232 "+JSON.stringify(body), 3);
+									body.heap = uData[6];
+									aux.debugShout("1212 "+JSON.stringify(body), 3);
 									ret_store(body);
 								});
 							});
