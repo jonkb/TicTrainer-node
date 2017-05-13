@@ -266,6 +266,8 @@ LList.prototype.addStringAsChars = function(str){
 
 /**Fix a date string to "MM/DD/YYYY" format. May return "Error"
 	Handels date strings split by ".", "-", or "/"
+	Not needed because we don't ask for any exact dates anymore.
+	Some of this is in /register/user.html and /register/trainer.html
 */
 function fixD(d){
 	var date;

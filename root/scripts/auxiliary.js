@@ -19,7 +19,6 @@ module.exports.newU = newU;
 module.exports.newT = newT;
 module.exports.sort2d = sort2d;
 module.exports.genReport = genReport;
-module.exports.toData = toData;
 module.exports.time = time;
 module.exports.debugShout = debugShout;
 module.exports.log_error = log_error;
@@ -308,7 +307,7 @@ function loadAllUsers(callback){
 	function callback(err, ID)
 */
 function getNextID(type, callback){
-	var file = "./account/last_IDs.ttad";
+	var file = "./account/last_IDs.ttd";
 	fs.readFile(file, "utf8", function(err,data){
 		if(err){
 			callback("fe");
@@ -452,27 +451,6 @@ function genReport(data){
 	report += "\nlongest tic free interval|"+ longestInterval;
 	report += "\nnumber of 10s tic free intervals|"+ tenSIntervals;
 	return report;
-}
-/**return a data entry for the given account data object (up until the links)
-	body: {id, (fName/sex), birth, pWord}
-*/
-function toData(body){
-	var data = "<";
-	data += body.id+ ";";
-	if(body.fName)
-		data += body.fName+ ";";
-	else if(body.sex)
-		data += body.sex+ ";";
-	else
-		return "fe";//should be something else. Incomplete form submission?
-	/*if(fixD(body.birth) == "Error")
-		return "dfe";
-	
-	data += fixD(body.birth)+ ";";
-	Why is this commented out?*/
-	data += body.birth+ ";";
-	data += body.pWord;
-	return data;
 }
 /**Returns the current time in the requested format type
 	type:

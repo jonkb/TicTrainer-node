@@ -16,8 +16,7 @@ function handleRequest(req, res){
 		pathname += "/index.html";
 	}
 	aux.debugShout(req.method + " request for " + pathname + " received.");
-	/**
-	* Functions which return dynamic web pages
+	/**Functions which return dynamic web pages
 	*/
 	/* Returns an error message
 	Error Types: 
@@ -276,7 +275,7 @@ function handleRequest(req, res){
 				cType = "image/svg+xml";
 			break;
 			/*.ttad - Tt account data
-				.ttsd - Tt session data
+				.ttsd - Tt session data (uses "|" & "\n" not <~><~>)
 				.ttd - other Tt data (lnusers, err/log) (still uses <~><~>)
 				Maybe ttsd and ttd could be available through the admin interface one day.
 			*/
@@ -371,6 +370,7 @@ function handleRequest(req, res){
 						break;
 					}
 					//Make sure these don't include ; or < or > - VITAL
+					//Could allow semicolon now
 					if(pass.indexOf(";") != -1 || pass.indexOf("<") != -1 || pass.indexOf(">") != -1){
 						ret_error("ice", "/register/trainer.html");//Invalid Character Error
 						break;
@@ -416,6 +416,7 @@ function handleRequest(req, res){
 						break;
 					}
 					//Make sure these don't include ; or < or > - VITAL
+					//Could allow semicolon now
 					if(pass.indexOf(";") != -1 || pass.indexOf("<") != -1 || pass.indexOf(">") != -1){
 						ret_error("ice", "/register/trainer.html");//Invalid Character Error
 						break;

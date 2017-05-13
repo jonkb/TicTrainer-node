@@ -77,8 +77,11 @@
 					return false;
 				}
 				var now = new Date();
-				if(y.length == 2){//Really, they shouldn't use this
-					if(parseInt(y)+2000 < now.getFullYear())//y is between 00 and 15(in 2016)
+				if(y.length == 2){
+					/*Really, they shouldn't use this.
+						Will stop working in year 2100
+					*/
+					if(parseInt(y)+2000 < now.getFullYear())//y is between 00 and 16 (in 2017)
 						y = "20"+y;
 					else
 						y = "19"+y;
@@ -90,21 +93,24 @@
 					}
 				}
 				else{
+					//Length != 2 | 4
 					alert("Invalid year");
 					return false;
 				}
+				//Don't record age if someone is older than 90
 				if(now.getFullYear() - parseInt(y) > 89){
 					y = now.getFullYear() - 90;
 				}
-				
-				var d1 = new Date(y, m, 15);//Guess middle of month
+				//Guess middle of month (day 15)
+				var d1 = new Date(y, m, 15);
 				var d2 = randDate(d1);
 				document.forms["addUser"]["birth"].value = d2;
 				return true;
 			}
 			//Gets a date within 45 days of the given date
 			function randDate(d){
-				var o = norm(0, 15, 45);//math-ext.norm
+				//math-ext.norm(median, std_dev, clip_radius)
+				var o = norm(0, 15, 45);
 				return d.setDate(d.getDate() + o);
 			}
 		</script>
