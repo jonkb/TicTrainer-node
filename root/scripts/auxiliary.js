@@ -403,6 +403,10 @@ function genReport(data){
 	var lastTic;
 	var entries = data.split("\n");
 	for(var i = 0; i<entries.length; i++){
+		if(entries[i].trim() == ""){
+			//Ignore blank lines
+			continue;
+		}
 		var entryParts = entries[i].split("|");
 		switch(entryParts[0]){
 			case "session started":
@@ -420,6 +424,9 @@ function genReport(data){
 				lastTic = ticTime;
 				if(ticFree > longestInterval)
 					longestInterval = ticFree;
+				/*Convert ticFree time to seconds. 
+					Divide that by 10s and add that many to the 10s Interval count.
+				*/
 				tenSIntervals += Math.floor(ticFree / 1e4);
 			break;
 			case "session ended":
@@ -434,12 +441,17 @@ function genReport(data){
 			break;
 		}
 	}
-	if(endL > initL){//add the subtracted points to the point total
+	if(endL > initL){
+		/*At each levelUp(), points are subtracted
+			and converted to coins.
+			Add those subtracted points to the point total.
+		*/
 		for(var i = initL; i<endL; i++){
 			endP += 1000*i*i;//1000L^2 = nextLevel
 		}
 	}
 	if(tics == 0){
+		//If there were no tics, just use the session length
 		longestInterval = endT - initT;
 	}
 	debugShout("start: "+initT+". end: "+endT);

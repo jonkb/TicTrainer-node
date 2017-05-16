@@ -363,6 +363,7 @@ function handleRequest(req, res){
 							}
 						break;
 						case "linkloading-trainer"://source, id, pWord, lid, tryN  tryN is the try number
+							//30 tries, 2s per try --> 1 min (see linkloading-*.dynh)
 							if(body.tryN < 30){
 								//All the errors for id format have been caught already
 								fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
@@ -548,7 +549,7 @@ function handleRequest(req, res){
 											ret.error(res, "fe", "/session/index.html", "session-trainer: append to sesFile");
 										else{
 											res.writeHead(200, {"Content-Type": "text/plain"});
-											res.write(res, "good", function(err){res.end();});
+											res.write("good", function(err){res.end();});
 										}
 									});
 								}

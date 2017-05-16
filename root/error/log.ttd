@@ -24,3 +24,7 @@
 <fe;2017-05-11T20:23:56.582Z;register-trainer: reading trainer.ttad>
 <fe;2017-05-11T20:33:22.358Z;new-session: reading ./account/user.ttad>
 <report;2017-05-11T23:16:19.066Z;Jonathan;jonathan.knight.black@gmail.com;Test, yo!>
+<conses;2017-05-16T16:21:11.228Z;new-session: concurrent/ghost session>
+<ghost session;2017-05-16T16:21:17.049Z;ghost session archived between t0 and u0>
+<conses;2017-05-16T16:22:05.578Z;new-session: concurrent/ghost session>
+<ghost session;2017-05-16T16:22:18.291Z;ghost session archived between t0 and u0>
