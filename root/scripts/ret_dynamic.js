@@ -43,10 +43,10 @@ function ret_error(res, error_type, retry, message){
 	switch(error_type){
 		case "fe":
 		case "se":
-			res.writeHead(500, {"Content-Type": "text/html"});
+			res.writeHead(500, {"Content-Type": "text/html; charset=UTF-8"});
 		break;
 		default:
-			res.writeHead(400, {"Content-Type": "text/html"});
+			res.writeHead(400, {"Content-Type": "text/html; charset=UTF-8"});
 		break;
 	}
 	aux.dynamic("./error/"+error_type+".dynh", dynd, finish_up);
@@ -80,7 +80,7 @@ function ret_created(res, data){
 		if(page == "fe" || page == "se")
 			ret_error(page);
 		else{
-			res.writeHead(200, {"Content-Type": "text/html"});
+			res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 			res.write(page, function(err){res.end();});
 		}
 	});
@@ -104,7 +104,7 @@ function ret_manage_account(res, data){
 			"linked_accounts": lnacc
 		};
 		aux.dynamic("./account/manageT.dynh", dynd, function(page){
-			res.writeHead(200, {"Content-Type": "text/html"});
+			res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 			res.write(page, function(err){res.end();});
 		});
 	}
@@ -131,7 +131,7 @@ function ret_manage_account(res, data){
 			"heap": data[6]
 		};
 		aux.dynamic("./account/manageU.dynh", dynd, function(page){
-			res.writeHead(200, {"Content-Type": "text/html"});
+			res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 			res.write(page, function(err){res.end();});
 		});
 	}
@@ -145,7 +145,7 @@ function ret_link_loading_trainer(res, data){
 		"tryN": parseInt(data.tryN)+1
 	};
 	aux.dynamic("./session/linkloading-trainer.dynh", dynd, function(page){
-		res.writeHead(200, {"Content-Type": "text/html"});
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
 }
@@ -156,7 +156,7 @@ function ret_link_loading_user(res, data){
 		"lid": data.lid
 	};
 	aux.dynamic("./session/linkloading-user.dynh", dynd, function(page){
-		res.writeHead(200, {"Content-Type": "text/html"});
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
 }
@@ -168,7 +168,7 @@ function ret_start_session_trainer(res, data){
 		"lid": data.lid
 	};
 	aux.dynamic("./session/startsession-trainer.dynh", dynd, function(page){
-		res.writeHead(200, {"Content-Type": "text/html"});
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
 }
@@ -179,7 +179,7 @@ function ret_start_session_user(res, data){
 		"lid": data.lid
 	};
 	aux.dynamic("./session/startsession-user.dynh", dynd, function(page){
-		res.writeHead(200, {"Content-Type": "text/html"});
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
 }
@@ -191,7 +191,7 @@ function ret_session_trainer(res, data){
 		"lid": data.lid
 	};
 	aux.dynamic("./session/session-trainer.dynh", dynd, function(page){
-		res.writeHead(200, {"Content-Type": "text/html"});
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
 }
@@ -208,7 +208,7 @@ function ret_session_user(res, data){
 		"heap": data.heap
 	};
 	aux.dynamic("./session/session-user.dynh", dynd, function(page){
-		res.writeHead(200, {"Content-Type": "text/html"});
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
 }
@@ -222,14 +222,14 @@ function ret_report_sent(res, data){
 		"fn": data.fName
 	};
 	aux.dynamic("./error/report-sent.dynh", dynd, function(page){
-		res.writeHead(200, {"Content-Type": "text/html"});
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
 }
 //Return the TT Store. Requires id, pw, coins
 function ret_store(res, data){
 	aux.dynamic("./account/store/store.dynh", data, function(page){
-		res.writeHead(200, {"Content-Type": "text/html"});
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
 }
@@ -284,10 +284,11 @@ function ret_requested_file(res, pathN){
 		case ".ttsd":
 		case ".ttd":
 			// Don't serve sensitive data
-			res.writeHead(403, {"Content-Type": "text/html"});
+			res.writeHead(403, {"Content-Type": "text/html; charset=UTF-8"});
 			res.end();
 		return;
 	}
+	cType += "; charset=UTF-8";
 	if(ext == ".gj"){
 		switch(pathN){
 			case "./account/leaderboard/leaderboard.gj":
@@ -321,7 +322,7 @@ function ret_requested_file(res, pathN){
 		fs.readFile(pathN, function (err, data) {
 			if (err) {
 				// HTTP Status: 404 : NOT FOUND
-				res.writeHead(404, {"Content-Type": 'text/html'});
+				res.writeHead(404, {"Content-Type": 'text/html; charset=UTF-8'});
 				fs.readFile("./error/404.html", function(err, data2){
 					if(err){
 						res.end();
