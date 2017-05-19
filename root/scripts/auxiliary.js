@@ -307,31 +307,32 @@ function loadAllUsers(callback){
 	function callback(err, ID)
 */
 function getNextID(type, callback){
-	var file = "./account/last_IDs.ttd";
+	var file = "./account/next_IDs.ttd";
 	fs.readFile(file, "utf8", function(err,data){
 		if(err){
 			callback("fe");
 			return;
 		}
 		var ids = dataToEntries(data);
-		var last = "";
+		var nextID = "";
 		if(ids[0][0] == type){
-			last = ids[0];
+			nextID = ids[0];
 		}
 		else if(ids[1][0] == type){
-			last = ids[1];
+			nextID = ids[1];
 		}
 		else{
 			callback("ide");
 			return;
 		}
-		var nextN = parse36ToDec(last.slice(1))+1;
-		var nextID = type + decTo36(nextN);
-		//update lastID before returning nextID
+		
+		//update next_IDs before returning
+		var newNextN = parse36ToDec(nextID.slice(1))+1;
+		var newNextID = type + decTo36(newNextN);
 		var cutIndex = data.indexOf(type)
 		var after = data.slice(cutIndex);
 			after = after.slice(after.indexOf(">"))
-		var newText = data.slice(0, cutIndex) + nextID + after;
+		var newText = data.slice(0, cutIndex) + newNextID + after;
 		fs.writeFile(file, newText, function(err){
 			if(err){
 				callback("fe");
