@@ -1,4 +1,4 @@
-To Do: (priority,difficulty) (0-5,0-5)
+To Do: (priority,difficulty) (0-5,0-5) 
 IN PROGRESS:
 
 FUNCTIONAL:
