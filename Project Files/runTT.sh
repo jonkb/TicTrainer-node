@@ -1,15 +1,14 @@
 #!/bin/bash
-#Note: I haven't tested this
 
-resetting = true
+resetting="true"
 
-if [ 'whoami' == root ] ; then
-	cd ~/src/TicTrainer-node/root
+if [ $(whoami) = root ] ; then
+	cd ~/TicTrainer-node/root
 	#set PORT
 	ex +'/const\ PORT/s/8888/80' -cwq server.js
 	#set debugging
 	ex +'/const\ debugging/s/[[:digit:]]/0' -cwq scripts/auxiliary.js
-	if ["$resetting" == "true"]; then
+	if [ $resetting = "true" ] ; then
 		#reset next_IDs
 		echo "<t0>\n<u0>" | cat > account/next_IDs.ttd
 		#delete accounts and sessions
