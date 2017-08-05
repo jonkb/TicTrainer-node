@@ -869,12 +869,13 @@ function handleRequest(req, res){
 }
 
 
-	/*Open with options object. 
-		See https://www.namecheap.com/support/knowledgebase/article.aspx/9705//installing-a-ssl-certificate-on-nodejs
-		ca, key, cert
-	*/
+const options = {
+	key: fs.readFileSync('/etc/letsencrypt/live/tictrainer.com/privkey.pem'),
+	cert: fs.readFileSync('/etc/letsencrypt/live/tictrainer.com/fullchain.pem'),
+};
+
 //Create server using handleRequest
-var server = https.createServer(handleRequest);
+var server = https.createServer(options, handleRequest);
 
 //Start server
 server.listen(PORT, function(){
