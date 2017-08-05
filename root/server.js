@@ -1,4 +1,4 @@
-var http = require("http");
+var https = require("https");
 var fs = require("fs");
 var url = require("url");
 //Auxiliary functions stored in aux to make this file shorter
@@ -6,7 +6,7 @@ var aux = require("./scripts/auxiliary.js");
 //Functions that return dynamic webpages. Always pass with res.
 var ret = require("./scripts/ret_dynamic.js");
 var inventory = require("./scripts/store.js").inv;
-const PORT = 8888;
+const PORT = 443;
 
 function handleRequest(req, res){
 	// Parse the request file name
@@ -868,12 +868,17 @@ function handleRequest(req, res){
 	}
 }
 
+
+	/*Open with options object. 
+		See https://www.namecheap.com/support/knowledgebase/article.aspx/9705//installing-a-ssl-certificate-on-nodejs
+		ca, key, cert
+	*/
 //Create server using handleRequest
-var server = http.createServer(handleRequest);
+var server = https.createServer(handleRequest);
 
 //Start server
 server.listen(PORT, function(){
 	//Callback triggered when server is successfully listening.
 	console.log("Started at "+aux.time());
-	console.log("Server listening on: http://localhost:" + PORT);
+	console.log("Server listening on: https://localhost:" + PORT);
 });

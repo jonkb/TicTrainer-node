@@ -35,3 +35,16 @@ NOTES:
 - https://www.kali.org/
 - Remember Kira's doing ITsec
 - JS shell: http://www.squarefree.com/shell/shell.html
+
+
+
+
+
+HTTPS:
+- http://searchengineland.com/http-https-seos-guide-securing-website-246940
+- https://support.google.com/webmasters/answer/6073543
+- https://yoast.com/moving-your-website-to-https-ssl-tips-tricks/
+- https://www.keycdn.com/blog/http-to-https/
+- https://www.namecheap.com/support/knowledgebase/article.aspx/9705//installing-a-ssl-certificate-on-nodejs
+- https://blog.risingstack.com/node-hero-node-js-security-tutorial/
+- https://letsencrypt.org/getting-started/
