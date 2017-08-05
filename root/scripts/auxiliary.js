@@ -1,7 +1,7 @@
 var fs = require("fs");
 
 //depth of debugging: 0(none), 1, 2, 3
-const debugging = 2;
+const debugging = 0;
 
 /**Exported Functions
 */

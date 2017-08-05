@@ -869,9 +869,16 @@ function handleRequest(req, res){
 }
 
 
+//Set up redirect server to run on port 80
+var http = require("http");
+var server_80 = http.createServer(function(req, res){
+	ret.redirect(res, "https://tictrainer.com:443");
+}).listen(80);
+
+
 const options = {
-	key: fs.readFileSync('/etc/letsencrypt/live/tictrainer.com/privkey.pem'),
-	cert: fs.readFileSync('/etc/letsencrypt/live/tictrainer.com/fullchain.pem'),
+	key: fs.readFileSync("/etc/letsencrypt/live/tictrainer.com/privkey.pem"),
+	cert: fs.readFileSync("/etc/letsencrypt/live/tictrainer.com/fullchain.pem")
 };
 
 //Create server using handleRequest
