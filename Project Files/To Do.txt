@@ -4,7 +4,6 @@ IN PROGRESS:
 FUNCTIONAL:
 -(3,5) Password Encryption
   - Maybe sometime ask for Name, BD, and sex, and convert those into a hash string like NiMH does. Then store each individual's data in the same file, even if they make a new account. 
--(3,4) HTTPS
 -(2,2) ?Set up auto email response to reports? (probably not)
   - OR, add a place in the admin tab where you can write a reply to a comment and send it from something@tictrainer.com.
   - OR, mailto: link
@@ -12,6 +11,7 @@ FUNCTIONAL:
 
 VISUAL:
 -(4,1) Add links to tictrainer.com from places like KJB website & tics-r.us
+-(3,2) Switch the successive form submissions to AJAX (linkloading)
 -(3,2) Add more things to store
   - I could add more decorations
   - Streak bonuses like duolingo
@@ -35,16 +35,3 @@ NOTES:
 - https://www.kali.org/
 - Remember Kira's doing ITsec
 - JS shell: http://www.squarefree.com/shell/shell.html
-
-
-
-
-
-HTTPS:
-- http://searchengineland.com/http-https-seos-guide-securing-website-246940
-- https://support.google.com/webmasters/answer/6073543
-- https://yoast.com/moving-your-website-to-https-ssl-tips-tricks/
-- https://www.keycdn.com/blog/http-to-https/
-- https://www.namecheap.com/support/knowledgebase/article.aspx/9705//installing-a-ssl-certificate-on-nodejs
-- https://blog.risingstack.com/node-hero-node-js-security-tutorial/
-- https://letsencrypt.org/getting-started/
