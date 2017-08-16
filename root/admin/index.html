@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Admin Secondary Interface</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+		<link rel='stylesheet' type='text/css' href='/stylesheets/bgStyle.css'>
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+	</head>
+	<body>
+		<section class='page-header'>
+			<div class='header-navbar'>
+				<a href='/' class='logo'></a>
+				<h1>Admin Secondary Interface</h1>
+				<div style='clear: both;'></div>
+			</div>
+		</section>
+		<section class='main-content' id='mainC'>
+			<form method="POST" name="admin">
+				<fieldset>
+					<legend>Authenticate</legend>
+					Admin ID:<br>
+					<input type="text" name="id" required><br>
+					Password:<br>
+					<input type="password" name="pWord" required><br>
+					<input type="submit" value="Authenticate" class="btn">
+				</fieldset>
+			</form>
+		</section>
+	</body>
+</html>

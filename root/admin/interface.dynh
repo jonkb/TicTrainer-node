@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel='stylesheet' type='text/css' href='/stylesheets/bgStyle.css'>
+		<title>Admin Interface</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+	</head>
+	<body>
+		<section class='page-header'>
+			<div class='header-navbar'>
+				<a href='/' class='logo'></a>
+				<h1>Admin Interface: **[id]**</h1>
+			<div style='clear: both;'></div>
+			</div>
+		</section>
+		<section class='main-content' id='mainC'>
+			/error/log.data: <br>
+			<code>
+				**[log]**
+			</code><br>
+		</section>
+	</body>
+</html>

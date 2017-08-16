@@ -783,6 +783,27 @@ function handleRequest(req, res){
 						});
 					});
 				break;
+				case "/admin/index.html":
+					fs.readFile("./admin/admin.data", "utf8", function(err, data){
+						if(err){
+							ret_error(err);
+							return;
+						}
+						var iId = data.indexOf("<"+body.id);
+						if(iId == -1){
+							ret_error("anfe");
+							return;
+						}
+						var dc1 = data.slice(iId);//datachunk 1
+						var dc2 = dc1.slice(dc1.indexOf(";")+1);
+						var pass = dc2.slice(0, dc2.indexOf(">"));
+						if(body.pWord != pass){
+							ret_error("pce");
+							return;
+						}
+						ret_admin(body);
+					});
+				break;
 				case "/account/store/index.html":
 					switch(body.source){
 						case "enterStore":
