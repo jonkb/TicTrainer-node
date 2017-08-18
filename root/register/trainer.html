@@ -25,9 +25,9 @@
           Birth Year:<br>
           <input type="text" name="birth" placeholder="yyyy" required> <br>
           Password:<br>
-          <input type="password" name="pWord" required> <br>
+          <input type="password" name="pw" required> <br>
           Confirm Password:<br>
-          <input type="password" name="pWordConf" required> <br>
+          <input type="password" name="pwConf" required> <br>
           <input type="submit" value="Create Account" class="btn">
         </fieldset>
       </form>
@@ -35,8 +35,8 @@
 		<script>
 			function checkForm() {
 				var y = document.forms["addTrainer"]["birth"].value;
-				var pw = document.forms["addTrainer"]["pWord"].value;
-				var pwC = document.forms["addTrainer"]["pWordConf"].value;
+				var pw = document.forms["addTrainer"]["pw"].value;
+				var pwC = document.forms["addTrainer"]["pwConf"].value;
 				if(pw != pwC){
 					alert("Passwords do not match");
 					return false;

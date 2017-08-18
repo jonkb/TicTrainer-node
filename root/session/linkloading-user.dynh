@@ -29,7 +29,7 @@
 				if(tryN < 30){
 					var xhr = new XMLHttpRequest();
 					var url = '/session/index.html';
-					var reqBody = 'source=linkloading-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=exists';
+					var reqBody = 'source=linkloading-user&id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=exists';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){
@@ -50,7 +50,7 @@
 				else{//Timeout
 					var xhr = new XMLHttpRequest();
 					var url = '/session/index.html';
-					var reqBody = 'source=linkloading-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=timeout';
+					var reqBody = 'source=linkloading-user&id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=timeout';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){
@@ -67,7 +67,7 @@
 				if(!salido){
 					var xhr = new XMLHttpRequest();
 					var url = '/session/index.html'
-					var reqBody = 'source=linkloading-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=leave';
+					var reqBody = 'source=linkloading-user&id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=leave';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.send(reqBody);

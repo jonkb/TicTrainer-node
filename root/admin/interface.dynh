@@ -14,10 +14,26 @@
 			</div>
 		</section>
 		<section class='main-content' id='mainC'>
-			/error/log.data: <br>
-			<code>
-				**[log]**
-			</code><br>
+			<!--Add Admin?-->
+			<button class='bigBtn' onclick="next('MRU')">Manage Research Users</button>
+			<button class='bigBtn' onclick="next('VL')">View Logs</button>
 		</section>
+		<script>
+			function next(target){
+				var xhr = new XMLHttpRequest();
+				var url = '/admin/interface.dynh';
+				var reqBody = 'id=**[id]**&pw=**[pw]**&target='+target;
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Content-type', 'text/plain');
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						document.open();
+						document.write(xhr.responseText);
+						document.close();
+					}
+				};
+				xhr.send(reqBody);
+			}
+		</script>
 	</body>
 </html>

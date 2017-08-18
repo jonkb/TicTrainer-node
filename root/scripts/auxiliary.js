@@ -1,7 +1,7 @@
 var fs = require("fs");
 
 //depth of debugging: 0(none), 1, 2, 3
-const debugging = 0;
+const debugging = 2;
 
 /**Exported Functions
 */
@@ -110,7 +110,7 @@ function indexNOf(string, search, nth){//t0000;Jonathan;05/20/1999;h;u0000;
 	Returns false or testID.toLowerCase()
 	Requirements for an ID string:
 	1. longer than 1 char (t0 is the shortest)
-	2. Starts with "t" or "u"
+	2. Starts with "t" or "u" (or "a")
 	3. Each character after the first is one of the 36 used by c_36d
 */
 function isID(testID){
@@ -122,7 +122,7 @@ function isID(testID){
 	testID = testID.toLowerCase();//make non case sensitive
 	
 	var p1 = testID[0];
-	if(p1 != "t" && p1 != "u")
+	if(p1 != "t" && p1 != "u" && p1 != "a")
 		return false;
 	var p2 = testID.slice(1);
 	for(var i = 0; i < p2.length; i++){
@@ -241,7 +241,7 @@ function editAcc(id, fldInd, newVal, callback){
 }
 /**Loads the specified account's data into an array
 	callback = function(err,user)
-	user: [id,pw,bd,"links",sex,"lpc",heap]
+	user: [id,pw,bd,"links",sex,"lpc",heap,research_state]
 }
 */
 function loadAcc(id, callback){
@@ -255,7 +255,9 @@ function loadAcc(id, callback){
 		file += "trainer_data/"+iD+".ttad";
 	else if(iD[0] == "u")
 		file += "user_data/"+iD+".ttad";
-	fs.readFile(file, "utf8", function(err,data){
+	else if(iD[0] == "a")
+		file += "admin_data/"+iD+".ttad";
+	fs.readFile(file, "utf8", function(err, data){
 		if(err){
 			//assuming it's file not found
 			//I should actually check that
@@ -303,7 +305,7 @@ function loadAllUsers(callback){
 	});
 }
 /**Gets the next available ID
-	type: "u" or "t"
+	type: "u" or "t" (or "a")
 	function callback(err, ID)
 */
 function getNextID(type, callback){
@@ -320,6 +322,9 @@ function getNextID(type, callback){
 		}
 		else if(ids[1][0] == type){
 			nextID = ids[1];
+		}
+		else if(ids[2][0] == type){
+			nextID = ids[2];
 		}
 		else{
 			callback("ide");
@@ -354,6 +359,7 @@ function newU(id, pass, bd, sex){
 		s += 	open_char +	sex		+ close_char + "\n";
 		s += 	open_char +"0,0,0"+ close_char + "\n";//level,points,coins
 		s += 	open_char 		+			close_char + "\n";//store-bought items
+		s += 	open_char +"DRZ"	+	close_char + "\n";//research_state
 	return s;
 }
 /**Generates the content for a new trainer file

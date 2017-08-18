@@ -29,7 +29,7 @@
 			<form method='POST'>
 				<input type='hidden' name='source' value='addL'>
 				<input type='hidden' name='id' value='**[id]**'>
-				<input type='hidden' name='pWord' value='**[pw]**'>
+				<input type='hidden' name='pw' value='**[pw]**'>
 				<fieldset>
 					<legend>Add User</legend>
 					User Account ID:<br>

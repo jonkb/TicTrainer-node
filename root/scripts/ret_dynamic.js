@@ -14,6 +14,9 @@ module.exports.start_session_user = ret_start_session_user;
 module.exports.session_trainer = ret_session_trainer;
 module.exports.session_user = ret_session_user;
 module.exports.report_sent = ret_report_sent;
+module.exports.admin = ret_admin;
+module.exports.manageRU = ret_manageRU;
+module.exports.viewLogs = ret_viewLogs;
 module.exports.store = ret_store;
 module.exports.redirect = ret_redirect;
 module.exports.requested_file = ret_requested_file;
@@ -56,6 +59,38 @@ function ret_error(res, error_type, retry, message){
 			aux.log_error(error_type, message);
 	}
 }
+/* Returns the page for managing research users
+*/
+function ret_manageRU(res, data){
+	var dynd = {
+		"admin_id": data.id,
+		"admin_pw": data.pw
+	}
+	aux.dynamic("./admin/manageRU.dynh", dynd, function(page){
+		if(page == "fe" || page == "se")
+			ret_error(res, page);
+		else{
+			res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+			res.write(page, function(err){res.end();});
+		}
+	});
+}
+/* Returns the page for viewing logs
+*/
+function ret_viewLogs(res, data){
+	var dynd = {
+		"admin_id": data.id,
+		"admin_pw": data.pw
+	}
+	aux.dynamic("./admin/viewLogs.dynh", dynd, function(page){
+		if(page == "fe" || page == "se")
+			ret_error(res, page);
+		else{
+			res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+			res.write(page, function(err){res.end();});
+		}
+	});
+}
 /* Returns a message that the account has been successfully created (/register/)
 */
 function ret_created(res, data){
@@ -78,7 +113,7 @@ function ret_created(res, data){
 	};
 	aux.dynamic("./register/created.dynh", dynd, function(page){
 		if(page == "fe" || page == "se")
-			ret_error(page);
+			ret_error(res, page);
 		else{
 			res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 			res.write(page, function(err){res.end();});
@@ -141,7 +176,7 @@ function ret_link_loading_trainer(res, data){
 	var dynd = {
 		"id": data.id,
 		"lid": data.lid,
-		"pw": data.pWord,
+		"pw": data.pw,
 		"tryN": parseInt(data.tryN)+1
 	};
 	aux.dynamic("./session/linkloading-trainer.dynh", dynd, function(page){
@@ -152,7 +187,7 @@ function ret_link_loading_trainer(res, data){
 function ret_link_loading_user(res, data){
 	var dynd = {
 		"id": data.id,
-		"pw": data.pWord,
+		"pw": data.pw,
 		"lid": data.lid
 	};
 	aux.dynamic("./session/linkloading-user.dynh", dynd, function(page){
@@ -164,7 +199,7 @@ function ret_link_loading_user(res, data){
 function ret_start_session_trainer(res, data){
 	var dynd = {
 		"id": data.id,
-		"pw": data.pWord,
+		"pw": data.pw,
 		"lid": data.lid
 	};
 	aux.dynamic("./session/startsession-trainer.dynh", dynd, function(page){
@@ -175,7 +210,7 @@ function ret_start_session_trainer(res, data){
 function ret_start_session_user(res, data){
 	var dynd = {
 		"id": data.id,
-		"pw": data.pWord,
+		"pw": data.pw,
 		"lid": data.lid
 	};
 	aux.dynamic("./session/startsession-user.dynh", dynd, function(page){
@@ -187,7 +222,7 @@ function ret_session_trainer(res, data){
 	//[session control page] show Tic Detected, Stop Session butttons
 	var dynd = {
 		"id": data.id,
-		"pw": data.pWord,
+		"pw": data.pw,
 		"lid": data.lid
 	};
 	aux.dynamic("./session/session-trainer.dynh", dynd, function(page){
@@ -199,7 +234,7 @@ function ret_session_user(res, data){
 	//[session page] show counter, start local reward timer
 	var dynd = {
 		"id": data.id,
-		"pw": data.pWord,
+		"pw": data.pw,
 		"lid": data.lid,
 		"level": data.level,
 		"points": data.points,
@@ -223,6 +258,17 @@ function ret_report_sent(res, data){
 	};
 	aux.dynamic("./error/report-sent.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+		res.write(page, function(err){res.end();});
+	});
+}
+//Admin interface
+function ret_admin(res, data){
+	var dynd = {
+		"id": data.id,
+		"pw": data.pw,
+	}
+	aux.dynamic("./admin/interface.dynh", dynd, function(page){
+		res.writeHead(200, {"Content-Type": "text/html"});
 		res.write(page, function(err){res.end();});
 	});
 }
@@ -278,7 +324,7 @@ function ret_requested_file(res, pathN){
 		/*.ttad - Tt account data
 			.ttsd - Tt session data (uses "|" & "\n" not <~><~>)
 			.ttd - other Tt data (lnusers, err/log) (still uses <~><~>)
-			Maybe ttsd and ttd could be available through the admin interface one day.
+			Maybe ttsd and ttd could be available through the admin interface.
 		*/
 		case ".ttad":
 		case ".ttsd":
@@ -315,6 +361,7 @@ function ret_requested_file(res, pathN){
 					res.write(resFinal, function(err){res.end();});
 				});
 			break;
+			//Add a spot here for the error log for admin
 		}
 	}
 	else{

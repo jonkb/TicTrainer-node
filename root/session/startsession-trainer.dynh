@@ -18,7 +18,7 @@
 			<form id='startButton' method='POST' style='width: 100%; text-align:center;'>
 				<input type='hidden' name='source' value='start_session-trainer'>
 				<input type='hidden' name='id' value='**[id]**'>
-				<input type='hidden' name='pWord' value='**[pw]**'>
+				<input type='hidden' name='pw' value='**[pw]**'>
 				<input type='hidden' name='lid' value='**[lid]**'>
 				<input type='submit' class='bigBtn' value='START'>
 			</form>
@@ -35,7 +35,7 @@
 				if(!(sub || salido)){
 					var xhr = new XMLHttpRequest();
 					var url = '/session/index.html';
-					var reqBody = 'source=start_session-trainer&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&reqType=leave';
+					var reqBody = 'source=start_session-trainer&id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=leave';
 					xhr.open('POST', url, true);
 					xhr.send(reqBody);
 					salido = true;

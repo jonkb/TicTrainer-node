@@ -44,9 +44,9 @@
 					</select>
 					<input type="text" name="year" size="4" placeholder="yyyy" required><br>
           Password:<br>
-          <input type="password" name="pWord" required> <br>
+          <input type="password" name="pw" required> <br>
           Confirm Password:<br>
-          <input type="password" name="pWordConf" required> <br>
+          <input type="password" name="pwConf" required> <br>
           <input type="submit" value="Create Account" class="btn">
         </fieldset>
       </form>
@@ -57,8 +57,8 @@
 				var s = document.forms["addUser"]["sex"].value;
 				var m = document.forms["addUser"]["month"].value;
 				var y = document.forms["addUser"]["year"].value;
-				var pw = document.forms["addUser"]["pWord"].value;
-				var pwC = document.forms["addUser"]["pWordConf"].value;
+				var pw = document.forms["addUser"]["pw"].value;
+				var pwC = document.forms["addUser"]["pwConf"].value;
 				if(pw != pwC){
 					alert("Passwords do not match");
 					return false;

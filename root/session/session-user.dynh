@@ -63,7 +63,7 @@
 			function frame(){
 				var xhr = new XMLHttpRequest();
 				var url = '/session/index.html';
-				var reqBody = 'source=session-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&sesL='+lastL;
+				var reqBody = 'source=session-user&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&sesL='+lastL;
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');//'application/x-www-form-urlencoded'
 				xhr.onreadystatechange = function(){
@@ -122,8 +122,8 @@
 				if(!salido){
 					var xhr = new XMLHttpRequest();
 					var url = '/session/index.html'
-					//source,id,pWord,lid,level,points
-					var reqBody = 'source=session_end-user&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
+					//source,id,pw,lid,level,points
+					var reqBody = 'source=session_end-user&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
 					xhr.open('POST', url, true);
 					xhr.onreadystatechange = function(){
 						if(xhr.readyState == 4){
@@ -158,8 +158,8 @@
 			function loglpc(){
 				var xhr = new XMLHttpRequest();
 				var url = '/session/index.html'
-				//source,id,pWord,lid,level,points
-				var reqBody = 'source=loglpc&id=**[id]**&pWord=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
+				//source,id,pw,lid,level,points
+				var reqBody = 'source=loglpc&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
 				xhr.open('POST', url, true);
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
@@ -176,8 +176,8 @@
 			function savelpc(){
 				var xhr = new XMLHttpRequest();
 				var url = '/session/index.html'
-				//source,id,pWord,lid,level,points
-				var reqBody = 'source=savelpc&id=**[id]**&pWord=**[pw]**&level='+level+'&points='+points+'&coins='+coins;
+				//source,id,pw,lid,level,points
+				var reqBody = 'source=savelpc&id=**[id]**&pw=**[pw]**&level='+level+'&points='+points+'&coins='+coins;
 				xhr.open('POST', url, true);
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){

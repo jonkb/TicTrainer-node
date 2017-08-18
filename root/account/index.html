@@ -20,13 +20,13 @@
     </section>
     <section class="main-content">
 			<form method="POST" name="manageAccount" onsubmit="return checkForm();">
-				<input type="hidden" name="source" value="manageAccount">
+				<input type='hidden' name='source' value='manageAccount'>
 				<fieldset>
 					<legend>Manage Account</legend>
 					Account ID:<br>
 					<input type="text" name="id" placeholder="t0000" required><br>
 					Password:<br>
-					<input type="password" name="pWord" required><br>
+					<input type="password" name="pw" required><br>
 					<input type="submit" value="Log In" class="btn">
 				</fieldset>
 			</form>
@@ -34,7 +34,7 @@
 		<script>
 			function checkForm(){
 				var id = document.forms["manageAccount"]["id"].value.toLowerCase();
-				var pw = document.forms["manageAccount"]["pWord"].value.toLowerCase();
+				var pw = document.forms["manageAccount"]["pw"].value.toLowerCase();
 				
 				if(!id || !pw){
 					alert("Please finish the form");

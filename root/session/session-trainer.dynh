@@ -75,7 +75,7 @@
 				here();
 		    var xhr = new XMLHttpRequest();
 				var url = '/session/index.html';
-				var reqBody = 'source=session-trainer&id=**[id]**&pWord=**[pw]**&lid=**[lid]**';
+				var reqBody = 'source=session-trainer&id=**[id]**&pw=**[pw]**&lid=**[lid]**';
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){//just check that everything is fine
 						if(xhr.status != 200){
@@ -100,7 +100,7 @@
 				if(!salido){
 					var xhr = new XMLHttpRequest();
 					var url = '/session/index.html';
-					var reqBody = 'source=session_end-trainer&id=**[id]**&pWord=**[pw]**&lid=**[lid]**';
+					var reqBody = 'source=session_end-trainer&id=**[id]**&pw=**[pw]**&lid=**[lid]**';
 					xhr.onreadystatechange = function(){
 						if(xhr.readyState == 4){//just check that everything is fine
 							document.open();

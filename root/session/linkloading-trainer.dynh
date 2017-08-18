@@ -19,7 +19,7 @@
 			<form id='lookForm' method='POST'>
 				<input type='hidden' name='source' value='linkloading-trainer'>
 				<input type='hidden' name='id' value='**[id]**'>
-				<input type='hidden' name='pWord' value='**[pw]**'>
+				<input type='hidden' name='pw' value='**[pw]**'>
 				<input type='hidden' name='lid' value='**[lid]**'>
 				<input type='hidden' name='tryN' value='**[tryN]**'>
 			</form>

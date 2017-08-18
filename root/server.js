@@ -33,8 +33,8 @@ function handleRequest(req, res){
 			switch(pathname){
 				case "/register/trainer.html":
 					var bD = body.birth;
-					var pass = body.pWord;
-					var passC = body.pWordConf;
+					var pass = body.pw;
+					var passC = body.pwConf;
 					
 					//Double check validation
 					if(!bD || !pass || !passC){
@@ -78,8 +78,8 @@ function handleRequest(req, res){
 				case "/register/user.html":
 					var sex = body.sex;
 					var bD = body.birth;
-					var pass = body.pWord;
-					var passC = body.pWordConf;
+					var pass = body.pw;
+					var passC = body.pwConf;
 					
 					//Double check validation
 					if(sex != "M" && sex != "F"){
@@ -138,18 +138,20 @@ function handleRequest(req, res){
 					}
 					switch(body.source){
 						case "manageAccount"://Log on page
+						aux.debugShout("141", 2);
 						aux.loadAcc(body.id, function(err,user){
+							aux.debugShout("143", 2);
 							if(err){
 								acc_ret(err);
 								return;
 							}
-							if(user[1] == body.pWord)
+							if(user[1] == body.pw)
 								acc_ret(user);
 							else
 								acc_ret("pce");
+								aux.debugShout("152", 2);
 						});
 						break;
-						
 						case "editP"://Source: editP, id, oldPass, pass
 							var iD = body.id;
 							var opw = body.oldPass;
@@ -157,7 +159,7 @@ function handleRequest(req, res){
 							aux.debugShout("Editing "+iD, 1);
 							aux.editAcc(iD, 1, function(dEntry){//return new PW
 								if(dEntry[1] !== opw){
-									aux.debugShout("489|" + dEntry[1] + "|" + opw + "|" + pw);
+									aux.debugShout("160|" + dEntry[1] + "|" + opw + "|" + pw);
 									acc_ret("pce");
 									return "<cancel>";
 								}
@@ -175,7 +177,7 @@ function handleRequest(req, res){
 							});
 						break;
 						case "addL"://Add Account Link
-							var iD = body.id;// body = {source, id, lid, pWord}
+							var iD = body.id;// body = {source, id, lid, pw}
 							var lID = body.lid;
 							var lFile = "./account/";
 							
@@ -199,7 +201,7 @@ function handleRequest(req, res){
 									//Link to the account
 									//addL
 									aux.editAcc(iD, 3, function(dEntry){
-										if(dEntry[1] !== body.pWord){
+										if(dEntry[1] !== body.pw){
 											acc_ret("pce");
 											return "<cancel>";
 										}
@@ -243,7 +245,7 @@ function handleRequest(req, res){
 				break;
 				case "/session/index.html":
 					switch(body.source){
-						case "newSession"://source, id, pWord, lid
+						case "newSession"://source, id, pw, lid
 							/**handle form submission for new session
 							verify password, 
 							check that accounts are linked,
@@ -257,7 +259,7 @@ function handleRequest(req, res){
 									[session control page]Append "session started at"+, show Tic Detected & Stop Session butttons
 							 */
 							 
-							var pass = body.pWord;
+							var pass = body.pw;
 							var file = "./account/";
 							
 							body.id = aux.isID(body.id);
@@ -362,7 +364,7 @@ function handleRequest(req, res){
 								}
 							}
 						break;
-						case "linkloading-trainer"://source, id, pWord, lid, tryN  tryN is the try number
+						case "linkloading-trainer"://source, id, pw, lid, tryN  tryN is the try number
 							//30 tries, 2s per try --> 1 min (see linkloading-*.dynh)
 							if(body.tryN < 30){
 								//All the errors for id format have been caught already
@@ -391,7 +393,7 @@ function handleRequest(req, res){
 												if(err)
 													ret.error(res, "fe", "/session/index.html", "linkloading-trainer: making session file");
 												else
-													ret.start_session_trainer(res, body);//source, id, pWord, lid, tryN 
+													ret.start_session_trainer(res, body);//source, id, pw, lid, tryN 
 											});
 										}
 									}
@@ -401,7 +403,7 @@ function handleRequest(req, res){
 								ret.error(res, "toe", "/session/index.html");
 							}
 						break;
-						case "linkloading-user"://source, id, pWord, lid, tryN 
+						case "linkloading-user"://source, id, pw, lid, tryN 
 							/*(if user) [loading page]set timer to look for session file every 2s for 1m -->
 							*/
 							if(body.reqType == 'leave' || body.reqType == 'timeout'){
@@ -443,7 +445,7 @@ function handleRequest(req, res){
 								});
 							}
 						break;
-						case "start_session-trainer"://source, id, pWord, lid
+						case "start_session-trainer"://source, id, pw, lid
 							//If aborting, delete the session file - don't bother with archive because it hasn't even started yet
 							if(body.reqType == 'leave'){
 								var sesFile = "./session/temp/session" + body.id + body.lid + ".ttsd";
@@ -481,7 +483,7 @@ function handleRequest(req, res){
 							}
 						break;
 						//See if the session has started
-						case "start_session-user"://source, id, pWord, lid, tryN 
+						case "start_session-user"://source, id, pw, lid, tryN 
 							if(body.reqType == 'leave' || body.reqType == 'timeout'){
 								//end session - it has not started yet, so just delete it
 								var sesFile = "./session/temp/session" + body.lid + body.id + ".ttsd";
@@ -517,7 +519,7 @@ function handleRequest(req, res){
 											ret.error(res, err);//anfe or ide
 											return;
 										}
-										if(body.pWord != uData[1]){
+										if(body.pw != uData[1]){
 											ret.error(res, "pce");
 											return;
 										}
@@ -539,7 +541,7 @@ function handleRequest(req, res){
 								});
 							}
 						break;
-						case "session-trainer"://Tic. body= source:session-trainer, id:t0000, pWord: , lid:u0000
+						case "session-trainer"://Tic. body= source:session-trainer, id:t0000, pw: , lid:u0000
 							var sesFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
 							var tEntry = "\ntic detected|" +aux.time();
 							fs.stat(sesFile, function(err, stats){
@@ -562,7 +564,7 @@ function handleRequest(req, res){
 									ret.error(res, "fe", "/session/index.html", "session-trainer: stat sesFile");
 							});
 						break;
-						case "session-user"://body: source, id, pWord, lid
+						case "session-user"://body: source, id, pw, lid
 							//Requests made from the ongoing user session
 							/*Check the session file here for tic detected or session ended*/
 							var oldL = body.sesL;
@@ -613,7 +615,7 @@ function handleRequest(req, res){
 						case "savelpc"://id, pass, l,p,c
 							var newlpc = body.level +","+ body.points +","+ body.coins;
 							aux.editAcc(body.id, 5, function(userData){
-								if(body.pWord != userData[1]){
+								if(body.pw != userData[1]){
 									ret.error(res, "pce");
 									return "<cancel>";
 								}
@@ -683,8 +685,8 @@ function handleRequest(req, res){
 							}
 							//save user l & p
 							aux.editAcc(body.id, 5, function(uData){
-								if(body.pWord != uData[1]){
-									aux.debugShout("body.pword= "+body.pWord+"; pass= "+uData[1]);
+								if(body.pw != uData[1]){
+									aux.debugShout("body.pw= "+body.pw+"; pass= "+uData[1]);
 									ret.error(res, "pce");
 									return "<cancel>";
 								}
@@ -740,7 +742,7 @@ function handleRequest(req, res){
 							ret.error(res, err);
 							return;
 						}
-						if(tData[1] != body.pWord){
+						if(tData[1] != body.pw){
 							ret.error(res, "pce");
 							return;
 						}
@@ -784,25 +786,73 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/admin/index.html":
-					fs.readFile("./admin/admin.data", "utf8", function(err, data){
+					aux.loadAcc(body.id, function(err, acc){
 						if(err){
-							ret_error(err);
+							ret.error(res, err, "/admin/index.html");
 							return;
 						}
-						var iId = data.indexOf("<"+body.id);
-						if(iId == -1){
-							ret_error("anfe");
+						if(body.pw != acc[1]){
+							ret.error(res, "pce", "/admin/index.html");
 							return;
 						}
-						var dc1 = data.slice(iId);//datachunk 1
-						var dc2 = dc1.slice(dc1.indexOf(";")+1);
-						var pass = dc2.slice(0, dc2.indexOf(">"));
-						if(body.pWord != pass){
-							ret_error("pce");
-							return;
-						}
-						ret_admin(body);
+						ret.admin(res, body);
 					});
+				break;
+				case "/admin/interface.dynh":
+					aux.loadAcc(body.id, function(err, acc){
+						if(err){
+							ret.error(res, err, "/admin/index.html");
+							return;
+						}
+						if(body.pw != acc[1]){
+							ret.error(res, "pce", "/admin/index.html");
+							return;
+						}
+						switch(body.target){
+							case "MRU":
+								ret.manageRU(res, body);
+							break;
+							case "VL":
+								ret.viewLogs(res, body);
+							break;
+						}
+					});
+				break;
+				case "/admin/manageRU.dynh":
+					switch(body.source){
+						case "load_user_data":
+							/*1. check admin pass 
+								2. check user pass
+								3. return research_state
+							*/
+							aux.loadAcc(body.admin_id, function(err, admin_acc){
+								if(err){
+									debugShout("830", 2);
+									ret.error(res, err, "/admin/index.html");
+									return;
+								}
+								if(body.admin_pw != admin_acc[1]){
+									ret.error(res, "pce", "/admin/index.html");
+									return;
+								}
+								aux.loadAcc(body.id, function(err, acc){
+									if(err){
+										res.writeHead(200, {"Content-Type": "text/plain"});
+										res.write("error="+err, function(err){res.end();});
+										return;
+									}
+									if(body.pw != acc[1]){
+										res.writeHead(200, {"Content-Type": "text/plain"});
+										res.write("error=pce", function(err){res.end();});
+										return;
+									}
+									res.writeHead(200, {"Content-Type": "text/plain"});
+									res.write("research_state="+acc[7], function(err){res.end();});
+									
+								});
+							});
+						break;
+					}
 				break;
 				case "/account/store/index.html":
 					switch(body.source){
@@ -889,12 +939,18 @@ function handleRequest(req, res){
 	}
 }
 
+/* NOTE!!!
+	THE FOLLOWING HAS BEEN MODIFIED TO REVERT TO HTTP ON PORT 8888 FOR TESTING.
+	CHANGE IT BACK BEFORE MERGING BACK TO MASTER
+*/
 
 //Set up redirect server to run on port 80
 var http = require("http");
+
+/*
 var server_80 = http.createServer(function(req, res){
 	ret.redirect(res, "https://tictrainer.com:443");
-}).listen(80);
+})//.listen(80);
 
 
 const options = {
@@ -910,4 +966,15 @@ server.listen(PORT, function(){
 	//Callback triggered when server is successfully listening.
 	console.log("Started at "+aux.time());
 	console.log("Server listening on: https://localhost:" + PORT);
+});
+*/
+
+//Create server using handleRequest
+var server = http.createServer(handleRequest);
+
+//Start server
+server.listen(8888, function(){
+	//Callback triggered when server is successfully listening.
+	console.log("Started at "+aux.time());
+	console.log("Server listening on: http://localhost:" + 8888);
 });
