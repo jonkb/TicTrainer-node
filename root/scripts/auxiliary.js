@@ -324,6 +324,7 @@ function getNextID(type, callback){
 			nextID = ids[1];
 		}
 		else if(ids[2][0] == type){
+			//Admins
 			nextID = ids[2];
 		}
 		else{
@@ -359,7 +360,7 @@ function newU(id, pass, bd, sex){
 		s += 	open_char +	sex		+ close_char + "\n";
 		s += 	open_char +"0,0,0"+ close_char + "\n";//level,points,coins
 		s += 	open_char 		+			close_char + "\n";//store-bought items
-		s += 	open_char +"DRZ"	+	close_char + "\n";//research_state
+		s += 	open_char +"REG"	+	close_char + "\n";//research_state
 	return s;
 }
 /**Generates the content for a new trainer file
@@ -514,6 +515,9 @@ function debugShout(message, depth){
 */
 function log_error(error_type, message){
 	message = message || "-";
+	message = message.replace("<","[L.T. chevron]");
+	message = message.replace(">","[G.T. chevron]");
+	message = message.replace(";","[semicolon]");
 	var eEntry = "<"+error_type+";"+time()+";"+message+">\n";
 	fs.appendFile("./error/log.ttd", eEntry, function(err){});
 }

@@ -1,5 +1,7 @@
 To Do: (priority,difficulty) (0-5,0-5) 
 IN PROGRESS:
+- Admin interface
+- NCR,DRZ,NONE in session
 
 FUNCTIONAL:
 -(3,5) Password Encryption

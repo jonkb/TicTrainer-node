@@ -346,9 +346,7 @@ function ret_requested_file(res, pathN){
 						[u0  , 1      , 100]
 						...  , ...    , ...
 					*/
-					var len = users.length;
-					if(len > 100)
-						len = 100;
+					var len = Math.min(users.length, 100);
 					for(var i = 0; i < len; i++){
 						var id = users[i][0];
 						var lp = users[i][5].split(",");

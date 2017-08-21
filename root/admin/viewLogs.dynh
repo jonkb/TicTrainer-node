@@ -13,20 +13,103 @@
 				<h1>View TicTrainer Logs</h1>
 				<div style="clear: both;"></div>
 			</div>
-			<!-- Maybe there could be something comparable here for switching coins for US cash.
-			<div>
-				<a class="btn" href="store/">Store</button></a>
-				<a class="btn" href="leaderboard/">Leaderboard</button></a>
-			</div>
-			-->
     </section>
     <section class="main-content">
-		
+			<form method="POST" name="PickLog" onsubmit="return false;">
+				<fieldset>
+					<legend>Choose a Log File to Load</legend>
+					System Logs: <select name="sys_file" id="sys_option">
+						<option value="-">Pick one</option>
+						<option value="../Project Files/log.txt">Console Log</option>
+						<option value="./error/log.ttd">Tt Error Log</option>
+						<option value="./session/lnusers.ttd">Current Linking Users</option>
+					</select> <br>
+					Session Logs: <select name="ses_file" id="ses_option">
+						<option value="-">Pick one</option>
+						<!--Filled in by script-->
+					</select> <br>
+				</fieldset>
+			</form>
+			<div id="Log_Content">
+				
+			</div>
     </section>
 		<script>
-			var admin_id = **[admin_id]**;
-			var admin_pw = **[admin_pw]**;
+			//Load a list of session log files for ses_option
+			var xhr = new XMLHttpRequest();
+			var url = '/admin/viewLogs.dynh';
+			var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&source=reqlist';
+			xhr.open('POST', url, true);
+			xhr.setRequestHeader('Content-type', 'text/plain');
+			xhr.onreadystatechange = function(){
+				if(xhr.readyState == 4){
+					if(xhr.status == 2222200){
+						var res_data = xhr.responseText
+						if(res_data == "error"){
+							alert("Error: "+res_data[1]);
+							return false;
+						}
+						if(res_data != "research_state"){
+							alert("Error: Unknown response from the server");
+							return false;
+						}
+						var research_state = res_data[1];
+						document.getElementById("display_user_ID").innerHTML = id;
+						document.getElementById("display_user_RS").innerHTML = research_state;
+					}
+					else{
+						document.open();
+						document.write(xhr.responseText);
+						document.close();
+					}
+				}
+			};
+			xhr.send(reqBody);
 			
+			//Instead of using a submit button, 
+			//Send the request as soon as they pick an option.
+			document.getElementById('sys_option').onchange = function() {
+				var file = document.getElementById('sys_option').value;
+				if(file == "-"){
+					//Not necessary to alert.
+					alert("Choose a log file"); 
+					return false;
+				}
+				//Ask the server for the log file and display it
+				var xhr = new XMLHttpRequest();
+				var url = '/admin/viewLogs.dynh';
+				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&source=reqlog&file='+file;
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Content-type', 'text/plain');
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(xhr.status == 200){
+							var res_data = xhr.responseText.split("=");
+							if(res_data[0] == "error"){
+								alert("Error: "+res_data[1]);
+								return false;
+							}
+							if(res_data[0] != "research_state"){
+								alert("Error: Unknown response from the server");
+								return false;
+							}
+							var research_state = res_data[1];
+							document.getElementById("display_user_ID").innerHTML = id;
+							document.getElementById("display_user_RS").innerHTML = research_state;
+						}
+						else{
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
+					}
+				};
+				xhr.send(reqBody);
+				return false;
+			};
+			document.getElementById('ses_option').onchange = function() {
+				
+			};
 		</script>
 	</body>
 </html>

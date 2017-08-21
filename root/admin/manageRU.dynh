@@ -21,35 +21,50 @@
 			-->
     </section>
     <section class="main-content">
-			<form method="POST" name="viewAccount" onsubmit="return load_user_data();">
+			<form method="POST" name="ManageAccount" onsubmit="return false;">
 				<fieldset>
 					<legend>Manage R.U. Account</legend>
-					User Account ID:<br>
-					<input type="text" name="id" placeholder="u0000" required><br>
-					Password:<br>
-					<input type="password" name="pw" required><br>
-					<input type="submit" value="Log In" class="btn">
+					<div style="float:left;">
+						User Account ID:<br>
+						<input type="text" name="id" placeholder="u0000" required><br>
+						Password:<br>
+						<input type="password" name="pw" required><br>
+						<button class="btn" onclick="load_user_data()">Load Account Data</button>
+					</div>
+					<div style="float:right;" id="display_user_data">
+						<table>
+							<tr>
+								<td>ID: </td>
+								<td id="display_user_ID"></td>
+							</tr>
+							<tr>
+								<td>Research State: </td>
+								<td id="display_user_RS"></td>
+							</tr>
+							<tr>
+								<td>New Research State: </td>
+								<td>
+									<select name="RS">
+										<option value="REG">REGULAR</option>
+										<option value="NONE">NONE</option>
+										<option value="DRZ">DRZ</option>
+										<option value="NCR">NCR</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td><button class="btn" onclick="save_RS()">Save Research State</button></td>
+							</tr>
+						</table>
+					</div>
 				</fieldset>
 			</form>
-			<div id="display_user_data">
-				<table>
-					<tr>
-						<td>ID: </td>
-						<td id="display_user_ID"></td>
-					</tr>
-					<tr>
-						<td>Research State: </td>
-						<td id="display_user_RS"></td>
-					</tr>
-				</table>
-				<!--Filled in by script-->
-			</div>
     </section>
 		<script>
 			//Always returns false because I don't want it to reload the page
 			function load_user_data(){
-				var id = document.forms["viewAccount"]["id"].value.toLowerCase();
-				var pw = document.forms["viewAccount"]["pw"].value.toLowerCase();
+				var id = document.forms["ManageAccount"]["id"].value.toLowerCase();
+				var pw = document.forms["ManageAccount"]["pw"].value.toLowerCase();
 				
 				if(!id || !pw){
 					alert("Please finish the form");
@@ -81,6 +96,42 @@
 							var research_state = res_data[1];
 							document.getElementById("display_user_ID").innerHTML = id;
 							document.getElementById("display_user_RS").innerHTML = research_state;
+						}
+						else{
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
+					}
+				};
+				xhr.send(reqBody);
+				return false;
+			}
+			function save_RS(){
+				var id = document.forms["ManageAccount"]["id"].value.toLowerCase();
+				var pw = document.forms["ManageAccount"]["pw"].value.toLowerCase();
+				var RS = document.forms["ManageAccount"]["RS"].value.toUpperCase();
+				
+				//Ask the server to save the new RS
+				var xhr = new XMLHttpRequest();
+				var url = '/admin/manageRU.dynh';
+				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&id='+
+					id+'&pw='+pw+'&RS='+RS+'&source=save_RS';
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Content-type', 'text/plain');
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(xhr.status == 200){
+							var res_data = xhr.responseText.split("=");
+							if(res_data[0] == "error"){
+								alert("Error: "+res_data[1]);
+								return false;
+							}
+							if(res_data[0] != "good"){
+								alert("Error: Unknown response from the server");
+								return false;
+							}
+							document.getElementById("display_user_RS").innerHTML = RS;
 						}
 						else{
 							document.open();

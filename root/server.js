@@ -852,6 +852,70 @@ function handleRequest(req, res){
 								});
 							});
 						break;
+						case "save_RS":
+							aux.loadAcc(body.admin_id, function(err, admin_acc){
+								if(err){
+									ret.error(res, err, "/admin/index.html");
+									return;
+								}
+								if(body.admin_pw != admin_acc[1]){
+									ret.error(res, "pce", "/admin/index.html");
+									return;
+								}
+								aux.editAcc(body.id, 7, function(uData){
+									if(body.pw != uData[1]){
+										res.writeHead(200, {"Content-Type": "text/plain"});
+										res.write("error=pce", function(err){res.end();});
+										return "<cancel>";
+									}
+									return body.RS;
+								}, function(err, uData){
+									if(err){
+										if(err !== "canceled"){
+											if(uData)
+												aux.debugShout("876 "+uData);
+											ret.error(res, err, "/admin/index.html");
+										}
+										return;//already sent res
+									}
+									res.writeHead(200, {"Content-Type": "text/plain"});
+									res.write("good", function(err){res.end();});
+								});
+							});
+						break;
+					}
+				break;
+				case "/admin/viewLogs.dynh":
+					switch(body.source){
+						case "reqlist":
+							/*Authenticate
+								Return list
+							*/
+							aux.loadAcc(body.admin_id, function(err, admin_acc){
+								console.log("A");
+								if(err){
+								console.log("B");
+									debugShout("896", 2);
+									ret.error(res, err, "/admin/index.html");
+									return;
+								}
+								if(body.admin_pw != admin_acc[1]){
+								console.log("C");
+									ret.error(res, "pce", "/admin/index.html");
+									return;
+								}
+								fs.readdir("./session/archive", function(err,items){
+								console.log("D");
+									if(err){
+										ret.error(res, "fe", "/admin/index.html", "admin/viewLogs - reqlist");
+										return;
+									}
+									console.log(items);
+								});
+							});
+						break;
+						case "reqlog":
+						break;
 					}
 				break;
 				case "/account/store/index.html":
