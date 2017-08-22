@@ -5,7 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
 	</head>
-	<body onLoad='look()'>
+	<body>
     <section class="page-header">
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
@@ -25,9 +25,54 @@
 			</form>
     </section>
 		<script>
+			//30 tries, 2s per try --> 1 min
+			var tryN = 0;
+			var max_tries = 30;
+			var period = 2000;
+			
+			look();
 			function look(){
-				var form = document.getElementById('lookForm');
-				setTimeout(function(){ form.submit(); }, 2000);
+				if(tryN < max_tries){
+					var xhr = new XMLHttpRequest();
+					var url = '/session/index.html';
+					var reqBody = 'source=linkloading-trainer&id=**[id]**&pw=**[pw]**&lid=**[lid]**';
+					xhr.open('POST', url, true);
+					xhr.setRequestHeader('Content-type', 'text/plain');
+					xhr.onreadystatechange = function(){
+						/*Possible responses from the server: 
+							"wait", error page, sessionstart-trainer page
+						*/
+						if(xhr.readyState == 4){
+							if(xhr.responseText == 'wait'){//retry
+								setTimeout(look, period);//loop
+							}
+							else{
+								document.open();
+								document.write(xhr.responseText);
+								document.close();
+							}
+						}
+					};
+					xhr.send(reqBody);
+					tryN++;
+				}
+				else{//Timeout
+					//I'm really just requesting the TOE page in a roundabout way.
+					//It's a dynh, so there's no easy way to just GET and redirect right now.
+					var xhr = new XMLHttpRequest();
+					var url = '/session/index.html';
+					var reqBody = 'source=linkloading-user&timeout=1';
+					xhr.open('POST', url, true);
+					xhr.setRequestHeader('Content-type', 'text/plain');
+					xhr.onreadystatechange = function(){
+						if(xhr.readyState == 4){
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
+					};
+					xhr.send(reqBody);
+				}
 			}
 		</script>
 	</body>

@@ -321,9 +321,9 @@ function ret_requested_file(res, pathN){
 		case ".svg":
 			cType = "image/svg+xml";
 		break;
-		/*.ttad - Tt account data
-			.ttsd - Tt session data (uses "|" & "\n" not <~><~>)
-			.ttd - other Tt data (lnusers, err/log) (still uses <~><~>)
+		/*.ttad - Tt account data (uses <~>\n<~>\n)
+			.ttsd - Tt session data (uses "|" & "\n")
+			.ttd - other Tt data (lnusers, err/log) (uses <~;~>\n<~;~>\n)
 			Maybe ttsd and ttd could be available through the admin interface.
 		*/
 		case ".ttad":

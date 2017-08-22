@@ -4,7 +4,10 @@ IN PROGRESS:
 - NCR,DRZ,NONE in session
 
 FUNCTIONAL:
+-(4,2) Safety - make it harder to cheat with curl. At least log things like that.
+-(3,2) Make the url from the session XHR AJAX the dynh pages for simplicity.
 -(3,5) Password Encryption
+  - Note: it's https now, so that's half the battle
   - Maybe sometime ask for Name, BD, and sex, and convert those into a hash string like NiMH does. Then store each individual's data in the same file, even if they make a new account. 
 -(2,2) ?Set up auto email response to reports? (probably not)
   - OR, add a place in the admin tab where you can write a reply to a comment and send it from something@tictrainer.com.

@@ -323,7 +323,7 @@ function handleRequest(req, res){
 													/*Data entry for the new waiting link
 														Format: <uN,tM> [no \n]
 													*/
-													var linkData = "<" +body.id+ "," +body.lid+ ">";
+													var linkData = "<" +body.id+ ";" +body.lid+ ">";
 													fs.readFile("./session/lnusers.ttd", "utf8", function(err,data){
 														if(err){
 															ret.error(res, "fe", "/session/index.html", "new-session: reading lnusers.ttd");
@@ -365,43 +365,44 @@ function handleRequest(req, res){
 							}
 						break;
 						case "linkloading-trainer"://source, id, pw, lid, tryN  tryN is the try number
-							//30 tries, 2s per try --> 1 min (see linkloading-*.dynh)
-							if(body.tryN < 30){
-								//All the errors for id format have been caught already
-								fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
-									if(err){
-										ret.error(res, "fe", "/session/index.html", "linkloading-trainer: reading lnusers.ttd");
+							if(body.timeout){
+								ret.error(res, "toe", "/session/index.html");
+								break;
+							}
+							//All the errors for id format have been caught already
+							fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
+								if(err){
+									ret.error(res, "fe", "/session/index.html", "linkloading-trainer: reading lnusers.ttd");
+								}
+								else{
+									//look for other account
+									var searchEntry = "<" +body.lid+ ";" +body.id + ">";
+									var iSE = data.indexOf(searchEntry);
+									if(iSE == -1){
+										//Wait two seconds and try again
+										res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+										res.write("wait", function(err){res.end();});
 									}
 									else{
-										//look for other account
-										var searchEntry = "<" +body.lid+ "," +body.id + ">";
-										var iSE = data.indexOf(searchEntry);
-										if(iSE == -1){
-											//Wait two seconds and try again
-											ret.link_loading_trainer(res, body);
-										}
-										else{
-											var iSEEnd = iSE + searchEntry.length;
-											var newData = data.substring(0, iSE) + data.substring(iSEEnd, data.length);
-											//Cut out entry
-											fs.writeFileSync("./session/lnusers.ttd", newData, "utf8");
-											/*make a session file - this should only exist for the duration of the session.
-												when the session ends, rename and copy the file to an archive: ./session/archive
-											*/
-											var sesFileName = "./session/temp/session"+ body.id + body.lid + ".ttsd";
-											fs.writeFile(sesFileName, "", function(err){
-												if(err)
-													ret.error(res, "fe", "/session/index.html", "linkloading-trainer: making session file");
-												else
-													ret.start_session_trainer(res, body);//source, id, pw, lid, tryN 
-											});
-										}
+										var iSEEnd = iSE + searchEntry.length;
+										var newData = data.substring(0, iSE) + data.substring(iSEEnd, data.length);
+										/*Cut out entry
+											It's done sync so that the old entry isn't sitting in lnusers too long
+										*/
+										fs.writeFileSync("./session/lnusers.ttd", newData, "utf8");
+										/*make a session file - this should only exist for the duration of the session.
+											when the session ends, rename and copy the file to an archive: ./session/archive
+										*/
+										var sesFileName = "./session/temp/session"+ body.id + body.lid + ".ttsd";
+										fs.writeFile(sesFileName, "", function(err){
+											if(err)
+												ret.error(res, "fe", "/session/index.html", "linkloading-trainer: making session file");
+											else
+												ret.start_session_trainer(res, body);//source, id, pw, lid, tryN 
+										});
 									}
-								});
-							}
-							else{//Timeout
-								ret.error(res, "toe", "/session/index.html");
-							}
+								}
+							});
 						break;
 						case "linkloading-user"://source, id, pw, lid, tryN 
 							/*(if user) [loading page]set timer to look for session file every 2s for 1m -->
@@ -410,10 +411,10 @@ function handleRequest(req, res){
 								//remove entry in lnusers
 								fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
 									if(err){//lnusers got destroyed?
-										ret.error(res, "fe", "/", "linkloading-user: leave/timeout - read lnusers");//lnusers got destroyed?
+										ret.error(res, "fe", "/", "linkloading-user: leave/timeout - read lnusers");
 									}
 									else{
-										var searchEntry = "<" +body.id+ "," +body.lid+ ">";
+										var searchEntry = "<" +body.id+ ";" +body.lid+ ">";
 										aux.debugShout("attempting to delete entry: "+searchEntry);
 										var iSE = data.indexOf(searchEntry);
 										if(iSE != -1){
@@ -892,29 +893,65 @@ function handleRequest(req, res){
 								Return list
 							*/
 							aux.loadAcc(body.admin_id, function(err, admin_acc){
-								console.log("A");
 								if(err){
-								console.log("B");
-									debugShout("896", 2);
+									aux.debugShout("896", 2);
 									ret.error(res, err, "/admin/index.html");
 									return;
 								}
 								if(body.admin_pw != admin_acc[1]){
-								console.log("C");
 									ret.error(res, "pce", "/admin/index.html");
 									return;
 								}
 								fs.readdir("./session/archive", function(err,items){
-								console.log("D");
 									if(err){
 										ret.error(res, "fe", "/admin/index.html", "admin/viewLogs - reqlist");
 										return;
 									}
-									console.log(items);
+									var loglist = [];
+									for(var i=0; i<items.length; i++){
+										var item = items[i];
+										if(item[0] != ".")
+											loglist.push(item);
+									}
+									res.writeHead(200, {"Content-Type": "text/plain"});
+									res.write(JSON.stringify(loglist), function(err){res.end();});
 								});
 							});
 						break;
 						case "reqlog":
+							/*Authenticate
+								Load Log file
+								Parse it to HTML and respond
+							*/
+							aux.loadAcc(body.admin_id, function(err, admin_acc){
+								if(err){
+									aux.debugShout("927", 2);
+									ret.error(res, err, "/admin/index.html");
+									return;
+								}
+								if(body.admin_pw != admin_acc[1]){
+									ret.error(res, "pce", "/admin/index.html");
+									return;
+								}
+								var ext = body.file.substring(body.file.lastIndexOf("."));
+								if([".ttd", ".ttsd", ".txt"].indexOf(ext) < 0){
+									//Requested the wrong type of file somehow
+									aux.debugShout("938", 2);
+									res.writeHead(403, {"Content-Type": "text/html; charset=UTF-8"});
+									res.end();
+								}
+								fs.readFile(body.file, "utf8", function(err, data){
+									if(err){
+										ret.error("fe", "/admin/index.html", "admin/viewLogs - reqlog");
+										return;
+									}
+									res.writeHead(200, {"Content-Type": "text/plain"});
+									if(data.length > 0)
+										res.write(data, function(err){res.end();});
+									else
+										res.end();
+								});
+							});
 						break;
 					}
 				break;

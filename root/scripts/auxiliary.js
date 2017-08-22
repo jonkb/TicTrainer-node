@@ -502,14 +502,10 @@ function time(type){
 	depth N: print if debugging depth >= N
 */
 function debugShout(message, depth){
-	if(depth){
-		if(debugging >= depth)
-			console.log(message);
-	}
-	else{
-		if(debugging >= 2)
-			console.log(message);
-	}
+	if(!depth)
+		depth = 2;
+	if(debugging >= depth)
+		console.log(message);
 }
 /**Writes an error to the error log (/error/log.ttd)
 */

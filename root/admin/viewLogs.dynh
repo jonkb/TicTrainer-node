@@ -20,18 +20,23 @@
 					<legend>Choose a Log File to Load</legend>
 					System Logs: <select name="sys_file" id="sys_option">
 						<option value="-">Pick one</option>
+						<!--Note: If debugging is high, the console log has user passwords in plain text-->
 						<option value="../Project Files/log.txt">Console Log</option>
 						<option value="./error/log.ttd">Tt Error Log</option>
 						<option value="./session/lnusers.ttd">Current Linking Users</option>
-					</select> <br>
+					</select>
+					<button class="btn" style="float: right; margin-top: .25rem;" onclick="reqLog('sys');">Reload</button>
+					<br>
+					<div style="clear:right;"></div>
 					Session Logs: <select name="ses_file" id="ses_option">
 						<option value="-">Pick one</option>
 						<!--Filled in by script-->
-					</select> <br>
+					</select>
+					<button class="btn" style="float: right; margin-top: .25rem;" onclick="reqLog('ses');">Reload</button>
 				</fieldset>
 			</form>
-			<div id="Log_Content">
-				
+			<div id="log_content">
+				<!--Filled in by script-->
 			</div>
     </section>
 		<script>
@@ -43,19 +48,14 @@
 			xhr.setRequestHeader('Content-type', 'text/plain');
 			xhr.onreadystatechange = function(){
 				if(xhr.readyState == 4){
-					if(xhr.status == 2222200){
-						var res_data = xhr.responseText
-						if(res_data == "error"){
-							alert("Error: "+res_data[1]);
-							return false;
+					if(xhr.status == 200){
+						var loglist = JSON.parse(xhr.responseText);
+						//text to fill ses_option
+						var optionHTML = "<option value='-'>Pick one</option>\n";
+						for(var i=0; i<loglist.length; i++){
+							optionHTML += "<option value='./session/archive/"+loglist[i]+"'>"+loglist[i]+"</option>";
 						}
-						if(res_data != "research_state"){
-							alert("Error: Unknown response from the server");
-							return false;
-						}
-						var research_state = res_data[1];
-						document.getElementById("display_user_ID").innerHTML = id;
-						document.getElementById("display_user_RS").innerHTML = research_state;
+						document.getElementById('ses_option').innerHTML = optionHTML;
 					}
 					else{
 						document.open();
@@ -66,36 +66,105 @@
 			};
 			xhr.send(reqBody);
 			
-			//Instead of using a submit button, 
-			//Send the request as soon as they pick an option.
-			document.getElementById('sys_option').onchange = function() {
-				var file = document.getElementById('sys_option').value;
-				if(file == "-"){
-					//Not necessary to alert.
+			/*Parse plain text from a .ttd file to a table.
+				.ttd files are organized like this: <~;~>\n<~;~;~>
+				See the leaderboard scripts.
+			*/
+			function ttd_to_HTML(data){
+				//Or I could say: if the first line is "Started at ..."
+				if(data.indexOf("<") < 0 && data.indexOf(">") < 0){
+					//This is probably .txt
+					return data.replace(/\n/g,"<br>");
+				}
+				var html = "\n<table>\n";
+				for(var i = 0; i< data.length; i++){
+					var character = data[i];
+					switch(character){
+						case "<":
+							html += "<tr>\n<td>";
+						break;
+						case ">":
+							html += "</td>\n</tr>\n";
+						break;
+						case ";":
+							html += "</td>\n<td>";
+						break;
+						default:
+							html += character;
+						break;
+					}
+				}//For each character
+				html += "</table>\n";
+				return html;
+			}
+			
+			/*Parse plain text from a .ttsd file to a table.
+				.ttsd files are organized like this: 
+					~|~
+					~|~|~
+					******
+					Report:
+					~|~
+					~|~
+			*/
+			function ttsd_to_HTML(data){
+				var html = "\n<table>\n";
+				var rows = data.split(/\s*\n\s*/);
+				for(var i=0; i<rows.length; i++){
+					var entries = rows[i].split("|");
+					if(entries.length > 1){
+						html += "<tr>\n";
+						for(var j=0; j<entries.length; j++){
+							html += "<td>" + entries[j] + "</td>\n";
+						}
+						html += "</tr>\n";
+					}
+					else if(rows[i] == "Report:"){
+						//Divider Row
+						html += "<tr><td style='height:0;border-bottom:1pt solid black;'></td></tr>\n";
+					}
+				}
+				html += "</table>\n"
+				return html;
+			}
+			
+			/*To be used to request a log file from the server.
+				type: "ses" or "sys" (for session or system)
+			*/
+			function reqLog(type){
+				//Show Loading animation
+				document.getElementById("log_content").innerHTML = "<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>";
+				
+				var logfile;
+				if(type == "sys")
+					logfile = document.getElementById('sys_option').value;
+				else if(type == "ses")
+					logfile = document.getElementById('ses_option').value;
+				else
+					return "error";
+					
+				if(logfile == "-"){
+					//Not really necessary to alert.
 					alert("Choose a log file"); 
 					return false;
 				}
+				
 				//Ask the server for the log file and display it
 				var xhr = new XMLHttpRequest();
 				var url = '/admin/viewLogs.dynh';
-				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&source=reqlog&file='+file;
+				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&source=reqlog&file='+logfile;
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
 						if(xhr.status == 200){
-							var res_data = xhr.responseText.split("=");
-							if(res_data[0] == "error"){
-								alert("Error: "+res_data[1]);
-								return false;
-							}
-							if(res_data[0] != "research_state"){
-								alert("Error: Unknown response from the server");
-								return false;
-							}
-							var research_state = res_data[1];
-							document.getElementById("display_user_ID").innerHTML = id;
-							document.getElementById("display_user_RS").innerHTML = research_state;
+							var loghtml = "";
+							if(type == "sys")
+								loghtml = ttd_to_HTML(xhr.responseText);
+							else if(type == "ses")
+								loghtml = ttsd_to_HTML(xhr.responseText);
+								
+							document.getElementById("log_content").innerHTML = loghtml;
 						}
 						else{
 							document.open();
@@ -106,10 +175,14 @@
 				};
 				xhr.send(reqBody);
 				return false;
-			};
-			document.getElementById('ses_option').onchange = function() {
-				
-			};
+			}
+			
+			//Instead of using a submit button, 
+			//Send the request as soon as they pick an option.
+			document.getElementById('sys_option').onchange = function(){reqLog("sys");};
+			document.getElementById('ses_option').onchange = function(){reqLog("ses");};
+			//Maybe add a button too. For refresh?
+			
 		</script>
 	</body>
 </html>

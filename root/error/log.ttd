@@ -1,25 +1,3 @@
-<report;2016-06-17T21:50:24.773Z;Jonathan;jonathan.knight.black@gmail.com;asdf>
-<ghost session;2016-07-18T23:38:13.314Z;ghost session archived between t0 and u0>
-<ghost session;2016-07-18T23:38:49.281Z;ghost session archived between t0 and u0>
-<conses;2016-07-18T23:43:02.104Z;new-session: concurrent/ghost session>
-<ghost session;2016-07-18T23:43:11.907Z;ghost session archived between t0 and u0>
-<conses;2016-07-25T21:14:54.441Z;new-session: concurrent/ghost session>
-<ghost session;2016-07-25T21:14:58.992Z;ghost session archived between t0 and u0>
-<ghost session;2016-07-30T23:51:22.952Z;ghost session archived between t0 and u2>
-<conses;2016-07-31T00:52:02.747Z;new-session: concurrent/ghost session>
-<ghost session;2016-07-31T00:52:10.075Z;ghost session archived between t0 and u3>
-<ghost session;2016-07-31T00:59:43.626Z;ghost session archived between t0 and u0>
-<fe;2016-08-15T19:55:17.193Z;linkloading-user: where did the lnusers entry go?>
-<fe;2016-08-16T19:11:24.356Z;session-user: read sesFile>
-<fe;2016-08-16T19:13:09.077Z;session-user: read sesFile>
-<fe;2016-08-16T19:22:28.085Z;register-user: reading user.data>
-<fe;2016-08-16T19:23:02.066Z;register-user: reading user.data>
-<ghost session;2016-08-16T19:44:13.577Z;ghost session archived between t1 and u1>
-<fe;2016-08-16T19:44:14.065Z;session-user: read sesFile>
-<report;2016-08-16T19:59:06.097Z;Jonathan;jonathan.knight.black@gmail.com;yo>
-<fe;2016-08-19T18:32:43.706Z;session-user: read sesFile>
-<fe;2017-04-08T04:44:17.096Z;linkloading-trainer: making session file>
-<fe;2017-04-08T04:44:22.855Z;linkloading-user: where did the lnusers entry go?>
 <fe;2017-05-11T20:09:38.695Z;enter store: accessing user data file>
 <fe;2017-05-11T20:23:56.582Z;register-trainer: reading trainer.ttad>
 <fe;2017-05-11T20:33:22.358Z;new-session: reading ./account/user.ttad>
@@ -29,3 +7,5 @@
 <conses;2017-05-16T16:22:05.578Z;new-session: concurrent/ghost session>
 <ghost session;2017-05-16T16:22:18.291Z;ghost session archived between t0 and u0>
 <fe;2017-08-17T23:53:30.715Z;linkloading-user: where did the lnusers entry go?>
+<ghost session;2017-08-22T23:36:24.385Z;ghost session archived between t0 and u0>
+<fe;2017-08-22T23:36:24.464Z;session-user: read sesFile>
