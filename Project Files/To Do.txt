@@ -1,11 +1,10 @@
 To Do: (priority,difficulty) (0-5,0-5) 
 IN PROGRESS:
 - Admin interface
-- NCR,DRZ,NONE in session
+- NCR in session
 
 FUNCTIONAL:
 -(4,2) Safety - make it harder to cheat with curl. At least log things like that.
--(3,2) Make the url from the session XHR AJAX the dynh pages for simplicity.
 -(3,5) Password Encryption
   - Note: it's https now, so that's half the battle
   - Maybe sometime ask for Name, BD, and sex, and convert those into a hash string like NiMH does. Then store each individual's data in the same file, even if they make a new account. 
@@ -24,9 +23,10 @@ VISUAL:
   - Comments, README.md, traditional documentation, paper
 
 DEEPER: 
+-(3,1) Get rid of the "old" folders. It's all in a git repo, and I'm wasting space.
+-(3,2) Make the url from the session XHR AJAX the dynh pages for simplicity.
 -(3,2) Sync functions are used a few places for editing. Determine if that's necessary and get rid of them.
 -(3,2) double check that all forms are checked on both sides
--(2,3) Use ajax instead of form for linkloading-trainer?
 -(2,4) ?use json? ajaj? instead of ajax and .data and xml?
 -(2,5) ?Convert everything in the session to 307 redirects?
 -(1,2) ?seperate reports and errors?

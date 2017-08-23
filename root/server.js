@@ -529,6 +529,7 @@ function handleRequest(req, res){
 										body.points = lpc[1];
 										body.coins = lpc[2];
 										body.heap = uData[6];
+										body.RS = uData[7];
 										var startLPEntry = "\nstarting user l,p,c|"+ lpc[0]+","+lpc[1]+","+lpc[2];
 										fs.appendFile(searchFile, startLPEntry, function(err){
 											if(err){
@@ -849,7 +850,6 @@ function handleRequest(req, res){
 									}
 									res.writeHead(200, {"Content-Type": "text/plain"});
 									res.write("research_state="+acc[7], function(err){res.end();});
-									
 								});
 							});
 						break;

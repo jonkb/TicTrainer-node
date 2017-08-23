@@ -232,6 +232,7 @@ function ret_session_trainer(res, data){
 }
 function ret_session_user(res, data){
 	//[session page] show counter, start local reward timer
+	console.log(data);
 	var dynd = {
 		"id": data.id,
 		"pw": data.pw,
@@ -240,7 +241,8 @@ function ret_session_user(res, data){
 		"points": data.points,
 		"coins": data.coins,
 		"sesL": data.sesL,
-		"heap": data.heap
+		"heap": data.heap,
+		"RS": data.RS
 	};
 	aux.dynamic("./session/session-user.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});

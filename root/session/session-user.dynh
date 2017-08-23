@@ -45,13 +45,18 @@
 			var level = **[level]**;
 			var points = **[points]**;
 			var coins = **[coins]**;
+			/*research_state
+				REG, NONE, DRZ, NCR
+				REG & DRZ - Normal Rewards
+			*/
+			var RS = "**[RS]**";
 			
 			if(level == 0){
 				level = 1;
 				//First time spiel
 				alert('It appears to be your first session. Try not to tic.');
 			}
-			var mspf = 500;//ms per frame. fps=2
+			var mspf = 500;//ms per frame. fps=2.
 			var framesSince = 0;
 			var nextLevel = 1000*level*level;
 			var cap = 10*level*level;
@@ -67,7 +72,7 @@
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');//'application/x-www-form-urlencoded'
 				xhr.onreadystatechange = function(){
-					if(xhr.readyState == 4) {//4: request finished & response ready - readystate codes:http://www.w3schools.com/ajax/ajax_xmlhttprequest_onreadystatechange.asp
+					if(xhr.readyState == 4){//4: request finished & response ready - readystate codes:http://www.w3schools.com/ajax/ajax_xmlhttprequest_onreadystatechange.asp
 						if(xhr.status == 200){
 							var tic = 0;
 							var end = 0;
@@ -78,26 +83,30 @@
 								if(fields[i] == 'end') end++;
 							}
 							if(end == 0){
-							  if(tic == 0){
-									framesSince++;
-									if(framesSince >= (level * 1000 / mspf)){
-										/* Now, (level) seconds have passed since the last reward/tic, so it is time to increment rate and give reward*/
-										framesSince = 0;
-										if(rate < cap){
-											rate += level*level;
-											if(rate > cap)//Overshot
-												rate = cap;
+								if(RS == "REG" || RS == "DRZ"){
+									//Standard reward scheme
+									//Alternatively, I could keep the red flash (ticTrigger) for NONE.
+									if(tic == 0){
+										framesSince++;
+										if(framesSince >= (level * 1000 / mspf)){
+											// Now, (level) seconds have passed since the last reward/tic, so it is time to increment rate and give reward
+											framesSince = 0;
+											if(rate < cap){
+												rate += level*level;
+												if(rate > cap)//Overshot
+													rate = cap;
+											}
+											points += rate;
+											if(points > nextLevel)
+												levelUp();
+											loglpc();//record the new points (it changed)
+											update_display();
 										}
-										points += rate;
-										if(points > nextLevel)
-											levelUp();
-										loglpc();//record the new points (it changed)
+									}
+									else{
+										ticTrigger(); 
 										update_display();
 									}
-                }
-                else{
-									ticTrigger(); 
-									update_display();
 								}
 								setTimeout(function(){ frame(); }, mspf);
 							}
@@ -172,7 +181,7 @@
 				}
 				xhr.send(reqBody);
 			}
-			//Actually save the progress to the server.
+			//Actually save the progress to the server. Make this more secure.
 			function savelpc(){
 				var xhr = new XMLHttpRequest();
 				var url = '/session/index.html'
