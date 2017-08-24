@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<title>Manage Admin Accounts</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+	</head>
+	<body>
+    <section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>Manage Admin Accounts</h1>
+				<div style="clear: both;"></div>
+			</div>
+    </section>
+    <section class="main-content">
+			<fieldset>
+				<legend>Manage Admin Account</legend>
+				<form method="POST" name="ManageAccount" style="float:left;" onsubmit="return load_user_data();">
+						Admin Account ID:<br>
+						<input type="text" name="id" placeholder="a0000" required><br>
+						Password:<br>
+						<input type="password" name="pw" required><br>
+						<input type='submit' value='Load Account Data' class="btn">
+				</form>
+				<form method="POST" name="EditAccount" style="float:right;" onsubmit="return change_pw();">
+					<!--Maybe try it without the table-->
+					<table>
+						<tr>
+							<td>ID: </td>
+							<td id="display_AA_ID"></td>
+						</tr>
+						<tr>
+							<td>Password: </td>
+							<td id="display_AA_pass"></td>
+						</tr>
+						<tr>
+							<td>New Password: </td>
+							<td><input type="password" name="new_pw"></td>
+						</tr>
+						<tr>
+							<td><input type='submit' value='Change Password' class="btn"></td>
+						</tr>
+					</table>
+				</form>
+			</fieldset>
+			<form method="POST" name="NewAccount" onsubmit="return create_account();">
+				<fieldset>
+					New Admin Account Password:<br>
+					<input type="password" name="pw" required><br>
+					<input type='submit' value='Create Account' class="btn">
+				</fieldset>
+			</form>
+    </section>
+		<script>
+			function load_user_data(){
+				var id = document.forms["ManageAccount"]["id"].value.toLowerCase();
+				var pw = document.forms["ManageAccount"]["pw"].value.toLowerCase();
+				
+				if(!id || !pw){
+					alert("Please finish the form");
+					return false;
+				}
+				if(id[0] !== "a" || id.length < 2){
+					alert("Invalid ID");
+					return false;
+				}
+				
+				//Ask the server for the user's data and display it
+				var xhr = new XMLHttpRequest();
+				var url = '/admin/manageAA.dynh';
+				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&id='+id+'&pw='+pw+'&source=load_user_data';
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Content-type', 'text/plain');
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(xhr.status == 200){
+							var res_data = xhr.responseText.split("=");
+							if(res_data[0] == "error"){
+								alert("Error: "+res_data[1]);
+								return false;
+							}
+							if(res_data[0] != "aa_pass"){
+								alert("Error: Unknown response from the server");
+								return false;
+							}
+							var aa_pass = res_data[1];
+							document.getElementById("display_AA_ID").innerHTML = id;
+							document.getElementById("display_AA_pass").innerHTML = aa_pass;
+						}
+						else{
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
+					}
+				};
+				xhr.send(reqBody);
+				return false;
+			}
+			function change_pw(){
+				var id = document.forms["ManageAccount"]["id"].value.toLowerCase();
+				var pw = document.forms["ManageAccount"]["pw"].value.toLowerCase();
+				var new_pw = document.forms["EditAccount"]["new_pw"].value.toLowerCase();
+				
+				if(new_pw.length < 1){
+					alert("Please type a new password")
+					return false;
+				}	
+				
+				//Ask the server to save the new pass
+				var xhr = new XMLHttpRequest();
+				var url = '/admin/manageAA.dynh';
+				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&id='+
+					id+'&pw='+pw+'&new_pw='+new_pw+'&source=change_pw';
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Content-type', 'text/plain');
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(xhr.status == 200){
+							var res_data = xhr.responseText.split("=");
+							if(res_data[0] == "error"){
+								alert("Error: "+res_data[1]);
+								return false;
+							}
+							if(res_data[0] != "good"){
+								alert("Error: Unknown response from the server");
+								return false;
+							}
+							document.getElementById("display_AA_pass").innerHTML = new_pw;
+						}
+						else{
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
+					}
+				};
+				xhr.send(reqBody);
+				return false;
+			}
+			function create_account(){
+				alert("Stub. Create new account here.");
+				return false; //Unless I return an "account created" page
+			}
+		</script>
+	</body>
+</html>

@@ -15,6 +15,7 @@ module.exports.session_trainer = ret_session_trainer;
 module.exports.session_user = ret_session_user;
 module.exports.report_sent = ret_report_sent;
 module.exports.admin = ret_admin;
+module.exports.manageAA = ret_manageAA;
 module.exports.manageRU = ret_manageRU;
 module.exports.viewLogs = ret_viewLogs;
 module.exports.store = ret_store;
@@ -58,6 +59,22 @@ function ret_error(res, error_type, retry, message){
 		if(message)
 			aux.log_error(error_type, message);
 	}
+}
+/* Returns the page for managing admin accounts
+*/
+function ret_manageAA(res, data){
+	var dynd = {
+		"admin_id": data.id,
+		"admin_pw": data.pw
+	}
+	aux.dynamic("./admin/manageAA.dynh", dynd, function(page){
+		if(page == "fe" || page == "se")
+			ret_error(res, page);
+		else{
+			res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+			res.write(page, function(err){res.end();});
+		}
+	});
 }
 /* Returns the page for managing research users
 */

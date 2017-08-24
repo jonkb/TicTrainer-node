@@ -206,6 +206,8 @@ function editAcc(id, fldInd, newVal, callback){
 		file += "trainer_data/"+iD+".ttad";
 	else if(iD[0] == "u")
 		file += "user_data/"+iD+".ttad";
+	else if(iD[0] == "a")
+		file += "admin_data/"+iD+".ttad";
 	
 	fs.readFile(file, "utf8", function(err,data){
 		if(err){

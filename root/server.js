@@ -811,6 +811,9 @@ function handleRequest(req, res){
 							return;
 						}
 						switch(body.target){
+							case "MAA":
+								ret.manageAA(res, body);
+							break;
 							case "MRU":
 								ret.manageRU(res, body);
 							break;
@@ -886,6 +889,77 @@ function handleRequest(req, res){
 						break;
 					}
 				break;
+				case "/admin/manageAA.dynh":
+					switch(body.source){
+						case "load_user_data":
+							/*1. check admin pass 
+								2. check aa pass
+								3. return aa pass
+							*/
+							aux.loadAcc(body.admin_id, function(err, admin_acc){
+								if(err){
+									debugShout("901", 2);
+									ret.error(res, err, "/admin/index.html");
+									return;
+								}
+								if(body.admin_pw != admin_acc[1]){
+									ret.error(res, "pce", "/admin/index.html");
+									return;
+								}
+								aux.loadAcc(body.id, function(err, acc){
+									if(err){
+										res.writeHead(200, {"Content-Type": "text/plain"});
+										res.write("error="+err, function(err){res.end();});
+										return;
+									}
+									if(body.pw != acc[1]){
+										res.writeHead(200, {"Content-Type": "text/plain"});
+										res.write("error=pce", function(err){res.end();});
+										return;
+									}
+									res.writeHead(200, {"Content-Type": "text/plain"});
+									res.write("aa_pass="+acc[1], function(err){res.end();});
+								});
+							});
+						break;
+						case "change_pw":
+							aux.loadAcc(body.admin_id, function(err, admin_acc){
+								if(err){
+									ret.error(res, err, "/admin/index.html");
+									return;
+								}
+								if(body.admin_pw != admin_acc[1]){
+									ret.error(res, "pce", "/admin/index.html");
+									return;
+								}
+								aux.editAcc(body.id, 1, function(uData){
+									if(body.pw != uData[1]){
+										res.writeHead(200, {"Content-Type": "text/plain"});
+										res.write("error=pce", function(err){res.end();});
+										return "<cancel>";
+									}
+									return body.new_pw;
+								}, function(err, uData){
+									if(err){
+										if(err !== "canceled"){
+											if(uData)
+												aux.debugShout("946 "+uData);
+											ret.error(res, err, "/admin/index.html");
+										}
+										return;//already sent res
+									}
+									res.writeHead(200, {"Content-Type": "text/plain"});
+									res.write("good", function(err){res.end();});
+								});
+							});
+						break;
+					}
+				break;
+				
+				
+				
+				
+				
 				case "/admin/viewLogs.dynh":
 					switch(body.source){
 						case "reqlist":
