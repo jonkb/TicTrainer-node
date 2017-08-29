@@ -27,13 +27,13 @@
 			
 			<a href='/' class='btn'>Return to Home</a>
 			
-			**[del:nonuser]**
+			**[del:!user]**
 			<br><br>
 			FYI, the fake birthdate we will use for you is **[bd]**.
 			There's a small chance (less than 3%) that this is your real birthday, but if so,
 			that's just a lucky guess. All we know on our end is that it's within a couple
 			of months of your real birthday.
-			**[end_del:nonuser]**
+			**[end_del:!user]**
 			
 		</section>
 	</body>

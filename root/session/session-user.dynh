@@ -35,6 +35,7 @@
 			</div>
 			
     </section>
+		<!--For genHeap-->
 		<script src="/scripts/store.js"></script>
 		<script>
 			var salido = false;//salido -sp- left
@@ -45,11 +46,6 @@
 			var level = **[level]**;
 			var points = **[points]**;
 			var coins = **[coins]**;
-			/*research_state
-				REG, NONE, DRZ, NCR
-				REG & DRZ - Normal Rewards
-			*/
-			var RS = "**[RS]**";
 			
 			if(level == 0){
 				level = 1;
@@ -62,6 +58,19 @@
 			var cap = 10*level*level;
 			var rate = 0;
 			var lastL = **[sesL]**;
+			
+			**[del:!ncr]**
+			//Return true every once in a while, randomly.
+			function ncr_tic(){
+				//On average, how many frames pass between tics
+				//The 10 means people make it to the cap on avg
+				var avg_period = 10*level;
+				//(1-t_c)^a_p = .5 --> avg period == a_p
+				var tic_chance = 1 - Math.pow(0.50, 1/avg_period);
+				return Math.random() < tic_chance;
+			}
+			**[end_del:!ncr]**
+			
 			update_display();
 			frame();
 			genHeap("**[heap]**");
@@ -83,31 +92,39 @@
 								if(fields[i] == 'end') end++;
 							}
 							if(end == 0){
-								if(RS == "REG" || RS == "DRZ"){
-									//Standard reward scheme
-									//Alternatively, I could keep the red flash (ticTrigger) for NONE.
-									if(tic == 0){
-										framesSince++;
-										if(framesSince >= (level * 1000 / mspf)){
-											// Now, (level) seconds have passed since the last reward/tic, so it is time to increment rate and give reward
-											framesSince = 0;
-											if(rate < cap){
-												rate += level*level;
-												if(rate > cap)//Overshot
-													rate = cap;
-											}
-											points += rate;
-											if(points > nextLevel)
-												levelUp();
-											loglpc();//record the new points (it changed)
-											update_display();
+								**[del:none]**
+								//Alternatively, I could keep the red flash (ticTrigger) for NONE.
+								**[del:ncr]**
+								//Standard reward scheme
+								if(tic == 0)
+								**[end_del:ncr]**
+								**[del:!ncr]**
+								//Alternative reward scheme
+								//Uses the random ticcer
+								if(!ncr_tic())
+								**[end_del:!ncr]**
+								{
+									framesSince++;
+									if(framesSince >= (level * 1000 / mspf)){
+										// Now, (level) seconds have passed since the last reward/tic, so it is time to increment rate and give reward
+										framesSince = 0;
+										if(rate < cap){
+											rate += level*level;
+											if(rate > cap)//Overshot
+												rate = cap;
 										}
-									}
-									else{
-										ticTrigger(); 
+										points += rate;
+										if(points > nextLevel)
+											levelUp();
+										loglpc();//record the new points (it changed)
 										update_display();
 									}
 								}
+								else{
+									ticTrigger(); 
+									update_display();
+								}
+								**[end_del:none]**
 								setTimeout(function(){ frame(); }, mspf);
 							}
 							else{ endS(); }

@@ -93,8 +93,14 @@ function dynamic(template_path, data, callback){
 					callback("se");
 					return;
 				}
-				//if data.del[del_tag], don't add any of it to the edited_page
-				if(data.del[del_tag]){
+				var remove_bool = false;
+				if(data.del[del_tag])
+					remove_bool = true;
+				if(del_tag[0] == "!" && data.del[del_tag.slice(1)] === false)
+					remove_bool = true;
+				//if you're supposed to remove this tag, 
+				//don't add any of it to the edited_page
+				if(remove_bool){
 					file_left = file_left.slice(end_tag_index + end_tag_search.length);
 				}
 				//Otherwise, get rid of the tag markers, but keep the content.

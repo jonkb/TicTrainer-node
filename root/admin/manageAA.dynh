@@ -10,7 +10,7 @@
     <section class="page-header">
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
-				<h1>Manage Admin Accounts</h1>
+				<h1>Manage Admin Accounts: **[admin_id]**</h1>
 				<div style="clear: both;"></div>
 			</div>
     </section>
@@ -50,6 +50,7 @@
 				<input type='hidden' name='admin_id' value='**[admin_id]**'>
 				<input type='hidden' name='admin_pw' value='**[admin_pw]**'>
 				<fieldset>
+					<legend>Register Admin</legend>
 					New Admin Account Password:<br>
 					<input type="password" name="pw" required><br>
 					Confirm Password:<br>

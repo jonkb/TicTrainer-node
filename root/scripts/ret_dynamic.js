@@ -115,13 +115,13 @@ function ret_created(res, data){
 	var dataEntries = aux.dataToEntries(data);
 	var del_obj = {
 		"admin": false,
-		"nonuser": true
+		"user": false
 	};
 	var ID = dataEntries[0];
 	var birthD = "";
 	if(ID[0] == "u"){
 		var birthD = new Date(parseInt(dataEntries[2]));
-		del_obj.nonuser = false;
+		del_obj.user = true;
 	}
 	if(ID[0] == "a"){
 		del_obj.admin = true;
@@ -253,7 +253,17 @@ function ret_session_trainer(res, data){
 }
 function ret_session_user(res, data){
 	//[session page] show counter, start local reward timer
-	console.log(data);
+	aux.debugShout(data);
+	var del_obj = {
+		"ncr": false,
+		"none": false
+	};
+	if(data.RS == "NCR"){
+		del_obj.ncr = true;
+	}
+	if(data.RS == "NONE"){
+		del_obj.none = true;
+	}
 	var dynd = {
 		"id": data.id,
 		"pw": data.pw,
@@ -263,7 +273,8 @@ function ret_session_user(res, data){
 		"coins": data.coins,
 		"sesL": data.sesL,
 		"heap": data.heap,
-		"RS": data.RS
+		"RS": data.RS,
+		"del": del_obj
 	};
 	aux.dynamic("./session/session-user.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
