@@ -923,6 +923,12 @@ function handleRequest(req, res){
 							});
 						break;
 						case "change_pw":
+							//Make sure pw doesn't include ; or < or > - VITAL
+							//Could allow semicolon now
+							if(body.pw.indexOf(";") != -1 || body.pw.indexOf("<") != -1 || body.pw.indexOf(">") != -1){
+								ret.error(res, "ice", "/admin/index.html");//Invalid Character Error
+								break;
+							}
 							aux.loadAcc(body.admin_id, function(err, admin_acc){
 								if(err){
 									ret.error(res, err, "/admin/index.html");
@@ -953,13 +959,47 @@ function handleRequest(req, res){
 								});
 							});
 						break;
+						case "register":
+							//Make sure pw doesn't include ; or < or > - VITAL
+							//Could allow semicolon now
+							if(body.pw.indexOf(";") != -1 || body.pw.indexOf("<") != -1 || body.pw.indexOf(">") != -1){
+								ret.error(res, "ice", "/admin/index.html");//Invalid Character Error
+								break;
+							}
+							if(body.pw != body.pwc){
+								ret.error(res, "pce", "/admin/index.html");
+								break;
+							}
+							//Authenticate admin
+							aux.loadAcc(body.admin_id, function(err, admin_acc){
+								if(err){
+									ret.error(res, err, "/admin/index.html");
+									return;
+								}
+								aux.debugShout("981");
+								if(body.admin_pw != admin_acc[1]){
+									ret.error(res, "pce", "/admin/index.html");
+									return;
+								}
+								//Get the next available iD number
+								aux.getNextID("a", function(err, ID){
+									if(err){
+										ret.error(res, err);
+										return;
+									}
+									var newAFile = "./account/admin_data/"+ID+".ttad";
+									var aData = aux.newA(ID, body.pw);
+									fs.writeFile(newAFile, aData, function(err){
+										if(err)
+											ret.error(res, "fe", "/admin/index.html", "register-admin: write newAFile");
+										else
+											ret.created(res, aData);
+									});
+								});
+							});
+						break;
 					}
 				break;
-				
-				
-				
-				
-				
 				case "/admin/viewLogs.dynh":
 					switch(body.source){
 						case "reqlist":

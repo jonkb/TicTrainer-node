@@ -17,6 +17,7 @@ module.exports.loadAllUsers = loadAllUsers;
 module.exports.getNextID = getNextID;
 module.exports.newU = newU;
 module.exports.newT = newT;
+module.exports.newA = newA;
 module.exports.sort2d = sort2d;
 module.exports.genReport = genReport;
 module.exports.time = time;
@@ -25,10 +26,22 @@ module.exports.log_error = log_error;
 
 //Used to convert between b36 (a-z) and decimal
 const c_36d = "0123456789abcdefghijklmnopqrstuvwxyz";
+/*Delimeters for ttad & ttd files
+	The descriptions are used to replace the illegal characters
+*/
+const open_char = "<";
+const open_char_description = "[L.T. chevron]";
+const close_char = ">";
+const close_char_description = "[G.T. chevron]";
+const division_char = ";"; // For .ttd
+const division_char_description = "[semicolon]";
 
 /**
 	load and fill in a dynamic html file (.dynh is my extension for it)
-	data is an object with all the needed fields
+	data is an object with all the needed fields.
+		data.del is reserved for a "delete codes" object (container for booleans)
+		if data.del.abc is true, the text inside of a 
+		**[del:abc]**  ~~~  **[end_del:abc]*** tag set will be deleted
 	callback is the callback function. returned with edited_page
 	throws "se", "fe" to callback
 */
@@ -43,8 +56,8 @@ function dynamic(template_path, data, callback){
 	var extension = template_path.slice(template_path.lastIndexOf("."));
 	if(extension != ".dynh"){
 		//not actually a dynamic file
-		debugShout("hey, that's not dynamic", 1);
-		callback(file_text);//return file as is
+		debugShout("not a dynamic file", 1);
+		callback(null);
 		return;
 	}
 	fs.readFile(template_path, "utf8", function(err, file_text){
@@ -52,30 +65,60 @@ function dynamic(template_path, data, callback){
 			callback("fe");
 			return;
 		}
-		var next_index = file_text.indexOf("**[");//non_absolute
+		var next_index = file_text.indexOf("**[");//non-absolute index
 		if(next_index == -1){
 			//not actually a dynamic file
-			debugShout("hey, that's not dynamic", 1);
+			debugShout("not a dynamic file", 1);
 			callback(file_text);
 			return;
 		}
 		var file_left = file_text;
-		//replace every instance of "**[x]**" with data.x
+		/*replace every instance of "**[x]**" with data.x
+			NEW: delete text enclosed by the tags:
+			**[del:abc]**  ~~~~~~~~~~  **[end_del:abc]**
+			If data.del.abc == true
+		*/
 		while(next_index != -1){
+			//Add the regular content outside of the tags
 			edited_page += file_left.slice(0, next_index);
 			var dyn_field = file_left.slice(next_index+3, file_left.indexOf("]**"));
-			if(data[dyn_field] != undefined){
+			
+			//if this field is a **[del:~~~]** tag
+			if(dyn_field.slice(0,4) == "del:"){
+				del_tag = dyn_field.slice(dyn_field.indexOf("del:")+4);
+				var end_tag_search = "**[end_del:" + del_tag + "]**";
+				var end_tag_index = file_left.indexOf(end_tag_search);
+				if(end_tag_index < 0){
+					debugShout("Improper del tag", 1);
+					callback("se");
+					return;
+				}
+				//if data.del[del_tag], don't add any of it to the edited_page
+				if(data.del[del_tag]){
+					file_left = file_left.slice(end_tag_index + end_tag_search.length);
+				}
+				//Otherwise, get rid of the tag markers, but keep the content.
+				else{
+					var cut_start_index = file_left.indexOf("]**")+3;
+					//cut out the del tag markers
+					file_left = file_left.slice(cut_start_index, end_tag_index)+
+						file_left.slice(end_tag_index + end_tag_search.length);
+					//Don't add anything to edited_page yet, because the 
+					//internal content still needs to be parsed through
+				}
+			}
+			else if(data[dyn_field] != undefined){
 				edited_page += data[dyn_field];
 				file_left = file_left.slice(file_left.indexOf("]**")+3);
-				next_index = file_left.indexOf("**[");
 			}
 			else{
 				debugShout("Not enough data supplied. It wanted '"+dyn_field+"'", 1);
-				callback("ife");
+				callback("ife");//maybe not the right error code
 				return;
 			}
+			next_index = file_left.indexOf("**[");
 		}
-		edited_page += file_left;//after the last dynamic field
+		edited_page += file_left;//for after the last dynamic field
 		callback(edited_page);
 	});
 }
@@ -169,10 +212,10 @@ function dataToEntries(data){
 	for(var i = 0; i< data.length; i++){
 		debugShout(" "+data[i], 3);
 		switch(data[i]){
-			case "<":
+			case open_char:
 				lookingAtData = true;
 			break;
-			case ">":
+			case close_char:
 				entries[entryN] = current;
 				current = "";
 				lookingAtData = false;
@@ -227,10 +270,10 @@ function editAcc(id, fldInd, newVal, callback){
 			nv = newVal;
 		}
 		//write nv in the appropriate field
-		insertIndex = indexNOf(data, "<", fldInd+1) + 1;
+		insertIndex = indexNOf(data, open_char, fldInd+1) + 1;
 		before = data.slice(0,insertIndex);
 		after = data.slice(insertIndex);
-			after = after.slice(after.indexOf(">"));
+			after = after.slice(after.indexOf(close_char));
 		fs.writeFile(file, before+nv+after, function(err){
 			if(err){
 				callback("fe");
@@ -317,19 +360,17 @@ function getNextID(type, callback){
 			callback("fe");
 			return;
 		}
+		
 		var ids = dataToEntries(data);
-		var nextID = "";
-		if(ids[0][0] == type){
-			nextID = ids[0];
+		var nextID = "-";
+		for(var i=0; i<ids.length; i++){
+			debugShout(i+": "+ids[i], 3);
+			if(ids[i][0] == type){ //Compare first char
+				nextID = ids[i];
+				break;
+			}
 		}
-		else if(ids[1][0] == type){
-			nextID = ids[1];
-		}
-		else if(ids[2][0] == type){
-			//Admins
-			nextID = ids[2];
-		}
-		else{
+		if(nextID == "-"){
 			callback("ide");
 			return;
 		}
@@ -337,9 +378,9 @@ function getNextID(type, callback){
 		//update next_IDs before returning
 		var newNextN = parse36ToDec(nextID.slice(1))+1;
 		var newNextID = type + decTo36(newNextN);
-		var cutIndex = data.indexOf(type)
+		var cutIndex = data.indexOf(open_char+type)+1;
 		var after = data.slice(cutIndex);
-			after = after.slice(after.indexOf(">"))
+			after = after.slice(after.indexOf(close_char))
 		var newText = data.slice(0, cutIndex) + newNextID + after;
 		fs.writeFile(file, newText, function(err){
 			if(err){
@@ -353,8 +394,6 @@ function getNextID(type, callback){
 /**Generates the content for a new user file
 */
 function newU(id, pass, bd, sex){
-	var open_char = "<";
-	var close_char = ">";
 	var s = open_char +	id		+ close_char + "\n";
 		s += 	open_char +	pass	+ close_char + "\n";
 		s += 	open_char +	bd		+ close_char + "\n";
@@ -368,12 +407,19 @@ function newU(id, pass, bd, sex){
 /**Generates the content for a new trainer file
 */
 function newT(id, pass, bd){
-	var open_char = "<";
-	var close_char = ">";
 	var s = open_char +	id		+ close_char + "\n";
 		s += 	open_char +	pass	+ close_char + "\n";
 		s += 	open_char +	bd		+ close_char + "\n";
 		s += 	open_char			+			close_char + "\n";//links
+	return s;
+}
+/**Generates the content for a new admin file
+*/
+function newA(id, pass){
+	if(id[0] != "a")
+		return "ide";
+	var s = open_char +	id		+ close_char + "\n";
+		s += 	open_char +	pass	+ close_char + "\n";
 	return s;
 }
 /**Returns a sorted copy of the given 2d array. 
@@ -513,9 +559,10 @@ function debugShout(message, depth){
 */
 function log_error(error_type, message){
 	message = message || "-";
-	message = message.replace("<","[L.T. chevron]");
-	message = message.replace(">","[G.T. chevron]");
-	message = message.replace(";","[semicolon]");
-	var eEntry = "<"+error_type+";"+time()+";"+message+">\n";
+	message = message.replace(open_char, open_char_description);
+	message = message.replace(close_char, close_char_description);
+	message = message.replace(division_char, division_char_description);
+	var eEntry = open_char+error_type+division_char+time()+
+		division_char+message+close_char+"\n";
 	fs.appendFile("./error/log.ttd", eEntry, function(err){});
 }

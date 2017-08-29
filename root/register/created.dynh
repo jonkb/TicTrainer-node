@@ -19,10 +19,22 @@
 			Your password is:
 			<div class="alertText">**[pw]**</div>
 			Be sure to <b>record this information</b>, as it is needed to log in. <br>
+			
+			**[del:admin]**
 			The next step is to link your account to another. <br><br>
 			<a href='/account/' class='btn'>Manage Account</a>
+			**[end_del:admin]**
+			
 			<a href='/' class='btn'>Return to Home</a>
-			**[bd]**
+			
+			**[del:nonuser]**
+			<br><br>
+			FYI, the fake birthdate we will use for you is **[bd]**.
+			There's a small chance (less than 3%) that this is your real birthday, but if so,
+			that's just a lucky guess. All we know on our end is that it's within a couple
+			of months of your real birthday.
+			**[end_del:nonuser]**
+			
 		</section>
 	</body>
 </html>

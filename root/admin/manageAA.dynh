@@ -45,10 +45,15 @@
 					</table>
 				</form>
 			</fieldset>
-			<form method="POST" name="NewAccount" onsubmit="return create_account();">
+			<form method="POST" name="NewAccount" action="/admin/manageAA.dynh" onsubmit="return create_account();">
+				<input type='hidden' name='source' value='register'>
+				<input type='hidden' name='admin_id' value='**[admin_id]**'>
+				<input type='hidden' name='admin_pw' value='**[admin_pw]**'>
 				<fieldset>
 					New Admin Account Password:<br>
 					<input type="password" name="pw" required><br>
+					Confirm Password:<br>
+					<input type="password" name="pwc" required><br>
 					<input type='submit' value='Create Account' class="btn">
 				</fieldset>
 			</form>
@@ -56,7 +61,7 @@
 		<script>
 			function load_user_data(){
 				var id = document.forms["ManageAccount"]["id"].value.toLowerCase();
-				var pw = document.forms["ManageAccount"]["pw"].value.toLowerCase();
+				var pw = document.forms["ManageAccount"]["pw"].value;
 				
 				if(!id || !pw){
 					alert("Please finish the form");
@@ -101,13 +106,17 @@
 			}
 			function change_pw(){
 				var id = document.forms["ManageAccount"]["id"].value.toLowerCase();
-				var pw = document.forms["ManageAccount"]["pw"].value.toLowerCase();
-				var new_pw = document.forms["EditAccount"]["new_pw"].value.toLowerCase();
+				var pw = document.forms["ManageAccount"]["pw"].value;
+				var new_pw = document.forms["EditAccount"]["new_pw"].value;
 				
 				if(new_pw.length < 1){
 					alert("Please type a new password")
 					return false;
-				}	
+				}
+				if(pw.indexOf(";") != -1 || pw.indexOf("<") != -1 || pw.indexOf(">") != -1){
+					alert("Please do not include \";\", \"<\", or \">\" in a password");
+					return false;
+				}
 				
 				//Ask the server to save the new pass
 				var xhr = new XMLHttpRequest();
@@ -141,8 +150,22 @@
 				return false;
 			}
 			function create_account(){
-				alert("Stub. Create new account here.");
-				return false; //Unless I return an "account created" page
+				var pw = document.forms["NewAccount"]["pw"].value;
+				var pwc = document.forms["NewAccount"]["pwc"].value;
+				if(!pw || !pwc){
+					alert("Please finish the form");
+					return false;
+				}
+				if(pw != pwc){
+					alert("Error: Password does not match Password Conf.");
+					return false;
+				}
+				if(pw.indexOf(";") != -1 || pw.indexOf("<") != -1 || pw.indexOf(">") != -1){
+					alert("Please do not include \";\", \"<\", or \">\" in a password");
+					//Note: I could start allowing semicolons because of the new ttad format
+					return false;
+				}
+				return true;
 			}
 		</script>
 	</body>

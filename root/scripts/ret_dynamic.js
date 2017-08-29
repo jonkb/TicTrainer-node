@@ -113,20 +113,24 @@ function ret_viewLogs(res, data){
 function ret_created(res, data){
 	//[id,pass,bd,links,sex,l/p/c,inventory]
 	var dataEntries = aux.dataToEntries(data);
+	var del_obj = {
+		"admin": false,
+		"nonuser": true
+	};
 	var ID = dataEntries[0];
-	var birthText = "";
+	var birthD = "";
 	if(ID[0] == "u"){
 		var birthD = new Date(parseInt(dataEntries[2]));
-		birthText += "<br><br>"+
-			"FYI, the fake birthdate we will use for you is "+birthD.toLocaleDateString()+". \n"+
-			"There's a small chance (less than 3%) that this is your real birthday, but if so, \n"+
-			"that's just a lucky guess. All we know on our end is that it's within a couple \n"+
-			"of months of your real birthday.";
+		del_obj.nonuser = false;
+	}
+	if(ID[0] == "a"){
+		del_obj.admin = true;
 	}
 	var dynd = {
 		"id": ID,
 		"pw": dataEntries[1],
-		"bd": birthText
+		"bd": birthD,
+		"del": del_obj
 	};
 	aux.dynamic("./register/created.dynh", dynd, function(page){
 		if(page == "fe" || page == "se")
