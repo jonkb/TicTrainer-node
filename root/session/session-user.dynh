@@ -46,27 +46,28 @@
 			var level = **[level]**;
 			var points = **[points]**;
 			var coins = **[coins]**;
-			
 			if(level == 0){
 				level = 1;
 				//First time spiel
 				alert('It appears to be your first session. Try not to tic.');
 			}
-			var mspf = 500;//ms per frame. fps=2.
+			
+			const mspf = 500;//ms per frame. fps=2.
 			var framesSince = 0;
 			var nextLevel = 1000*level*level;
 			var cap = 10*level*level;
 			var rate = 0;
+			//Last recorded length of the session file. Used to determine if the file has changed.
 			var lastL = **[sesL]**;
 			
 			**[del:!ncr]**
+			//On average, how many frames pass between tics
+			//The 10 means people make it to the cap on avg
+			const avg_period = 10;
+			//(1-t_c)^a_p = .5 --> avg period == a_p
+			const tic_chance = 1 - Math.pow(0.50, 1/avg_period);
 			//Return true every once in a while, randomly.
 			function ncr_tic(){
-				//On average, how many frames pass between tics
-				//The 10 means people make it to the cap on avg
-				var avg_period = 10*level;
-				//(1-t_c)^a_p = .5 --> avg period == a_p
-				var tic_chance = 1 - Math.pow(0.50, 1/avg_period);
 				return Math.random() < tic_chance;
 			}
 			**[end_del:!ncr]**
