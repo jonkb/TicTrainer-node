@@ -26,7 +26,7 @@
 					<td>**[linked_accounts]**</td>
 				</tr>
 			</table>
-			<form method='POST'>
+			<form method='POST' name="addL" onsubmit="return validate_addl();">
 				<input type='hidden' name='source' value='addL'>
 				<input type='hidden' name='id' value='**[id]**'>
 				<input type='hidden' name='pw' value='**[pw]**'>
@@ -37,7 +37,7 @@
 					<input type='submit' value='Link' class="btn">
 				</fieldset>
 			</form>
-			<form method='POST'>
+			<form method='POST' name="editP" onsubmit="return validate_editp();">
 				<input type='hidden' name='source' value='editP'>
 				<input type='hidden' name='id' value='**[id]**'>
 				<input type='hidden' name='oldPass' value='**[pw]**'>
@@ -52,5 +52,23 @@
 			</form>
 			<a href='/index.html' class='btn'>Return to Home</a>
 		</section>
+		<script>
+			function validate_addl(){
+				var lid = document.forms["addL"]["lid"].value.toLowerCase();
+				if(lid[0] != "u" || lid.length < 2){
+					alert("Invalid ID. Use a user account ID.");
+					return false;
+				}
+				return true;
+			}
+			function validate_editp(){
+				var pass = document.forms["editP"]["pass"].value;
+				if(/[<>;]/.test(pass)){
+					alert("Please do not include \";\", \"<\", or \">\" in a password");
+					return false;
+				}
+				return true;
+			}
+		</script>
 	</body>
 </html>

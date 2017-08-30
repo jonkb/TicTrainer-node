@@ -51,11 +51,11 @@ function handleRequest(req, res){
 					}
 					//Make sure these don't include ; or < or > - VITAL
 					//Could allow semicolon now
-					if(pass.indexOf(";") != -1 || pass.indexOf("<") != -1 || pass.indexOf(">") != -1){
+					if(/[<>;]/.test(pass)){
 						ret.error(res, "ice", "/register/trainer.html");//Invalid Character Error
 						break;
 					}
-					if(bD.indexOf(";") != -1 || bD.indexOf("<") != -1 || bD.indexOf(">") != -1){
+					if(/[<>;]/.test(bD)){
 						ret.error(res, "ice", "/register/trainer.html");
 						break;
 					}
@@ -97,11 +97,11 @@ function handleRequest(req, res){
 					}
 					//Make sure these don't include ; or < or > - VITAL
 					//Could allow semicolon now
-					if(pass.indexOf(";") != -1 || pass.indexOf("<") != -1 || pass.indexOf(">") != -1){
+					if(/[<>;]/.test(pass)){
 						ret.error(res, "ice", "/register/trainer.html");//Invalid Character Error
 						break;
 					}
-					if(bD.indexOf(";") != -1 || bD.indexOf("<") != -1 || bD.indexOf(">") != -1){
+					if(/[<>;]/.test(bD)){
 						ret.error(res, "ice", "/register/trainer.html");
 						break;
 					}
@@ -126,6 +126,7 @@ function handleRequest(req, res){
 						switch(data){
 							case "fe":
 							case "ide":
+							case "ice":
 							case "pce":
 							case "anfe":
 								ret.error(res, data, "/account/index.html");
@@ -156,6 +157,11 @@ function handleRequest(req, res){
 							var iD = body.id;
 							var opw = body.oldPass;
 							var pw = body.pass;
+							if(/[<>;]/.test(pw)){
+								acc_ret("ice");
+								break;
+							}
+							
 							aux.debugShout("Editing "+iD, 1);
 							aux.editAcc(iD, 1, function(dEntry){//return new PW
 								if(dEntry[1] !== opw){
@@ -230,7 +236,7 @@ function handleRequest(req, res){
 										}
 										acc_ret(dEntry);
 									});
-								} 
+								}
 								else if(err.code == 'ENOENT') {
 									//File does not exist
 									acc_ret("anfe");
@@ -925,7 +931,7 @@ function handleRequest(req, res){
 						case "change_pw":
 							//Make sure pw doesn't include ; or < or > - VITAL
 							//Could allow semicolon now
-							if(body.pw.indexOf(";") != -1 || body.pw.indexOf("<") != -1 || body.pw.indexOf(">") != -1){
+							if(/[<>;]/.test(body.pw)){
 								ret.error(res, "ice", "/admin/index.html");//Invalid Character Error
 								break;
 							}
@@ -962,7 +968,7 @@ function handleRequest(req, res){
 						case "register":
 							//Make sure pw doesn't include ; or < or > - VITAL
 							//Could allow semicolon now
-							if(body.pw.indexOf(";") != -1 || body.pw.indexOf("<") != -1 || body.pw.indexOf(">") != -1){
+							if(/[<>;]/.test(body.pw)){
 								ret.error(res, "ice", "/admin/index.html");//Invalid Character Error
 								break;
 							}

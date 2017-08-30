@@ -114,7 +114,7 @@
 					alert("Please type a new password")
 					return false;
 				}
-				if(pw.indexOf(";") != -1 || pw.indexOf("<") != -1 || pw.indexOf(">") != -1){
+				if(/[<>;]/.test(pw)){
 					alert("Please do not include \";\", \"<\", or \">\" in a password");
 					return false;
 				}
@@ -161,7 +161,7 @@
 					alert("Error: Password does not match Password Conf.");
 					return false;
 				}
-				if(pw.indexOf(";") != -1 || pw.indexOf("<") != -1 || pw.indexOf(">") != -1){
+				if(/[<>;]/.test(pw)){
 					alert("Please do not include \";\", \"<\", or \">\" in a password");
 					//Note: I could start allowing semicolons because of the new ttad format
 					return false;

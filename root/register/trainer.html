@@ -45,7 +45,7 @@
 					alert("Please finish the form");
 					return false;
 				}
-				if(pw.indexOf(";") != -1 || pw.indexOf("<") != -1 || pw.indexOf(">") != -1){
+				if(/[<>;]/.test(pw)){
 					alert("Please do not include \";\", \"<\", or \">\" in your password");
 					return false;
 				}

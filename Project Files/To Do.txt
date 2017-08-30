@@ -28,6 +28,7 @@ DEEPER:
   - & https://stackoverflow.com/questions/824349/modify-the-url-without-reloading-the-page/3354511#3354511
 -(3,2) Sync functions are used a few places for editing. Determine if that's necessary and get rid of them.
 -(3,2) double check that all forms are checked on both sides
+  - !!account/manage*.dynh
 -(2,4) ?use json? ajaj? instead of ajax and .data and xml?
 -(2,5) ?Convert everything in the session to 307 redirects?
 -(1,2) ?seperate reports and errors?
