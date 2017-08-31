@@ -42,6 +42,9 @@
 			
     </section>
 		<script>
+			//Change the URL bar
+			window.history.pushState("", "Session: Trainer", "/session/session-trainer.dynh");
+			
 			var salido = false;//salido -sp- left
 			window.onbeforeunload = endS;
 			window.onpagehide = endS;
@@ -74,8 +77,8 @@
 		  function tic(){
 				here();
 		    var xhr = new XMLHttpRequest();
-				var url = '/session/index.html';
-				var reqBody = 'source=session-trainer&id=**[id]**&pw=**[pw]**&lid=**[lid]**';
+				var url = '/session/session-trainer.dynh';
+				var reqBody = '&id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=tic';
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){//just check that everything is fine
 						if(xhr.status != 200){
@@ -99,8 +102,8 @@
 		  function endS(){
 				if(!salido){
 					var xhr = new XMLHttpRequest();
-					var url = '/session/index.html';
-					var reqBody = 'source=session_end-trainer&id=**[id]**&pw=**[pw]**&lid=**[lid]**';
+					var url = '/session/session-trainer.dynh';
+					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=end';
 					xhr.onreadystatechange = function(){
 						if(xhr.readyState == 4){//just check that everything is fine
 							document.open();

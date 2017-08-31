@@ -249,332 +249,359 @@ function handleRequest(req, res){
 						break;
 					}//Switch (body.source) (Within /account/index.html)
 				break;
+				//Start of session-related URLs
 				case "/session/index.html":
-					switch(body.source){
-						case "newSession"://source, id, pw, lid
-							/**handle form submission for new session
-							verify password, 
-							check that accounts are linked,
-							(if user) add id to lnusers.ttd,
-								[loading page]set timer to look for session file every 2s for 1m -->
-								[link successful page]set timer to look for "session started" every 2s for 1m -->
-									[counter page]start local reward timer
+					/**handle form submission for new session
+					verify password, 
+					check that accounts are linked,
+					(if user) add id to lnusers.ttd,
+						[loading page]set timer to look for session file every 2s for 1m -->
+						[link successful page]set timer to look for "session started" every 2s for 1m -->
+							[counter page]start local reward timer
 
-							(if trainer) [loading page]set timer to look for other account (in lnusers) every 2s for 1m --> 
-								[start page]create session data file, show Start button --> 
-									[session control page]Append "session started at"+, show Tic Detected & Stop Session butttons
-							 */
-							 
-							var pass = body.pw;
-							var file = "./account/";
-							
-							body.id = aux.isID(body.id);
-							body.lid = aux.isID(body.lid);
-							if(body.id === false || body.lid === false){
-								ret.error(res, "ide", "/session/index.html");
+					(if trainer) [loading page]set timer to look for other account (in lnusers) every 2s for 1m --> 
+						[start page]create session data file, show Start button --> 
+							[session control page]Append "session started at"+, show Tic Detected & Stop Session butttons
+					 */
+					 
+					var pass = body.pw;
+					
+					body.id = aux.isID(body.id);
+					body.lid = aux.isID(body.lid);
+					if(body.id === false || body.lid === false){
+						ret.error(res, "ide", "/session/index.html");
+						break;
+					}
+					/*Check that the accounts are linked and confirm pw.
+						Note that this code is reused for users and trainers.
+					*/
+					aux.loadAcc(body.id, function(err, aData){
+						if(err){
+							ret.error(res, err);
+							return;
+						}
+						if(aData[1] != pass){
+							//Password Confirmation Error
+							ret.error(res, "pce", "/session/index.html");
+							return;
+						}
+						var found = false;
+						var lnAcc = aData[3].split(",");
+						for(i=0; i<lnAcc.length; i++){
+							if(lnAcc[i] == body.lid){
+								found = true;
 								break;
 							}
-							/*Check that the accounts are linked and confirm pw.
-								Note that this code is reused for users and trainers.
+						}
+						if(!found){
+							//Account not linked error
+							ret.error(res, "anle", "/session/index.html");
+						}
+						else{
+							/*Continue with the next step.
+								See if a session file already exists between those users.
+								If so, it's called a concurrent or ghost session.
 							*/
-							aux.loadAcc(body.id, function(err, aData){
-								if(err){
-									ret.error(res, err);
-									return;
-								}
-								if(aData[1] != pass){
-									//Password Confirmation Error
-									ret.error(res, "pce", "/session/index.html");
-									return;
-								}
-								var found = false;
-								var lnAcc = aData[3].split(",");
-								for(i=0; i<lnAcc.length; i++){
-									if(lnAcc[i] == body.lid){
-										found = true;
-										break;
-									}
-								}
-								if(!found){
-									//Account not linked error
-									ret.error(res, "anle", "/session/index.html");
-								}
-								else{
-									/*Continue with the next step.
-										See if a session file already exists between those users.
-										If so, it's called a concurrent or ghost session.
-									*/
-									if(body.id[0] == "t"){
-										//This section should hopefully never need to be used, but it handles ghost sessions. Logs a ghost session error.
-										var oldSFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
-										fs.stat(oldSFile, function(err){
-											if(err){
-												if(err.code == "ENOENT"){//Does not exist. Good.
-													//Go to trainer loading page. (Again, a new function is used to decrease indentation insanity. It is reused though, so it makes sense.)
-													success();
-												}
-												else
-													ret.error(res, "fe", "/session/index.html", "new-session: checking if oldSFile exists"); //Some other bizarre error
-											}
-											else{//Bad, it's an old ghost session. Or it's concurrent.
-												ret.error(res, "conses", "/session/index.html");
-											}
-										});
-									}
-									else{
-										var oldSFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
-										fs.stat(oldSFile, function(err){
-											if(err){
-												if(err.code == "ENOENT"){//Good.
-													/*Data entry for the new waiting link
-														Format: <uN,tM> [no \n]
-													*/
-													var linkData = "<" +body.id+ ";" +body.lid+ ">";
-													fs.readFile("./session/lnusers.ttd", "utf8", function(err,data){
-														if(err){
-															ret.error(res, "fe", "/session/index.html", "new-session: reading lnusers.ttd");
-															return;
-														}
-														if(data.indexOf(linkData) == -1)
-															fs.appendFile("./session/lnusers.ttd", linkData, function(err){
-																if(err){
-																	ret.error(res, "fe", "/session/index.html", "new-session: appending to lnusers.ttd");
-																}
-																else{
-																	//Go to user loading page
-																	success();
-																}
-															});
-														else//no need to add a new entry - should this throw an error?
-															success();
-													});
-												}
-												else//why? weird error.
-													ret.error(res, "fe", "/session/index.html", "new-session: checking if oldSFile exists");
-											}
-											else{//Bad, it's an old ghost session. Or it's concurrent.
-												ret.error(res, "conses", "/session/index.html", "new-session: concurrent/ghost session");
-											}
-										});
-									}
-								}
-							});
-							//return the linkloading page
-							function success(){
-								body.tryN = 0;
-								//Go to Link Loading Page
-								if(body.id[0]=="t")
-									ret.link_loading_trainer(res, body);
-								else{ //b.i[0] is definitely "u" because the error would have already been caught otherwise
-									ret.link_loading_user(res, body);
-								}
-							}
-						break;
-						case "linkloading-trainer"://source, id, pw, lid, tryN  tryN is the try number
-							if(body.timeout){
-								ret.error(res, "toe", "/session/index.html");
-								break;
-							}
-							//All the errors for id format have been caught already
-							fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
-								if(err){
-									ret.error(res, "fe", "/session/index.html", "linkloading-trainer: reading lnusers.ttd");
-								}
-								else{
-									//look for other account
-									var searchEntry = "<" +body.lid+ ";" +body.id + ">";
-									var iSE = data.indexOf(searchEntry);
-									if(iSE == -1){
-										//Wait two seconds and try again
-										res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
-										res.write("wait", function(err){res.end();});
-									}
-									else{
-										var iSEEnd = iSE + searchEntry.length;
-										var newData = data.substring(0, iSE) + data.substring(iSEEnd, data.length);
-										/*Cut out entry
-											It's done sync so that the old entry isn't sitting in lnusers too long
-										*/
-										fs.writeFileSync("./session/lnusers.ttd", newData, "utf8");
-										/*make a session file - this should only exist for the duration of the session.
-											when the session ends, rename and copy the file to an archive: ./session/archive
-										*/
-										var sesFileName = "./session/temp/session"+ body.id + body.lid + ".ttsd";
-										fs.writeFile(sesFileName, "", function(err){
-											if(err)
-												ret.error(res, "fe", "/session/index.html", "linkloading-trainer: making session file");
-											else
-												ret.start_session_trainer(res, body);//source, id, pw, lid, tryN 
-										});
-									}
-								}
-							});
-						break;
-						case "linkloading-user"://source, id, pw, lid, tryN 
-							/*(if user) [loading page]set timer to look for session file every 2s for 1m -->
-							*/
-							if(body.reqType == 'leave' || body.reqType == 'timeout'){
-								//remove entry in lnusers
-								fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
-									if(err){//lnusers got destroyed?
-										ret.error(res, "fe", "/", "linkloading-user: leave/timeout - read lnusers");
-									}
-									else{
-										var searchEntry = "<" +body.id+ ";" +body.lid+ ">";
-										aux.debugShout("attempting to delete entry: "+searchEntry);
-										var iSE = data.indexOf(searchEntry);
-										if(iSE != -1){
-											var iSEEnd = iSE + searchEntry.length;
-											var newData = data.slice(0, iSE) + data.slice(iSEEnd);
-											fs.writeFileSync("./session/lnusers.ttd", newData, "utf8");//Cut out entry
-											if(body.reqType == 'timeout')
-												ret.error(res, "toe", "/session/index.html");
-										}
-										else{
-											ret.error(res, "fe", "/session/index.html", "linkloading-user: where did the lnusers entry go?");
-										}
-									}
-								});
-							}
-							else if(body.reqType == 'exists'){
-								var searchFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
-								fs.stat(searchFile, function(err, stats){
-									if(err == null){//File exists
-										body.tryN = 0;
-										ret.start_session_user(res, body);
-									}
-									else if(err.code == "ENOENT"){//File does not exist
-										res.writeHead(200, {"Content-Type": "text/plain"});
-										res.write("wait", function(err){res.end();});
-									}
-									else//Some other error
-										ret.error(res, "fe", "/session/index.html", "linkloading-user: stat session file");
-								});
-							}
-						break;
-						case "start_session-trainer"://source, id, pw, lid
-							//If aborting, delete the session file - don't bother with archive because it hasn't even started yet
-							if(body.reqType == 'leave'){
-								var sesFile = "./session/temp/session" + body.id + body.lid + ".ttsd";
-								aux.debugShout("791", 3);
-								fs.unlink(sesFile, function(err){
-									if(err)
-										ret.error(res, "fe", "/session/index.html", "start_session-trainer: leave");
-								});
-							}
-							else{ //START pressed
-								var sesFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
-								//If file does not exist, the user must have left early
-								fs.stat(sesFile, function(err){
+							if(body.id[0] == "t"){
+								//This section should hopefully never need to be used, but it handles ghost sessions. Logs a ghost session error.
+								var oldSFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
+								fs.stat(oldSFile, function(err){
 									if(err){
-										if(err.code == "ENOENT"){//user left (or magic ghosts deleted the file){
-											ret.redirect(res, "/session/session-ended.html");
-											aux.debugShout("836", 3);
+										if(err.code == "ENOENT"){//Does not exist. Good.
+											//Go to trainer loading page. (Again, a new function is used to decrease indentation insanity. It is reused though, so it makes sense.)
+											success();
 										}
 										else
-											ret.error(res, "fe","/session/index.html", "start_session-trainer: stat session file");
+											ret.error(res, "fe", "/session/index.html", "new-session: checking if oldSFile exists"); //Some other bizarre error
 									}
-									else{//file exists
-										//Append "session started at"+time, show Tic Detected, Stop Session butttons
-										var sEntry = "session started|" + aux.time();
-										fs.appendFile(sesFile, sEntry, function(err){
-											if(err)
-												ret.error(res, "fe", "/session/index.html", "start_session-trainer: append to sesFile");
-											else{
-												ret.session_trainer(res, body);
-											}
-										});
-										
+									else{//Bad, it's an old ghost session. Or it's concurrent.
+										ret.error(res, "conses", "/session/index.html");
 									}
 								});
 							}
-						break;
-						//See if the session has started
-						case "start_session-user"://source, id, pw, lid, tryN 
-							if(body.reqType == 'leave' || body.reqType == 'timeout'){
-								//end session - it has not started yet, so just delete it
-								var sesFile = "./session/temp/session" + body.lid + body.id + ".ttsd";
-								fs.unlink(sesFile, function(err){
+							else{
+								var oldSFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
+								fs.stat(oldSFile, function(err){
 									if(err){
-										ret.error(res, "fe", "/session/index.html", "start_session-user: unlink");
+										if(err.code == "ENOENT"){//Good.
+											/*Data entry for the new waiting link
+												Format: <uN,tM> [no \n]
+											*/
+											var linkData = aux.open_char +body.id+ aux.division_char +body.lid+ aux.close_char;
+											fs.readFile("./session/lnusers.ttd", "utf8", function(err,data){
+												if(err){
+													ret.error(res, "fe", "/session/index.html", "new-session: reading lnusers.ttd");
+													return;
+												}
+												if(data.indexOf(linkData) == -1)
+													fs.appendFile("./session/lnusers.ttd", linkData, function(err){
+														if(err){
+															ret.error(res, "fe", "/session/index.html", "new-session: appending to lnusers.ttd");
+														}
+														else{
+															//Go to user loading page
+															success();
+														}
+													});
+												else//no need to add a new entry - should this throw an error?
+													success();
+											});
+										}
+										else//why? weird error.
+											ret.error(res, "fe", "/session/index.html", "new-session: checking if oldSFile exists");
 									}
+									else{//Bad, it's an old ghost session. Or it's concurrent.
+										ret.error(res, "conses", "/session/index.html", "new-session: concurrent/ghost session");
+									}
+								});
+							}
+						}
+					});
+					//return the linkloading page
+					function success(){
+						body.tryN = 0;
+						//Go to Link Loading Page
+						if(body.id[0]=="t")
+							ret.link_loading_trainer(res, body);
+						else{ //body.id[0] is definitely "u" because the error would have already been caught otherwise
+							ret.link_loading_user(res, body);
+						}
+					}
+				break; // "/session/index.html"
+				case "/session/linkloading-trainer.dynh"://id, pw, lid, tryN - tryN is the try number
+					if(body.timeout){
+						ret.error(res, "toe", "/session/index.html");
+						break;
+					}
+					//All the errors for id format have been caught already
+					fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
+						if(err){
+							ret.error(res, "fe", "/session/index.html", "linkloading-trainer: reading lnusers.ttd");
+						}
+						else{
+							//look for other account
+							var searchEntry = aux.open_char +body.lid+ aux.division_char +body.id+ aux.close_char;
+							var iSE = data.indexOf(searchEntry);
+							if(iSE == -1){
+								//Wait two seconds and try again
+								res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+								res.write("wait", function(err){res.end();});
+							}
+							else{
+								var iSEEnd = iSE + searchEntry.length;
+								var newData = data.slice(0, iSE) + data.slice(iSEEnd, data.length);
+								/*Cut out entry
+									It's done sync so that the old entry isn't sitting in lnusers too long
+								*/
+								fs.writeFileSync("./session/lnusers.ttd", newData, "utf8");
+								/*make a session file - this should only exist for the duration of the session.
+									when the session ends, rename and copy the file to an archive: ./session/archive
+								*/
+								var sesFileName = "./session/temp/session"+ body.id + body.lid + ".ttsd";
+								fs.writeFile(sesFileName, "", function(err){
+									if(err)
+										ret.error(res, "fe", "/session/index.html", "linkloading-trainer: making session file");
+									else
+										ret.start_session_trainer(res, body);//source, id, pw, lid, tryN 
+								});
+							}
+						}
+					});
+				break;
+				case "/session/linkloading-user.dynh"://source, id, pw, lid, tryN 
+					/*(if user) [loading page]set timer to look for session file every 2s for 1m -->
+					*/
+					if(body.reqType == 'leave' || body.reqType == 'timeout'){
+						//remove entry in lnusers
+						fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
+							if(err){//lnusers got destroyed?
+								ret.error(res, "fe", "/", "linkloading-user: leave/timeout - read lnusers");
+							}
+							else{
+								var searchEntry = aux.open_char +body.id+ aux.division_char +body.lid+ aux.close_char;
+								aux.debugShout("attempting to delete entry: "+searchEntry);
+								var iSE = data.indexOf(searchEntry);
+								if(iSE != -1){
+									var iSEEnd = iSE + searchEntry.length;
+									var newData = data.slice(0, iSE) + data.slice(iSEEnd);
+									fs.writeFileSync("./session/lnusers.ttd", newData, "utf8");//Cut out entry
+									if(body.reqType == 'timeout')
+										ret.error(res, "toe", "/session/index.html");
+								}
+								else{
+									ret.error(res, "fe", "/session/index.html", "linkloading-user: where did the lnusers entry go?");
+								}
+							}
+						});
+					}
+					else if(body.reqType == 'exists'){
+						var searchFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
+						fs.stat(searchFile, function(err, stats){
+							if(err == null){//File exists
+								body.tryN = 0;
+								ret.start_session_user(res, body);
+							}
+							else if(err.code == "ENOENT"){//File does not exist
+								res.writeHead(200, {"Content-Type": "text/plain"});
+								res.write("wait", function(err){res.end();});
+							}
+							else//Some other error
+								ret.error(res, "fe", "/session/index.html", "linkloading-user: stat session file");
+						});
+					}
+				break;
+				case "/session/startsession-trainer.dynh"://source, id, pw, lid
+					//If aborting, delete the session file - don't bother with archive because it hasn't even started yet
+					if(body.reqType == 'leave'){
+						var sesFile = "./session/temp/session" + body.id + body.lid + ".ttsd";
+						aux.debugShout("791", 3);
+						fs.unlink(sesFile, function(err){
+							if(err)
+								ret.error(res, "fe", "/session/index.html", "start_session-trainer: leave");
+						});
+					}
+					else{ //START pressed
+						var sesFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
+						//If file does not exist, the user must have left early
+						fs.stat(sesFile, function(err){
+							if(err){
+								if(err.code == "ENOENT"){
+									//user left (or magic ghosts deleted the file)
+									ret.redirect(res, "/session/session-ended.html");
+									aux.debugShout("836", 3);
+								}
+								else
+									ret.error(res, "fe","/session/index.html", "start_session-trainer: stat session file");
+							}
+							else{//file exists
+								//Append "session started at"+time, show Tic Detected, Stop Session butttons
+								var sEntry = "session started|" + aux.time();
+								fs.appendFile(sesFile, sEntry, function(err){
+									if(err)
+										ret.error(res, "fe", "/session/index.html", "start_session-trainer: append to sesFile");
+									else{
+										ret.session_trainer(res, body);
+									}
+								});
+							}
+						});
+					}
+				break;
+				//See if the session has started
+				case "/session/startsession-user.dynh"://source, id, pw, lid, tryN 
+					if(body.reqType == 'leave' || body.reqType == 'timeout'){
+						//end session - it has not started yet, so just delete it
+						var sesFile = "./session/temp/session" + body.lid + body.id + ".ttsd";
+						fs.unlink(sesFile, function(err){
+							if(err){
+								ret.error(res, "fe", "/session/index.html", "start_session-user: unlink");
+							}
+							else{
+								ret.redirect(res, "/session/session-ended.html");
+							}
+						});
+					}
+					else if(body.reqType == 'started'){
+						//has the session started
+						var searchFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
+						fs.readFile(searchFile, "utf8", function(err, sfdata){
+							if(err){
+								if(err.code == "ENOENT")//trainer left
+									ret.redirect(res, "/session/session-ended.html");
+								else
+									ret.error(res, "fe", "/session/index.html", "start_session-user: read sesFile");
+								return;
+							}
+							if(sfdata.indexOf("session started|") == -1){
+								//return 'wait'
+								res.writeHead(200, {"Content-Type": "text/plain"});
+								res.write("wait", function(err){res.end();});
+								return;
+							}
+							//load level and points and start session
+							aux.loadAcc(body.id, function(err, uData){
+								if(err){
+									ret.error(res, err);//anfe or ide
+									return;
+								}
+								if(body.pw != uData[1]){
+									ret.error(res, "pce");
+									return;
+								}
+								var lpc = uData[5].split(",");
+								body.level = lpc[0];
+								body.points = lpc[1];
+								body.coins = lpc[2];
+								body.heap = uData[6];
+								body.RS = uData[7];
+								var startLPEntry = "\nstarting user l,p,c|"+ lpc[0]+","+lpc[1]+","+lpc[2];
+								fs.appendFile(searchFile, startLPEntry, function(err){
+									if(err){
+										ret.error(res, "fe", "/session/index.html", "start_session-user: append to sesFile");
+										return;
+									}
+									body.sesL = sfdata.length + startLPEntry.length;//current session file length (just two/three lines)
+									ret.session_user(res, body);
+								});
+							});
+						});
+					}
+				break;
+				case "/session/session-trainer.dynh":
+					if(body.reqType == "tic"){
+						var sesFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
+						var tEntry = "\ntic detected|" +aux.time();
+						fs.stat(sesFile, function(err, stats){
+							if(err == null){//File exists
+								fs.appendFile(sesFile, tEntry, function(err){
+									if(err)//Why would this happen? 
+										ret.error(res, "fe", "/session/index.html", "session-trainer: append to sesFile");
+									else{
+										res.writeHead(200, {"Content-Type": "text/plain"});
+										res.write("good", function(err){res.end();});
+									}
+								});
+							}
+							//File does not exist. 
+							//This happens when the user has ended the session already
+							else if(err.code == "ENOENT"){
+								ret.redirect(res, "/session/session-ended.html");
+							}
+							else//Some other error
+								ret.error(res, "fe", "/session/index.html", "session-trainer: stat sesFile");
+						});
+					}
+					else if(body.reqType == "end"){
+						aux.debugShout("SE-T");
+						var sesFile = "./session/temp/session" + body.id + body.lid + ".ttsd";
+						var eEntry = "\nsession ended|"+aux.time();
+						fs.stat(sesFile, function(err, stats){
+							if(err == null){//File exists
+								aux.debugShout("586", 3);
+								fs.appendFile(sesFile, eEntry, function(err){//should I also archive it? No, the user needs to save their new points and level
+									if(err)
+										ret.error(res, "fe", "/session/index.html", "session_end-trainer: append to sesFile");
 									else{
 										ret.redirect(res, "/session/session-ended.html");
 									}
 								});
 							}
-							else if(body.reqType == 'started'){
-								//has the session started
-								var searchFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
-								fs.readFile(searchFile, "utf8", function(err, sfdata){
-									if(err){
-										if(err.code == "ENOENT")//trainer left
-											ret.redirect(res, "/session/session-ended.html");
-										else
-											ret.error(res, "fe", "/session/index.html", "start_session-user: read sesFile");
-										return;
-									}
-									if(sfdata.indexOf("session started|") == -1){
-										//return 'wait'
-										res.writeHead(200, {"Content-Type": "text/plain"});
-										res.write("wait", function(err){res.end();});
-										return;
-									}
-									//load level and points and start session
-									aux.loadAcc(body.id, function(err, uData){
-										if(err){
-											ret.error(res, err);//anfe or ide
-											return;
-										}
-										if(body.pw != uData[1]){
-											ret.error(res, "pce");
-											return;
-										}
-										var lpc = uData[5].split(",");
-										body.level = lpc[0];
-										body.points = lpc[1];
-										body.coins = lpc[2];
-										body.heap = uData[6];
-										body.RS = uData[7];
-										var startLPEntry = "\nstarting user l,p,c|"+ lpc[0]+","+lpc[1]+","+lpc[2];
-										fs.appendFile(searchFile, startLPEntry, function(err){
-											if(err){
-												ret.error(res, "fe", "/session/index.html", "start_session-user: append to sesFile");
-												return;
-											}
-											body.sesL = sfdata.length + startLPEntry.length;//current session file length (just three lines)
-											ret.session_user(res, body);
-										});
-									});
-								});
+							//File does not exist. 
+							//This happens if the user has ended the session already
+							else if(err.code == "ENOENT"){
+								ret.redirect(res, "/session/session-ended.html");
 							}
-						break;
-						case "session-trainer"://Tic. body= source:session-trainer, id:t0000, pw: , lid:u0000
-							var sesFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
-							var tEntry = "\ntic detected|" +aux.time();
-							fs.stat(sesFile, function(err, stats){
-								if(err == null){//File exists
-									fs.appendFile(sesFile, tEntry, function(err){
-										if(err)//Why would this happen? 
-											ret.error(res, "fe", "/session/index.html", "session-trainer: append to sesFile");
-										else{
-											res.writeHead(200, {"Content-Type": "text/plain"});
-											res.write("good", function(err){res.end();});
-										}
-									});
-								}
-								//File does not exist. 
-								//This happens when the user has ended the session already
-								else if(err.code == "ENOENT"){
-									ret.redirect(res, "/session/session-ended.html");
-								}
-								else//Some other error
-									ret.error(res, "fe", "/session/index.html", "session-trainer: stat sesFile");
-							});
-						break;
-						case "session-user"://body: source, id, pw, lid
-							//Requests made from the ongoing user session
-							/*Check the session file here for tic detected or session ended*/
+							else{//Some other error
+								ret.error(res, "fe", "/session/index.html", "session_end-trainer: stat sesFile");
+							}
+						});
+					}
+				break;
+				case "/session/session-user.dynh"://body: source, id, pw, lid
+					//Requests made from the ongoing user session
+					switch(body.reqType){
+						case "check":
+							//Check the session file here for tic detected or session ended
 							var oldL = body.sesL;
 							var sesFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
 							fs.readFile(sesFile, "utf8", function(err, data){
@@ -607,63 +634,8 @@ function handleRequest(req, res){
 								res.writeHead(200, {"Content-Type": "text/plain"});
 								res.write(retMessage, function(err){res.end();});
 							});
-						break;//session-user
-						case "loglpc"://id, pass, l,p,c
-							var sesFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
-							var lpcEntry = "\nuser l,p,c|" +body.level+ "," +body.points+ "," +body.coins+ "|" +aux.time();
-							fs.appendFile(sesFile, lpcEntry, function(err){
-								if(err){
-									ret.error(res, "fe", "/session/index.html", "session-user: append to sesFile");
-									return;
-								}
-								res.writeHead(200);
-								res.end();
-							});
-						break;//loglpc
-						case "savelpc"://id, pass, l,p,c
-							var newlpc = body.level +","+ body.points +","+ body.coins;
-							aux.editAcc(body.id, 5, function(userData){
-								if(body.pw != userData[1]){
-									ret.error(res, "pce");
-									return "<cancel>";
-								}
-								return newlpc;
-							}, function(err, userData){
-								if(err){
-									if(err !== "canceled"){
-										ret.error(res, err, "/session/index.html", userData);
-									}
-									return;//res.end happened already (ret.error(res, "pce"))
-								}
-								res.writeHead(200);
-								res.end();
-							});
-						break;// savelpc
-						case "session_end-trainer":
-							aux.debugShout("SE-T");
-							var sesFile = "./session/temp/session" + body.id + body.lid + ".ttsd";
-							var eEntry = "\nsession ended|"+aux.time();
-							fs.stat(sesFile, function(err, stats){
-								if(err == null){//File exists
-									aux.debugShout("1002", 3);
-									fs.appendFile(sesFile, eEntry, function(err){//should I also archive it? No, the user needs to save their new points and level
-										if(err)
-											ret.error(res, "fe", "/session/index.html", "session_end-trainer: append to sesFile");
-										else{
-											ret.redirect(res, "/session/session-ended.html");
-										}
-									});
-								}
-								//File does not exist. 
-								//This happens if the user has ended the session already
-								else if(err.code == "ENOENT"){
-									ret.redirect(res, "/session/session-ended.html");
-								}
-								else//Some other error
-									ret.error(res, "fe", "/session/index.html", "session_end-trainer: stat sesFile");
-							});
 						break;
-						case "session_end-user":
+						case "end":
 							aux.debugShout("SE-U");
 							var sesFile = "./session/temp/session" + body.lid + body.id + ".ttsd";
 							var sF2 = "./session/archive/session" + body.lid + body.id + aux.time("forfile") + ".ttsd";
@@ -729,10 +701,42 @@ function handleRequest(req, res){
 								});
 							});
 						break;
+						case "loglpc"://id, pass, l,p,c
+							var sesFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
+							var lpcEntry = "\nuser l,p,c|" +body.level+ "," +body.points+ "," +body.coins+ "|" +aux.time();
+							fs.appendFile(sesFile, lpcEntry, function(err){
+								if(err){
+									ret.error(res, "fe", "/session/index.html", "session-user: append to sesFile");
+									return;
+								}
+								res.writeHead(200);
+								res.end();
+							});
+						break;
+						case "savelpc"://id, pass, l,p,c
+							var newlpc = body.level +","+ body.points +","+ body.coins;
+							aux.editAcc(body.id, 5, function(userData){
+								if(body.pw != userData[1]){
+									ret.error(res, "pce");
+									return "<cancel>";
+								}
+								return newlpc;
+							}, function(err, userData){
+								if(err){
+									if(err !== "canceled"){
+										ret.error(res, err, "/session/index.html", userData);
+									}
+									return;//res.end happened already (ret.error(res, "pce"))
+								}
+								res.writeHead(200);
+								res.end();
+							});
+						break;
 					}
-				break; // "/session/index.html"
+				break;//session-user
+				//End of session-related URLs
 				case "/error/report.html":
-					var content = body.fName+";"+body.email+";"+body.message;
+					var content = body.fName+aux.division_char+body.email+aux.division_char+body.message;
 					aux.log_error("report", content);
 					ret.report_sent(res, body);
 				break;
@@ -1053,7 +1057,7 @@ function handleRequest(req, res){
 									ret.error(res, "pce", "/admin/index.html");
 									return;
 								}
-								var ext = body.file.substring(body.file.lastIndexOf("."));
+								var ext = body.file.slice(body.file.lastIndexOf("."));
 								if([".ttd", ".ttsd", ".txt"].indexOf(ext) < 0){
 									//Requested the wrong type of file somehow
 									aux.debugShout("938", 2);

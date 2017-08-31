@@ -36,6 +36,13 @@ const close_char_description = "[G.T. chevron]";
 const division_char = ";"; // For .ttd
 const division_char_description = "[semicolon]";
 
+module.exports.open_char = open_char;
+module.exports.open_char_description = open_char_description;
+module.exports.close_char = close_char;
+module.exports.close_char_description = close_char_description;
+module.exports.division_char = division_char;
+module.exports.division_char_description = division_char_description;
+
 /**
 	load and fill in a dynamic html file (.dynh is my extension for it)
 	data is an object with all the needed fields.

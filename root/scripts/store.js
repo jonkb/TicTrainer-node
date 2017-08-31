@@ -1,7 +1,11 @@
-inventory = {"b":10,
+const inventory = {"b":10,
 	"s":50,
 	"g":100};
-	
+
+/*Throws an error when loaded by the browser, 
+	but this is used by node scripts too. It's fine
+	(At least in Chrome)
+*/
 module.exports = {"inv": inventory};
 
 /**Fills a div with the given medals. heap is of format: "gsgsbgbbbss"

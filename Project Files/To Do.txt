@@ -1,6 +1,5 @@
 To Do: (priority,difficulty) (0-5,0-5) 
 IN PROGRESS:
-- NCR in session
 
 FUNCTIONAL:
 -(4,2) Safety - make it harder to cheat with curl. At least log things like that.
@@ -23,12 +22,8 @@ VISUAL:
 
 DEEPER: 
 -(3,1) Get rid of the "old" folders. It's all in a git repo, and I'm wasting space.
--(3,2) Make the url from the session XHR AJAX the dynh pages for simplicity.
-  - see https://stackoverflow.com/questions/3338642/updating-address-bar-with-new-url-without-hash-or-reloading-the-page
-  - & https://stackoverflow.com/questions/824349/modify-the-url-without-reloading-the-page/3354511#3354511
 -(3,2) Sync functions are used a few places for editing. Determine if that's necessary and get rid of them.
 -(3,2) double check that all forms are checked on both sides
-  - !!account/manage*.dynh
 -(2,4) ?use json? ajaj? instead of ajax and .data and xml?
 -(2,5) ?Convert everything in the session to 307 redirects?
 -(1,2) ?seperate reports and errors?

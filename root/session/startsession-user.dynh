@@ -17,7 +17,10 @@
     <section class="main-content">
 			<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>
     </section>
-		<script>			
+		<script>
+			//Change the URL bar
+			window.history.pushState("", "Start Session: User", "/session/startsession-user.dynh");
+			
 			var salido = false;//salido -sp- left
 			window.onbeforeunload = leave;
 			window.onpagehide = leave;
@@ -28,8 +31,8 @@
 			function look(){
 				if(tryN < 30){
 					var xhr = new XMLHttpRequest();
-					var url = '/session/index.html';
-					var reqBody = 'source=start_session-user&id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=started';
+					var url = '/session/startsession-user.dynh';
+					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=started';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){
@@ -49,8 +52,8 @@
 				}
 				else{//Timeout
 					var xhr = new XMLHttpRequest();
-					var url = '/session/index.html';
-					var reqBody = 'source=start_session-user&id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=timeout';
+					var url = '/session/startsession-user.dynh';
+					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=timeout';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){
@@ -66,8 +69,8 @@
 			function leave(){
 				if(!salido){
 					var xhr = new XMLHttpRequest();
-					var url = '/session/index.html';
-					var reqBody = 'source=start_session-user&id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=leave';
+					var url = '/session/startsession-user.dynh';
+					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=leave';
 					xhr.open('POST', url, true);
 					xhr.send(reqBody);
 					salido = true;

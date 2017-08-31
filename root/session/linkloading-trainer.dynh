@@ -16,15 +16,11 @@
     </section>
     <section class="main-content">
 			<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>
-			<form id='lookForm' method='POST'>
-				<input type='hidden' name='source' value='linkloading-trainer'>
-				<input type='hidden' name='id' value='**[id]**'>
-				<input type='hidden' name='pw' value='**[pw]**'>
-				<input type='hidden' name='lid' value='**[lid]**'>
-				<input type='hidden' name='tryN' value='**[tryN]**'>
-			</form>
     </section>
 		<script>
+			//Change the URL bar
+			window.history.pushState("", "Link Loading: Trainer", "/session/linkloading-trainer.dynh");
+			
 			//30 tries, 2s per try --> 1 min
 			var tryN = 0;
 			var max_tries = 30;
@@ -34,8 +30,8 @@
 			function look(){
 				if(tryN < max_tries){
 					var xhr = new XMLHttpRequest();
-					var url = '/session/index.html';
-					var reqBody = 'source=linkloading-trainer&id=**[id]**&pw=**[pw]**&lid=**[lid]**';
+					var url = '/session/linkloading-trainer.dynh';
+					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){
@@ -60,8 +56,9 @@
 					//I'm really just requesting the TOE page in a roundabout way.
 					//It's a dynh, so there's no easy way to just GET and redirect right now.
 					var xhr = new XMLHttpRequest();
-					var url = '/session/index.html';
-					var reqBody = 'source=linkloading-user&timeout=1';
+					var url = '/session/linkloading-trainer.dynh';
+					//ID & pw are not required because it's just returning the TOE page
+					var reqBody = 'timeout=true';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){

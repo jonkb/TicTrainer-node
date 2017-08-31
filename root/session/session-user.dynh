@@ -38,6 +38,10 @@
 		<!--For genHeap-->
 		<script src="/scripts/store.js"></script>
 		<script>
+			//Change the URL bar
+			if(window.history.pushState)
+				window.history.pushState("", "Session: User", "/session/session-user.dynh");
+		
 			var salido = false;//salido -sp- left
 			window.onbeforeunload = endS;
 			window.onpagehide = endS;
@@ -77,8 +81,8 @@
 			genHeap("**[heap]**");
 			function frame(){
 				var xhr = new XMLHttpRequest();
-				var url = '/session/index.html';
-				var reqBody = 'source=session-user&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&sesL='+lastL;
+				var url = '/session/session-user.dynh';
+				var reqBody = 'reqType=check&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&sesL='+lastL;
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');//'application/x-www-form-urlencoded'
 				xhr.onreadystatechange = function(){
@@ -148,9 +152,9 @@
 			function endS(){
 				if(!salido){
 					var xhr = new XMLHttpRequest();
-					var url = '/session/index.html'
+					var url = '/session/session-user.dynh'
 					//source,id,pw,lid,level,points
-					var reqBody = 'source=session_end-user&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
+					var reqBody = 'reqType=end&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
 					xhr.open('POST', url, true);
 					xhr.onreadystatechange = function(){
 						if(xhr.readyState == 4){
@@ -184,9 +188,9 @@
 			//Make an entry in the session file.
 			function loglpc(){
 				var xhr = new XMLHttpRequest();
-				var url = '/session/index.html'
+				var url = '/session/session-user.dynh'
 				//source,id,pw,lid,level,points
-				var reqBody = 'source=loglpc&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
+				var reqBody = 'reqType=loglpc&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
 				xhr.open('POST', url, true);
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
@@ -202,9 +206,9 @@
 			//Actually save the progress to the server. Make this more secure.
 			function savelpc(){
 				var xhr = new XMLHttpRequest();
-				var url = '/session/index.html'
+				var url = '/session/session-user.dynh'
 				//source,id,pw,lid,level,points
-				var reqBody = 'source=savelpc&id=**[id]**&pw=**[pw]**&level='+level+'&points='+points+'&coins='+coins;
+				var reqBody = 'reqType=savelpc&id=**[id]**&pw=**[pw]**&level='+level+'&points='+points+'&coins='+coins;
 				xhr.open('POST', url, true);
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
