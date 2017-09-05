@@ -2,7 +2,6 @@ To Do: (priority,difficulty) (0-5,0-5)
 IN PROGRESS:
 
 FUNCTIONAL:
--(4,2) Safety - make it harder to cheat with curl. At least log things like that.
 -(3,5) Password Encryption
   - Note: it's https now, so that's half the battle
   - Maybe sometime ask for Name, BD, and sex, and convert those into a hash string like NiMH does. Then store each individual's data in the same file, even if they make a new account. 
@@ -13,7 +12,6 @@ FUNCTIONAL:
 
 VISUAL:
 -(4,1) Add links to tictrainer.com from places like KJB website & tics-r.us
--(3,2) Switch the successive form submissions to AJAX (linkloading)
 -(3,2) Add more things to store
   - I could add more decorations
   - Streak bonuses like duolingo
@@ -21,7 +19,6 @@ VISUAL:
   - Comments, README.md, traditional documentation, paper
 
 DEEPER: 
--(3,1) Get rid of the "old" folders. It's all in a git repo, and I'm wasting space.
 -(3,2) Sync functions are used a few places for editing. Determine if that's necessary and get rid of them.
 -(3,2) double check that all forms are checked on both sides
 -(2,4) ?use json? ajaj? instead of ajax and .data and xml?

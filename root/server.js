@@ -409,8 +409,7 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/session/linkloading-user.dynh"://source, id, pw, lid, tryN 
-					/*(if user) [loading page]set timer to look for session file every 2s for 1m -->
-					*/
+					//(if user) [loading page]set timer to look for session file every 2s for 1m -->
 					if(body.reqType == 'leave' || body.reqType == 'timeout'){
 						//remove entry in lnusers
 						fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
@@ -663,7 +662,7 @@ function handleRequest(req, res){
 									}
 								});
 							}
-							//save user l & p
+							//save user lpc
 							aux.editAcc(body.id, 5, function(uData){
 								if(body.pw != uData[1]){
 									aux.debugShout("body.pw= "+body.pw+"; pass= "+uData[1]);
@@ -703,33 +702,37 @@ function handleRequest(req, res){
 						break;
 						case "loglpc"://id, pass, l,p,c
 							var sesFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
-							var lpcEntry = "\nuser l,p,c|" +body.level+ "," +body.points+ "," +body.coins+ "|" +aux.time();
-							fs.appendFile(sesFile, lpcEntry, function(err){
+							var newlpc = body.level +","+ body.points +","+ body.coins;
+							var lpcEntry = "\nuser l,p,c|" +newlpc+ "|" +aux.time();
+							//Append to session file and edit user file.
+							//Return an error if the session file doesn't exist.
+							fs.access(sesFile, function(err){
 								if(err){
-									ret.error(res, "fe", "/session/index.html", "session-user: append to sesFile");
+									ret.error(res, "fe", "/session/index.html", "session-user: append to sesFile: "+body);
 									return;
 								}
-								res.writeHead(200);
-								res.end();
-							});
-						break;
-						case "savelpc"://id, pass, l,p,c
-							var newlpc = body.level +","+ body.points +","+ body.coins;
-							aux.editAcc(body.id, 5, function(userData){
-								if(body.pw != userData[1]){
-									ret.error(res, "pce");
-									return "<cancel>";
-								}
-								return newlpc;
-							}, function(err, userData){
-								if(err){
-									if(err !== "canceled"){
-										ret.error(res, err, "/session/index.html", userData);
+								fs.appendFile(sesFile, lpcEntry, function(err){
+									if(err){
+										ret.error(res, "fe", "/session/index.html", "session-user: append to sesFile: "+body);
+										return;
 									}
-									return;//res.end happened already (ret.error(res, "pce"))
-								}
-								res.writeHead(200);
-								res.end();
+									aux.editAcc(body.id, 5, function(userData){
+										if(body.pw != userData[1]){
+											ret.error(res, "pce");
+											return "<cancel>";
+										}
+										return newlpc;
+									}, function(err, userData){
+										if(err){
+											if(err !== "canceled"){
+												ret.error(res, err, "/session/index.html", userData);
+											}
+											return;//res.end happened already (ret.error(res, "pce"))
+										}
+										res.writeHead(200);
+										res.end();
+									});
+								});
 							});
 						break;
 					}

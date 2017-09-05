@@ -171,7 +171,7 @@
 				level++;
 				points -= nextLevel;
 				coins += nextLevel/1000;
-				savelpc();
+				loglpc();
 				nextLevel = 1000*level*level;
 				cap = 10*level*level;
 				//Flash green (this green is 10% lighter than the green in the page header)
@@ -185,30 +185,14 @@
 				document.getElementById('cCounter').innerHTML = coins;
 				document.getElementById('lUp').innerHTML = nextLevel;
 			}
-			//Make an entry in the session file.
+			/*Make an entry in the session file
+				And save progress to the user's account
+			*/
 			function loglpc(){
 				var xhr = new XMLHttpRequest();
 				var url = '/session/session-user.dynh'
 				//source,id,pw,lid,level,points
 				var reqBody = 'reqType=loglpc&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
-				xhr.open('POST', url, true);
-				xhr.onreadystatechange = function(){
-					if(xhr.readyState == 4){
-						if(xhr.status != 200){//Display Error Page
-							document.open();
-							document.write(xhr.responseText);
-							document.close();
-						}
-					}
-				}
-				xhr.send(reqBody);
-			}
-			//Actually save the progress to the server. Make this more secure.
-			function savelpc(){
-				var xhr = new XMLHttpRequest();
-				var url = '/session/session-user.dynh'
-				//source,id,pw,lid,level,points
-				var reqBody = 'reqType=savelpc&id=**[id]**&pw=**[pw]**&level='+level+'&points='+points+'&coins='+coins;
 				xhr.open('POST', url, true);
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
