@@ -21,52 +21,57 @@
 			-->
     </section>
     <section class="main-content">
-			<form method="POST" name="ManageAccount" onsubmit="return false;">
-				<fieldset>
-					<legend>Manage R.U. Account</legend>
-					<div style="float:left;">
-						User Account ID:<br>
-						<input type="text" name="id" placeholder="u0000" required><br>
-						Password:<br>
-						<input type="password" name="pw" required><br>
-						<button class="btn" onclick="load_user_data()">Load Account Data</button>
-					</div>
-					<div style="float:right;" id="display_user_data">
-						<table>
-							<tr>
-								<td>ID: </td>
-								<td id="display_user_ID"></td>
-							</tr>
-							<tr>
-								<td>Research State: </td>
-								<td id="display_user_RS"></td>
-							</tr>
-							<tr>
-								<td>New Research State: </td>
-								<td>
-									<select name="RS">
-										<option value="REG">REGULAR</option>
-										<option value="NONE">NONE</option>
-										<option value="DRZ">DRZ</option>
-										<option value="NCR">NCR</option>
-									</select>
-								</td>
-							</tr>
-							<tr>
-								<td><button class="btn" onclick="save_RS()">Save Research State</button></td>
-							</tr>
-						</table>
-					</div>
-				</fieldset>
-			</form>
+			<fieldset>
+				<legend>Manage R.U. Account</legend>
+				<form method="POST" name="Load_Acc" style="float:left;" onsubmit="return load_user_data();">
+					User Account ID:<br>
+					<input type="text" name="id" placeholder="u0000" required><br>
+					<input type='submit' value='Load Account Data' class="btn">
+				</form>
+				<form method="POST" name="Edit_Acc" style="float:right;" onsubmit="return edit_acc();">
+					<table>
+						<tr>
+							<td>ID: </td>
+							<td id="display_user_ID"></td>
+						</tr>
+						<tr>
+							<td>Research State: </td>
+							<td id="display_user_RS"></td>
+						</tr>
+						<tr>
+							<td>New Research State: </td>
+							<td>
+								<select name="RS">
+									<option value="REG">REGULAR</option>
+									<option value="NONE">NONE</option>
+									<option value="DRZ">DRZ</option>
+									<option value="NCR">NCR</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td>Avg Intertic Interval: </td>
+							<td id="display_user_AITI"></td>
+						</tr>
+						<tr>
+							<td>New AITI: </td>
+							<td>
+								<input type="text" name="aiti" placeholder="10">
+							</td>
+						</tr>
+						<tr>
+							<td><input type='submit' value='Save Changes' class="btn"></td>
+						</tr>
+					</table>
+				</form>
+			</fieldset>
     </section>
 		<script>
 			//Always returns false because I don't want it to reload the page
 			function load_user_data(){
-				var id = document.forms["ManageAccount"]["id"].value.toLowerCase();
-				var pw = document.forms["ManageAccount"]["pw"].value.toLowerCase();
+				var id = document.forms.Load_Acc.id.value.toLowerCase();
 				
-				if(!id || !pw){
+				if(!id){
 					alert("Please finish the form");
 					return false;
 				}
@@ -78,24 +83,25 @@
 				//Ask the server for the user's data and display it
 				var xhr = new XMLHttpRequest();
 				var url = '/admin/manageRU.dynh';
-				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&id='+id+'&pw='+pw+'&source=load_user_data';
+				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&id='+id+'&source=load_user_data';
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
 						if(xhr.status == 200){
-							var res_data = xhr.responseText.split("=");
-							if(res_data[0] == "error"){
-								alert("Error: "+res_data[1]);
+							var res_json = '{"'+xhr.responseText.replace(/&/g,'","').replace(/=/g,'":"')+'"}';
+							var res_data = JSON.parse(res_json);
+							if(res_data.error){
+								alert("Error: "+res_data.error);
 								return false;
 							}
-							if(res_data[0] != "research_state"){
-								alert("Error: Unknown response from the server");
+							if(!res_data.research_state || !res_data.aiti){
+								alert("Error: Insufficient response from the server");
 								return false;
 							}
-							var research_state = res_data[1];
 							document.getElementById("display_user_ID").innerHTML = id;
-							document.getElementById("display_user_RS").innerHTML = research_state;
+							document.getElementById("display_user_RS").innerHTML = res_data.research_state;
+							document.getElementById("display_user_AITI").innerHTML = res_data.aiti;
 						}
 						else{
 							document.open();
@@ -107,16 +113,22 @@
 				xhr.send(reqBody);
 				return false;
 			}
-			function save_RS(){
-				var id = document.forms["ManageAccount"]["id"].value.toLowerCase();
-				var pw = document.forms["ManageAccount"]["pw"].value.toLowerCase();
-				var RS = document.forms["ManageAccount"]["RS"].value.toUpperCase();
+			function edit_acc(){
+				var id = document.getElementById("display_user_ID").innerHTML.toLowerCase();
+				var RS = document.forms.Edit_Acc.RS.value.toUpperCase();
+				var AITI = document.forms.Edit_Acc.aiti.value;
+				if(AITI && (isNaN(AITI) || AITI <= 0)){
+					alert("Please type a positive number for AITI");
+					return false;
+				}
 				
-				//Ask the server to save the new RS
+				//Ask the server to save the new RS [& AITI]
 				var xhr = new XMLHttpRequest();
 				var url = '/admin/manageRU.dynh';
-				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&id='+
-					id+'&pw='+pw+'&RS='+RS+'&source=save_RS';
+				var reqBody = 'source=edit_acc&admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&id='+
+					id+'&RS='+RS;
+				if(AITI)
+					reqBody += '&AITI='+AITI;
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');
 				xhr.onreadystatechange = function(){
@@ -131,6 +143,8 @@
 								alert("Error: Unknown response from the server");
 								return false;
 							}
+							if(AITI)
+								document.getElementById("display_user_AITI").innerHTML = AITI;
 							document.getElementById("display_user_RS").innerHTML = RS;
 						}
 						else{

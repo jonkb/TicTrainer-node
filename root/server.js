@@ -533,6 +533,7 @@ function handleRequest(req, res){
 								body.coins = lpc[2];
 								body.heap = uData[6];
 								body.RS = uData[7];
+								body.aiti = uData[8];
 								var startLPEntry = "\nstarting user l,p,c|"+ lpc[0]+","+lpc[1]+","+lpc[2];
 								fs.appendFile(searchFile, startLPEntry, function(err){
 									if(err){
@@ -859,17 +860,13 @@ function handleRequest(req, res){
 										res.write("error="+err, function(err){res.end();});
 										return;
 									}
-									if(body.pw != acc[1]){
-										res.writeHead(200, {"Content-Type": "text/plain"});
-										res.write("error=pce", function(err){res.end();});
-										return;
-									}
+									var res_str = "research_state="+acc[7]+"&aiti="+acc[8];
 									res.writeHead(200, {"Content-Type": "text/plain"});
-									res.write("research_state="+acc[7], function(err){res.end();});
+									res.write(res_str, function(err){res.end();});
 								});
 							});
 						break;
-						case "save_RS":
+						case "edit_acc":
 							aux.loadAcc(body.admin_id, function(err, admin_acc){
 								if(err){
 									ret.error(res, err, "/admin/index.html");
@@ -879,24 +876,29 @@ function handleRequest(req, res){
 									ret.error(res, "pce", "/admin/index.html");
 									return;
 								}
-								aux.editAcc(body.id, 7, function(uData){
-									if(body.pw != uData[1]){
-										res.writeHead(200, {"Content-Type": "text/plain"});
-										res.write("error=pce", function(err){res.end();});
-										return "<cancel>";
-									}
-									return body.RS;
-								}, function(err, uData){
+								aux.editAcc(body.id, 7, body.RS, function(err, uData){
 									if(err){
-										if(err !== "canceled"){
-											if(uData)
-												aux.debugShout("876 "+uData);
-											ret.error(res, err, "/admin/index.html");
-										}
-										return;//already sent res
+										if(uData)
+											aux.debugShout("876 "+uData);
+										ret.error(res, err, "/admin/index.html");
+										return;
 									}
-									res.writeHead(200, {"Content-Type": "text/plain"});
-									res.write("good", function(err){res.end();});
+									//If AITI was given, save it too
+									if(body.AITI){
+										//No need to check pw, that was just done
+										aux.editAcc(body.id, 8, body.AITI, function(err, uData){
+											if(err){
+												ret.error(res, err, "/admin/index.html");
+												return;
+											}
+											res.writeHead(200, {"Content-Type": "text/plain"});
+											res.write("good", function(err){res.end();});
+										});
+									}
+									else{
+										res.writeHead(200, {"Content-Type": "text/plain"});
+										res.write("good", function(err){res.end();});
+									}
 								});
 							});
 						break;

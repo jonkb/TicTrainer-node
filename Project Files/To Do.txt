@@ -2,6 +2,7 @@ To Do: (priority,difficulty) (0-5,0-5)
 IN PROGRESS:
 
 FUNCTIONAL:
+-(3,1) Maybe make the ghost session thing automatic.
 -(3,5) Password Encryption
   - Note: it's https now, so that's half the battle
   - Maybe sometime ask for Name, BD, and sex, and convert those into a hash string like NiMH does. Then store each individual's data in the same file, even if they make a new account. 

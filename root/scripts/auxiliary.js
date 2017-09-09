@@ -299,7 +299,7 @@ function editAcc(id, fldInd, newVal, callback){
 }
 /**Loads the specified account's data into an array
 	callback = function(err,user)
-	user: [id,pw,bd,"links",sex,"lpc",heap,research_state]
+	user: [id,pw,bd,"links",sex,"lpc",heap,research_state,aiti]
 }
 */
 function loadAcc(id, callback){
@@ -414,7 +414,10 @@ function newU(id, pass, bd, sex){
 		s += 	open_char +	sex		+ close_char + "\n";
 		s += 	open_char +"0,0,0"+ close_char + "\n";//level,points,coins
 		s += 	open_char 		+			close_char + "\n";//store-bought items
-		s += 	open_char +"REG"	+	close_char + "\n";//research_state
+		s += 	open_char +	"REG"	+	close_char + "\n";//research_state
+		s += 	open_char +	"10"	+	close_char + "\n";//avg intertic interval for ncr
+		//10 is default because that is the number of intervals before the cap.
+		
 	return s;
 }
 /**Generates the content for a new trainer file
@@ -525,11 +528,11 @@ function genReport(data){
 	}
 	debugShout("start: "+initT+". end: "+endT);
 	var report = "\n****************\nReport:";
-	report += "\nsession length|"+ (endT - initT);
+	report += "\nsession length|"+ (endT - initT)/1000;
 	report += "\nlevels gained|"+ (endL - initL);
 	report += "\npoints earned|"+ (endP - initP);
 	report += "\nnumber of tics|"+ tics;
-	report += "\nlongest tic free interval|"+ longestInterval;
+	report += "\nlongest tic free interval|"+ longestInterval/1000;
 	report += "\nnumber of 10s tic free intervals|"+ tenSIntervals;
 	return report;
 }

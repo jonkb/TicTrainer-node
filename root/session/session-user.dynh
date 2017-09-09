@@ -65,13 +65,18 @@
 			var lastL = **[sesL]**;
 			
 			**[del:!ncr]**
-			//On average, how many frames pass between tics
-			//The 10 means people make it to the cap on avg
-			const avg_period = 10;
-			//(1-t_c)^a_p = .5 --> avg period == a_p
-			const tic_chance = 1 - Math.pow(0.50, 1/avg_period);
+			/*Number of reward periods between random ncr tics on avg.
+				At level one, the unit is seconds, because reward periods occur once per second,
+				but it scales linearly at higher levels.
+			*/
+			const avg_intertic_interval = **[aiti]**; 
 			//Return true every once in a while, randomly.
 			function ncr_tic(){
+				//On average, how many frames pass between tics
+				//The 10 means people make it to the cap on avg
+				var avg_period = avg_intertic_interval*2*level;
+				//(1-t_c)^a_p = .5 --> avg period == a_p
+				var tic_chance = 1 - Math.pow(0.50, 1/avg_period);
 				return Math.random() < tic_chance;
 			}
 			**[end_del:!ncr]**
@@ -143,11 +148,13 @@
 				};
 				xhr.send(reqBody);
 			}
-			function ticTrigger(){//Flash red. Sound a bell?
+			function ticTrigger(){
 				framesSince = 0;
 			  rate = 0;
+				**[del:!reg]**
 			  document.getElementById('counter_panel').setAttribute('style', 'background-color:red;');
 			  setTimeout(function(){document.getElementById('counter_panel').setAttribute('style', '');}, 1000);
+				**[end_del:!reg]**
 			}
 			function endS(){
 				if(!salido){

@@ -256,14 +256,15 @@ function ret_session_user(res, data){
 	aux.debugShout(data);
 	var del_obj = {
 		"ncr": false,
-		"none": false
+		"none": false,
+		"reg": false
 	};
-	if(data.RS == "NCR"){
+	if(data.RS == "NCR")
 		del_obj.ncr = true;
-	}
-	if(data.RS == "NONE"){
+	if(data.RS == "NONE")
 		del_obj.none = true;
-	}
+	if(data.RS == "REG")
+		del_obj.reg = true;
 	var dynd = {
 		"id": data.id,
 		"pw": data.pw,
@@ -274,6 +275,7 @@ function ret_session_user(res, data){
 		"sesL": data.sesL,
 		"heap": data.heap,
 		"RS": data.RS,
+		"aiti": data.aiti,
 		"del": del_obj
 	};
 	aux.dynamic("./session/session-user.dynh", dynd, function(page){

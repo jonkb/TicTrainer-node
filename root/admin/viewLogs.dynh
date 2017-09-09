@@ -32,7 +32,7 @@
 						<option value="-">Pick one</option>
 						<!--Filled in by script-->
 					</select>
-					<button class="btn" style="float: right; margin-top: .25rem;" onclick="reqLog('ses');">Reload</button>
+					<button class="btn" style="float: right; margin-top: .25rem;" onclick="load_ses_files(); reqLog('ses');">Reload</button>
 				</fieldset>
 			</form>
 			<div id="log_content">
@@ -41,30 +41,32 @@
     </section>
 		<script>
 			//Load a list of session log files for ses_option
-			var xhr = new XMLHttpRequest();
-			var url = '/admin/viewLogs.dynh';
-			var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&source=reqlist';
-			xhr.open('POST', url, true);
-			xhr.setRequestHeader('Content-type', 'text/plain');
-			xhr.onreadystatechange = function(){
-				if(xhr.readyState == 4){
-					if(xhr.status == 200){
-						var loglist = JSON.parse(xhr.responseText);
-						//text to fill ses_option
-						var optionHTML = "<option value='-'>Pick one</option>\n";
-						for(var i=0; i<loglist.length; i++){
-							optionHTML += "<option value='./session/archive/"+loglist[i]+"'>"+loglist[i]+"</option>";
+			function load_ses_files(){
+				var xhr = new XMLHttpRequest();
+				var url = '/admin/viewLogs.dynh';
+				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&source=reqlist';
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Content-type', 'text/plain');
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(xhr.status == 200){
+							var loglist = JSON.parse(xhr.responseText);
+							//text to fill ses_option
+							var optionHTML = "<option value='-'>Pick one</option>\n";
+							for(var i=0; i<loglist.length; i++){
+								optionHTML += "<option value='./session/archive/"+loglist[i]+"'>"+loglist[i]+"</option>";
+							}
+							document.getElementById('ses_option').innerHTML = optionHTML;
 						}
-						document.getElementById('ses_option').innerHTML = optionHTML;
+						else{
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
 					}
-					else{
-						document.open();
-						document.write(xhr.responseText);
-						document.close();
-					}
-				}
-			};
-			xhr.send(reqBody);
+				};
+				xhr.send(reqBody);
+			}
 			
 			/*Parse plain text from a .ttd file to a table.
 				.ttd files are organized like this: <~;~>\n<~;~;~>
@@ -177,6 +179,7 @@
 				return false;
 			}
 			
+			load_ses_files();
 			//Instead of using a submit button, 
 			//Send the request as soon as they pick an option.
 			document.getElementById('sys_option').onchange = function(){reqLog("sys");};
