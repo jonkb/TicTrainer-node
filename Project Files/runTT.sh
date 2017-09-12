@@ -1,4 +1,5 @@
 #!/bin/bash
+#This is not quite accurate now, so be careful and make needed tweaks before running
 
 resetting="true"
 
