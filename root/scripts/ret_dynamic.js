@@ -336,6 +336,11 @@ function ret_requested_file(res, pathN){
 		case ".html":
 			cType = "text/html";
 		break;
+		case ".dynh":
+			//Return the index of the current folder.
+			//DYNH files should not be requested by GET.
+			ret_redirect(res, "./index.html");
+			return;
 		case ".js":
 			cType = "text/javascript";
 		break;
@@ -400,6 +405,7 @@ function ret_requested_file(res, pathN){
 	}
 	else{
 		// Read the requested file content and send it
+		aux.debugShout("returning "+pathN+" which is of type "+cType, 3);
 		fs.readFile(pathN, function (err, data) {
 			if (err) {
 				// HTTP Status: 404 : NOT FOUND
@@ -413,7 +419,6 @@ function ret_requested_file(res, pathN){
 				});
 				return;
 			}
-			aux.debugShout("returning "+pathN+" which is of type "+cType, 3);
 			// HTTP Status: 200 : OK
 			res.writeHead(200, {"Content-Type": cType});	
 			// Write the content of the file to response body

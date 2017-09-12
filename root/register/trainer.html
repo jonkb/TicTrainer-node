@@ -60,8 +60,7 @@
 						y = "20"+y;
 					else
 						y = "19"+y;
-						
-						document.forms["addTrainer"]["birth"].value = y;
+					document.forms["addTrainer"]["birth"].value = y;
 				}
 				else if(y.length == 4){
 					if(parseInt(y) > now.getFullYear()){
@@ -74,6 +73,7 @@
 					return false;
 				}
 				if(now.getFullYear() - parseInt(y) > 89){
+					//Don't record ages older than 90
 					document.forms["addTrainer"]["birth"].value = now.getFullYear() - 90;
 				}
 				return true;

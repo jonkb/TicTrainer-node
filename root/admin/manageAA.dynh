@@ -93,7 +93,7 @@
 							}
 							var aa_pass = res_data[1];
 							document.getElementById("display_AA_ID").innerHTML = id;
-							document.getElementById("display_AA_pass").innerHTML = aa_pass;
+							document.getElementById("display_AA_pass").innerHTML = aa_pass;//==pw
 						}
 						else{
 							document.open();

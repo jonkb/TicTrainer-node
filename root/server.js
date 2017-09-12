@@ -1,12 +1,13 @@
 var https = require("https");
+var http = require("http");//For port 80 redirect server
+const PORT = 443;
 var fs = require("fs");
 var url = require("url");
 //Auxiliary functions stored in aux to make this file shorter
 var aux = require("./scripts/auxiliary.js");
-//Functions that return dynamic webpages. Always pass with res.
+//Functions that return dynamic webpages. Always pass with res as first arg.
 var ret = require("./scripts/ret_dynamic.js");
 var inventory = require("./scripts/store.js").inv;
-const PORT = 443;
 
 function handleRequest(req, res){
 	// Parse the request file name
@@ -38,25 +39,21 @@ function handleRequest(req, res){
 					
 					//Double check validation
 					if(!bD || !pass || !passC){
-						ret.error(res, "ife", "/register/trainer.html");
+						ret.error(res, "ife", pathname);
 						break;
 					}
 					if(isNaN(bD) || bD.length != 4){
-						ret.error(res, "dfe", "/register/trainer.html")
+						ret.error(res, "dfe", pathname);
 						break;
 					}
 					if(pass != passC){
-						ret.error(res, "pce", "/register/trainer.html");
+						ret.error(res, "pce", pathname);
 						break;
 					}
-					//Make sure these don't include ; or < or > - VITAL
+					//Make sure the plain text fields don't include ; or < or >
 					//Could allow semicolon now
-					if(/[<>;]/.test(pass)){
-						ret.error(res, "ice", "/register/trainer.html");//Invalid Character Error
-						break;
-					}
-					if(/[<>;]/.test(bD)){
-						ret.error(res, "ice", "/register/trainer.html");
+					if(/[<>;]/.test(pass+bD)){
+						ret.error(res, "ice", pathname);//Invalid Character Error
 						break;
 					}
 					//Get the next available iD number
@@ -69,7 +66,7 @@ function handleRequest(req, res){
 						var tData = aux.newT(ID,pass,bD);
 						fs.writeFile(newTFile, tData, function(err){
 							if(err)
-								ret.error(res, "fe", "/register/user.html", "register-user: write newUFile");
+								ret.error(res, "fe", pathname, "register-trainer: write newTFile");
 							else
 								ret.created(res, tData);
 						});
@@ -83,39 +80,35 @@ function handleRequest(req, res){
 					
 					//Double check validation
 					if(sex != "M" && sex != "F"){
-						ret.error(res, "ife", "/register/user.html");
+						ret.error(res, "ife", pathname);
 						break;
 					}
 					if(isNaN(bD)){//catches undefined 
-						ret.error(res, "dfe", "/register/user.html");
+						ret.error(res, "dfe", pathname);
 						//I could check and do it anyway if they submitted month and year, but why be that courteous
 						break;
 					}
 					if(pass != passC){
-						ret.error(res, "pce", "/register/user.html");
+						ret.error(res, "pce", pathname);
 						break;
 					}
-					//Make sure these don't include ; or < or > - VITAL
+					//Make sure these don't include ; or < or >
 					//Could allow semicolon now
-					if(/[<>;]/.test(pass)){
-						ret.error(res, "ice", "/register/trainer.html");//Invalid Character Error
-						break;
-					}
-					if(/[<>;]/.test(bD)){
-						ret.error(res, "ice", "/register/trainer.html");
+					if(/[<>;]/.test(pass+bD)){
+						ret.error(res, "ice", pathname);//Invalid Character Error
 						break;
 					}
 					
 					aux.getNextID("u", function(err, ID){
 						if(err){
-							ret.error(res, "fe", "/register/user.html", "register-user: getNextID");
+							ret.error(res, "fe", pathname, "register-user: getNextID");
 							return;
 						}
 						var newUFile = "./account/user_data/"+ID+".ttad";
 						var uData = aux.newU(ID,pass,bD,sex);
 						fs.writeFile(newUFile, uData, function(err){
 							if(err)
-								ret.error(res, "fe", "/register/user.html", "register-user: write newUFile");
+								ret.error(res, "fe", pathname, "register-user: write newUFile");
 							else
 								ret.created(res, uData);
 						});
@@ -129,7 +122,7 @@ function handleRequest(req, res){
 							case "ice":
 							case "pce":
 							case "anfe":
-								ret.error(res, data, "/account/index.html");
+								ret.error(res, data, pathname);
 							break;
 							
 							default:
@@ -140,6 +133,7 @@ function handleRequest(req, res){
 					switch(body.source){
 						case "manageAccount"://Log on page
 						aux.debugShout("141", 2);
+						//loadAcc tests for ide
 						aux.loadAcc(body.id, function(err,user){
 							aux.debugShout("143", 2);
 							if(err){
@@ -148,9 +142,10 @@ function handleRequest(req, res){
 							}
 							if(user[1] == body.pw)
 								acc_ret(user);
-							else
+							else{
 								acc_ret("pce");
-								aux.debugShout("152", 2);
+								aux.debugShout("147", 2);
+							}
 						});
 						break;
 						case "editP"://Source: editP, id, oldPass, pass
@@ -163,14 +158,14 @@ function handleRequest(req, res){
 							}
 							
 							aux.debugShout("Editing "+iD, 1);
-							aux.editAcc(iD, 1, function(dEntry){//return new PW
+							aux.editAcc(iD, 1, function(dEntry){
 								if(dEntry[1] !== opw){
-									aux.debugShout("160|" + dEntry[1] + "|" + opw + "|" + pw);
+									aux.debugShout("163|" + dEntry[1] + "|" + opw + "|" + pw);
 									acc_ret("pce");
 									return "<cancel>";
 								}
 								return pw;
-							}, function(err, dEntry){//callback
+							}, function(err, dEntry){
 								if(err){
 									if(err != "canceled"){
 										if(dEntry)
@@ -193,19 +188,17 @@ function handleRequest(req, res){
 								acc_ret("ide");
 								break;
 							}
-							if(iD[0] == "t"){
-								lFile += "user_data/"+lID+".ttad";
-							}
-							else if(iD[0] == "u"){
-								lFile += "trainer_data/"+lID+".ttad";
-							}
+							if(iD[0] == "t")
+								lFile += "user_data/";
+							else if(iD[0] == "u")
+								lFile += "trainer_data/";
+							lFile += lID+".ttad";
 							
 							aux.debugShout("Linking " + lID + " to " + iD, 1);
 							//Check that the other account exists
 							fs.stat(lFile, function(err, stat){
 								if(err == null) {
 									//Link to the account
-									//addL
 									aux.editAcc(iD, 3, function(dEntry){
 										if(dEntry[1] !== body.pw){
 											acc_ret("pce");
@@ -251,9 +244,8 @@ function handleRequest(req, res){
 				break;
 				//Start of session-related URLs
 				case "/session/index.html":
-					/**handle form submission for new session
-					verify password, 
-					check that accounts are linked,
+					/**handle form submission for new session. Overview:
+					verify password, check that accounts are linked,
 					(if user) add id to lnusers.ttd,
 						[loading page]set timer to look for session file every 2s for 1m -->
 						[link successful page]set timer to look for "session started" every 2s for 1m -->
@@ -263,12 +255,10 @@ function handleRequest(req, res){
 						[start page]create session data file, show Start button --> 
 							[session control page]Append "session started at"+, show Tic Detected & Stop Session butttons
 					 */
-					 
-					var pass = body.pw;
 					
 					body.id = aux.isID(body.id);
 					body.lid = aux.isID(body.lid);
-					if(body.id === false || body.lid === false){
+					if(body.id === false || body.lid === false || body.id[0] == "a" || body.lid[0] == "a"){
 						ret.error(res, "ide", "/session/index.html");
 						break;
 					}
@@ -280,20 +270,13 @@ function handleRequest(req, res){
 							ret.error(res, err);
 							return;
 						}
-						if(aData[1] != pass){
+						if(aData[1] != body.pw){
 							//Password Confirmation Error
 							ret.error(res, "pce", "/session/index.html");
 							return;
 						}
-						var found = false;
 						var lnAcc = aData[3].split(",");
-						for(i=0; i<lnAcc.length; i++){
-							if(lnAcc[i] == body.lid){
-								found = true;
-								break;
-							}
-						}
-						if(!found){
+						if(lnAcc.indexOf(body.lid) < 0){
 							//Account not linked error
 							ret.error(res, "anle", "/session/index.html");
 						}
@@ -308,7 +291,8 @@ function handleRequest(req, res){
 								fs.stat(oldSFile, function(err){
 									if(err){
 										if(err.code == "ENOENT"){//Does not exist. Good.
-											//Go to trainer loading page. (Again, a new function is used to decrease indentation insanity. It is reused though, so it makes sense.)
+											//Go to trainer loading page. 
+											//A new function is used here to decrease indentation insanity. It is reused though, so it makes sense.
 											success();
 										}
 										else
@@ -748,7 +732,7 @@ function handleRequest(req, res){
 					body.tid = aux.isID(body.tid);
 					body.uid = aux.isID(body.uid);
 					if(body.tid === false || body.uid === false){
-						ret.error(res, "ide", "/error/ghses.html");
+						ret.error(res, "ide", pathname);
 						break;
 					}
 					
@@ -769,7 +753,7 @@ function handleRequest(req, res){
 									ret.redirect(res, "/session/index.html");
 								}
 								else{
-									ret.error(res, "fe", "/error/ghses.html", "ghost session: looking at ghost session file");
+									ret.error(res, "fe", pathname, "ghost session: looking at ghost session file");
 								}
 							}
 							else{//legit ghost file
@@ -777,18 +761,18 @@ function handleRequest(req, res){
 								var sF2 = "./session/archive/session" + body.tid + body.uid + aux.time("forfile") + ".ttsd";
 								fs.rename(sesFile, sF2, function(err){
 									if(err){
-										ret.error(res, "fe", "/error/ghses.html", "ghost session: rename sesFile");
+										ret.error(res, "fe", pathname, "ghost session: rename sesFile");
 									}
 									else{
 										/**append report*/
 										fs.readFile(sF2, "utf8", function(err, data){
 											if(err){
-												ret.error(res, "fe", "/error/ghses.html", "ghost session: read sf2");
+												ret.error(res, "fe", pathname, "ghost session: read sf2");
 												return;
 											}
 											fs.appendFile(sF2, aux.genReport(data), function(err){
 												if(err)
-													ret.error(res, "fe", "/error/ghses.html", "ghost session: append report");
+													ret.error(res, "fe", pathname, "ghost session: append report");
 												else{
 													ret.redirect(res, "/session/index.html");
 													aux.log_error("ghost session", "ghost session archived between "+body.tid+" and "+body.uid);
@@ -802,6 +786,11 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/admin/index.html":
+					if(body.id[0] != "a"){
+						//No need to be courteous with a return address for the hackers
+						ret.error(res, "ide");
+						return;
+					}
 					aux.loadAcc(body.id, function(err, acc){
 						if(err){
 							ret.error(res, err, "/admin/index.html");
@@ -815,6 +804,10 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/admin/interface.dynh":
+					if(body.id[0] != "a"){
+						ret.error(res, "ide");
+						return;
+					}
 					aux.loadAcc(body.id, function(err, acc){
 						if(err){
 							ret.error(res, err, "/admin/index.html");
@@ -838,6 +831,10 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/admin/manageRU.dynh":
+					if(body.admin_id[0] != "a" || body.id[0] != "u"){
+						ret.error(res, "ide");
+						return;
+					}
 					switch(body.source){
 						case "load_user_data":
 							/*1. check admin pass 
@@ -907,6 +904,10 @@ function handleRequest(req, res){
 				case "/admin/manageAA.dynh":
 					switch(body.source){
 						case "load_user_data":
+							if(body.admin_id[0] != "a" || body.id[0] != "a"){
+								ret.error(res, "ide");
+								return;
+							}
 							/*1. check admin pass 
 								2. check aa pass
 								3. return aa pass
@@ -938,6 +939,10 @@ function handleRequest(req, res){
 							});
 						break;
 						case "change_pw":
+							if(body.admin_id[0] != "a" || body.id[0] != "a"){
+								ret.error(res, "ide");
+								return;
+							}
 							//Make sure pw doesn't include ; or < or > - VITAL
 							//Could allow semicolon now
 							if(/[<>;]/.test(body.pw)){
@@ -975,6 +980,10 @@ function handleRequest(req, res){
 							});
 						break;
 						case "register":
+							if(body.admin_id[0] != "a"){
+								ret.error(res, "ide");
+								return;
+							}
 							//Make sure pw doesn't include ; or < or > - VITAL
 							//Could allow semicolon now
 							if(/[<>;]/.test(body.pw)){
@@ -1016,6 +1025,10 @@ function handleRequest(req, res){
 					}
 				break;
 				case "/admin/viewLogs.dynh":
+					if(body.admin_id[0] != "a"){
+						ret.error(res, "ide");
+						return;
+					}
 					switch(body.source){
 						case "reqlist":
 							/*Authenticate
@@ -1090,44 +1103,47 @@ function handleRequest(req, res){
 							//verify form
 							body.id = aux.isID(body.id);
 							if(body.id === false || body.id[0] !== "u"){
-								ret.error(res, "ide", "/session/index.html");
+								ret.error(res, "ide", pathname);
 								break;
 							}
 							aux.loadAcc(body.id, function(err,user){
 								if(err){
-									ret.error(res, err);//anfe
+									ret.error(res, err, pathname);//anfe
 									return;
 								}
 								if(body.pw != user[1]){
-									ret.error(res, "pce", "/account/store/index.html");
+									ret.error(res, "pce", pathname);
 									return;
 								}
 								body.coins = user[5].split(",")[2];
 								body.heap = user[6];
-								aux.debugShout("1162 "+JSON.stringify(body), 3);
+								aux.debugShout("1099 "+JSON.stringify(body), 3);
 								ret.store(res, body);
 							});
 						break;
 						case "buy":
 							body.id = aux.isID(body.id);
 							if(body.id === false || body.id[0] !== "u"){
-								ret.error(res, "ide");
+								ret.error(res, "ide", pathname);
 								break;
 							}
-							if(isNaN(inventory[body.item])){//is not in inventory(may give a false positive)
-								ret.error(res, "ife");//I'm ok with this because it would only be triggered by hackers, who I feel no need to be courteous to
+							if(isNaN(inventory[body.item])){
+								//Is not in inventory(may give a false positive)
+								//I'm ok with this because it would only be triggered by hackers, 
+								//who I feel no need to be courteous to
+								ret.error(res, "ife", pathname);
 								break;
 							}
 							//Subtract the needed coins
 							aux.editAcc(body.id, 5, function(uData){
-								//Again, these really should have been caught client-side
+								//Again, these really should have been caught earlier
 								if(uData[1] !== body.pw){
-									ret.error(res, "pce");
+									ret.error(res, "pce", pathname);
 									return "<cancel>";
 								}
 								var lpc = uData[5].split(",");
 								if(lpc[2] < inventory[body.item]){
-									ret.error(res, "ife");
+									ret.error(res, "ife", pathname);//Not really the right error code
 									return "<cancel>";
 								}
 								var newlpc = lpc[0]+ "," +lpc[1]+ "," +(lpc[2]-inventory[body.item]);
@@ -1137,7 +1153,7 @@ function handleRequest(req, res){
 									if(err !== "canceled"){
 										if(uData)
 											aux.debugShout("1217 "+uData);
-										ret.error(res, err);
+										ret.error(res, err, pathname);
 									}
 									return;//already returned - ret.error
 								}
@@ -1147,21 +1163,21 @@ function handleRequest(req, res){
 									if(err){
 										if(uData)
 											aux.debugShout("1204 "+uData);
-										ret.error(res, err);
+										ret.error(res, err, pathname);
 										return;//already returned - ret.error
 									}
 									//Fix the body object to send back to the store page
 									var lpc = uData[5].split(",");
 									body.coins = lpc[2];
 									body.heap = uData[6];
-									aux.debugShout("1212 "+JSON.stringify(body), 3);
+									aux.debugShout("1153 "+JSON.stringify(body), 3);
 									ret.store(res, body);
 								});
 							});
 						break;
 					}
 				break;//store
-			}
+			}//pathname switch
 		});
 	}//POST
 	else{
@@ -1169,42 +1185,28 @@ function handleRequest(req, res){
 	}
 }
 
-/* NOTE!!!
-	THE FOLLOWING HAS BEEN MODIFIED TO REVERT TO HTTP ON PORT 8888 FOR TESTING.
-	CHANGE IT BACK BEFORE MERGING BACK TO MASTER
-*/
+//TEMPORARY SERVER FOR TESTING
+var server = http.createServer(handleRequest);
+server.listen(8888);
+
+/*COMMENTED OUT FOR TESTING
 
 //Set up redirect server to run on port 80
-var http = require("http");
-
-/*
 var server_80 = http.createServer(function(req, res){
-	ret.redirect(res, "https://tictrainer.com:443");
-})//.listen(80);
+	res.writeHead(301, {"Location": "https://tictrainer.com:443"});
+	res.end();
+}).listen(80);
 
-
+//Set up main https server
 const options = {
 	key: fs.readFileSync("/etc/letsencrypt/live/tictrainer.com/privkey.pem"),
 	cert: fs.readFileSync("/etc/letsencrypt/live/tictrainer.com/fullchain.pem")
 };
-
 //Create server using handleRequest
 var server = https.createServer(options, handleRequest);
-
 //Start server
 server.listen(PORT, function(){
-	//Callback triggered when server is successfully listening.
 	console.log("Started at "+aux.time());
 	console.log("Server listening on: https://localhost:" + PORT);
 });
 */
-
-//Create server using handleRequest
-var server = http.createServer(handleRequest);
-
-//Start server
-server.listen(8888, function(){
-	//Callback triggered when server is successfully listening.
-	console.log("Started at "+aux.time());
-	console.log("Server listening on: http://localhost:" + 8888);
-});
