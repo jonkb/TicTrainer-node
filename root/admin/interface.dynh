@@ -15,9 +15,11 @@
 		</section>
 		<section class='main-content' id='mainC'>
 			<!--Add Admin?-->
-			<button class='bigBtn' onclick="next('MRU')">Manage Research Users</button>
-			<button class='bigBtn' onclick="next('MAA')">Manage Admin Accounts</button>
-			<button class='bigBtn' onclick="next('VL')">View Logs</button>
+			<p style='text-align:center;'>
+				<button class='bigBtn' onclick="next('MRU')">Manage Research Users</button>
+				<button class='bigBtn' onclick="next('MAA')">Manage Admin Accounts</button>
+				<button class='bigBtn' onclick="next('VL')">View Logs</button>
+			</p>
 		</section>
 		<script>
 			function next(target){

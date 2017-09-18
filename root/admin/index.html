@@ -30,6 +30,7 @@
 		<script>
 			function checkForm(){
 				var id = document.forms["admin_login"]["id"].value.toLowerCase();
+				document.forms["admin_login"]["id"].value = id;
 				if(id[0] != "a" || id.length < 2){
 					alert("Invalid ID");
 					return false;

@@ -1,6 +1,5 @@
 To Do: (priority,difficulty) (0-5,0-5) 
 IN PROGRESS:
-- Why does session-user.check include all the user's data in the request?
 
 FUNCTIONAL:
 -(3,1) Maybe make the ghost session thing automatic.

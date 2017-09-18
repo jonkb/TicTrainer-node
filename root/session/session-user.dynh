@@ -87,7 +87,8 @@
 			function frame(){
 				var xhr = new XMLHttpRequest();
 				var url = '/session/session-user.dynh';
-				var reqBody = 'reqType=check&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&sesL='+lastL;
+				//Needed: reqType, id, lid, sesL
+				var reqBody = 'reqType=check&id=**[id]**&lid=**[lid]**&sesL='+lastL;
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');//'application/x-www-form-urlencoded'
 				xhr.onreadystatechange = function(){
@@ -160,7 +161,7 @@
 				if(!salido){
 					var xhr = new XMLHttpRequest();
 					var url = '/session/session-user.dynh'
-					//source,id,pw,lid,level,points
+					//Needed: reqType, id, lid, l, p, c, pw
 					var reqBody = 'reqType=end&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
 					xhr.open('POST', url, true);
 					xhr.onreadystatechange = function(){
@@ -198,7 +199,7 @@
 			function loglpc(){
 				var xhr = new XMLHttpRequest();
 				var url = '/session/session-user.dynh'
-				//source,id,pw,lid,level,points
+				//Needed: reqType, id, pw, lid, l, p, c
 				var reqBody = 'reqType=loglpc&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
 				xhr.open('POST', url, true);
 				xhr.onreadystatechange = function(){
