@@ -1186,14 +1186,14 @@ function handleRequest(req, res){
 }
 
 //TEMPORARY SERVER FOR TESTING
-var server = http.createServer(handleRequest);
-server.listen(8888);
+//var server = http.createServer(handleRequest);
+//server.listen(8888);
 
-/*COMMENTED OUT FOR TESTING
+//COMMENT OUT LINES BELOW FOR TESTING
 
 //Set up redirect server to run on port 80
 var server_80 = http.createServer(function(req, res){
-	res.writeHead(301, {"Location": "https://tictrainer.com:443"});
+	res.writeHead(301, {"Location": "https://tictrainer.com:"+PORT});
 	res.end();
 }).listen(80);
 
@@ -1209,4 +1209,4 @@ server.listen(PORT, function(){
 	console.log("Started at "+aux.time());
 	console.log("Server listening on: https://localhost:" + PORT);
 });
-*/
+

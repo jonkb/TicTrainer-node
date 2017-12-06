@@ -23,3 +23,9 @@
 <ghost session;2017-09-08T01:08:39.702Z;ghost session archived between t1 and u1>
 <conses;2017-09-08T01:10:10.189Z;new-session: concurrent/ghost session>
 <ghost session;2017-09-08T01:10:16.034Z;ghost session archived between t1 and u1>
+<fe;2017-12-06T19:12:26.476Z;linkloading-user: where did the lnusers entry go?>
+<conses;2017-12-06T19:12:43.824Z;new-session: concurrent/ghost session>
+<conses;2017-12-06T19:12:56.384Z;new-session: concurrent/ghost session>
+<conses;2017-12-06T19:13:06.293Z;new-session: concurrent/ghost session>
+<ghost session;2017-12-06T19:13:12.575Z;ghost session archived between t6 and u8>
+<fe;2017-12-06T19:13:29.696Z;linkloading-user: where did the lnusers entry go?>
