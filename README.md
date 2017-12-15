@@ -21,4 +21,3 @@ It was built to implement the RE-ERP strategy developed by Kevin Black (see draf
 4. Make sure the domain name is linked to the server's IP
 	- AWS elastic IPs help with this.
 	- (From godaddy.com) link the domain name (_e.g._ TicTrainer.com) to the IP address of the server. 
-.
