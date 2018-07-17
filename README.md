@@ -2,7 +2,7 @@
 
 This project contains the files used to serve TicTrainer™ via node.js. 
 TicTrainer™ is a web tool meant to help people build their ability to fight their tics. 
-It was built to implement the RE-ERP strategy developed by Kevin Black (see draft description [here](https://www.authorea.com/users/4510/articles/174766-software-for-web-based-tic-suppression-training/_show_article)).
+It was built to implement the RE-ERP strategy proposed by Kevin Black (see description [here](http://dx.doi.org/10.12688/f1000research.13460.1)).
 
 ## Starting the server
 1. Download the repository to the server
