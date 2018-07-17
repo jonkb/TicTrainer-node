@@ -328,3 +328,29 @@ footer {
 		line-height: 3rem;
 	}
 }
+
+/*I should make this conditional on screen size, too, but for now ...:*/
+/* thanks https://stackoverflow.com/questions/41654751/html-table-column-width-percentage */
+table {
+  width: 100%;
+  table-layout: fixed;
+  /* border: 1px solid rgb(100, 100, 100); */
+  border: 0px;
+  vertical-align: top;  /* ? */
+}
+td,
+th {
+	border: 0px;
+}
+th {
+	text-align: center;
+}
+td {
+    text-align: left;
+}
+.helppix {
+  width: 45%;
+}
+.helpgap {
+  width: 10%;
+}
