@@ -336,21 +336,19 @@ table {
   table-layout: fixed;
   /* border: 1px solid rgb(100, 100, 100); */
   border: 0px;
-  vertical-align: top;  /* ? */
+  vertical-align: top;  /* deprecated? */
 }
 td,
 th {
 	border: 0px;
-}
-th {
-	text-align: center;
-}
-td {
     text-align: left;
 }
+td {
+	vertical-align: top; 
+}
 .helppix {
-  width: 45%;
+  width: 48%;
 }
 .helpgap {
-  width: 10%;
+  width: 4%;
 }
