@@ -18,7 +18,7 @@ if [ $(whoami) = root ] ; then
 		rm session/archive/*.ttsd
 	fi
 	#actually start it now
-	nohup node server.js &> ../"Project Files"/log.txt &
+	nohup node server.js &> ../"Project_Files"/log.txt &
 else
 	echo Script $0 needs to be run as root.
 fi

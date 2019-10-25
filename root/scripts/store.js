@@ -8,26 +8,27 @@ const inventory = {"b":10,
 */
 module.exports = {"inv": inventory};
 
-/**Fills a div with the given medals. heap is of format: "gsgsbgbbbss"
+/**Fills a div with the given medals. 
+	heap is a string made of the 1-letter codes for the medals (eg. "gsgsbgbbbss")
 	Also, the document needs a div with id "heap"
 */
 function genHeap(heap){
-	var heap2 = {};//convert to object
-	var heap3 = "";//convert to html
-	for(var i = 0; i< heap.length; i++){
-		if(heap2[heap[i]] != null)
-			heap2[heap[i]]++;
+	var heap_obj = {};
+	var heap_html = "";
+	for(var i = 0; i < heap.length; i++){
+		if(heap_obj[heap[i]] != null)
+			heap_obj[heap[i]]++;
 		else
-			heap2[heap[i]] = 1;
+			heap_obj[heap[i]] = 1;
 	}
-	for(var i = 0; i< heap2.g; i++){
-		heap3 += "<div class='sticker'><img src='/media/gold.svg' alt='Gold' height='150px'></div>";
+	for(var i = 0; i < heap_obj.g; i++){
+		heap_html += "<div class='sticker'><img src='/media/gold.svg' alt='Gold' height='150px'></div>";
 	}
-	for(var i = 0; i< heap2.s; i++){
-		heap3 += "<div class='sticker'><img src='/media/silver.svg' alt='Silver' height='150px'></div>";
+	for(var i = 0; i < heap_obj.s; i++){
+		heap_html += "<div class='sticker'><img src='/media/silver.svg' alt='Silver' height='150px'></div>";
 	}
-	for(var i = 0; i< heap2.b; i++){
-		heap3 += "<div class='sticker'><img src='/media/bronze.svg' alt='Bronze' height='150px'></div>";
+	for(var i = 0; i < heap_obj.b; i++){
+		heap_html += "<div class='sticker'><img src='/media/bronze.svg' alt='Bronze' height='150px'></div>";
 	}
-	document.getElementById("heap").innerHTML = heap3;
+	document.getElementById("heap").innerHTML = heap_html;
 }
