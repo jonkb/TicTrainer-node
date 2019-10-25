@@ -103,13 +103,13 @@
 								if(fields[i] == 'end') end++;
 							}
 							if(end == 0){
-								**[del:none]**
+								**[del:none]**//If reward scheme is none, delete this block of code
 								//Alternatively, I could keep the red flash (ticTrigger) for NONE.
-								**[del:ncr]**
+								**[del:ncr]**//If reward scheme is ncr, delete the traditional reward scheme
 								//Standard reward scheme
 								if(tic == 0)
 								**[end_del:ncr]**
-								**[del:!ncr]**
+								**[del:!ncr]**//Delete this unless it's ncr
 								//Alternative reward scheme
 								//Uses the random ticcer
 								if(!ncr_tic())
