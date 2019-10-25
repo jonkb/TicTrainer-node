@@ -57,10 +57,11 @@
 			}
 			
 			const flash_red = false;
+			const points_to_first_level = 300;
 			const starting_ms_per_reward = 3000;
 			const mspf = 500;//ms per frame. fps=2.
 			var framesSince = 0;
-			var nextLevel = 300*level*level;
+			var nextLevel = points_to_first_level*level*level;
 			var cap = 10*level*level;
 			var rate = 0;
 			//Last recorded length of the session file. Used to determine if the file has changed.
@@ -181,9 +182,9 @@
 			function levelUp(){
 				level++;
 				points -= nextLevel;
-				coins += nextLevel/1000;
+				coins += nextLevel/points_to_first_level;
 				loglpc();
-				nextLevel = 1000*level*level;
+				nextLevel = points_to_first_level*level*level;
 				cap = 10*level*level;
 				//Flash green (this green is 10% lighter than the green in the page header)
 			  document.getElementById('counter_panel').setAttribute('style', 'background-color:#1fe080');

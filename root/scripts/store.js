@@ -1,5 +1,5 @@
-const inventory = {"b":10,
-	"s":50,
+const inventory = {"b":5,
+	"s":30,
 	"g":100};
 
 /*Throws an error when loaded by the browser, 
