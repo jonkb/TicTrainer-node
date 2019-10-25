@@ -14,7 +14,7 @@ It was built to implement the RE-ERP strategy proposed by Kevin Black (see descr
 3. Start the server
 	- (obviously node.js needs to be installed)
 	- Run it from the .../root/ directory!
-	- .../root$ sudo nohup node server.js &> ../"Project Files"/log.txt
+	- .../root$ sudo nohup node server.js &> ../"Project_Files"/log.txt
 	- "nohup" lets the server continue running after closing the ssh session
 	- "&>" pipes error and regular output to log.txt
 	- It needs to be run as root to use ports 80 and 443
