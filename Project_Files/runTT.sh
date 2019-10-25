@@ -1,12 +1,14 @@
 #!/bin/bash
-#This is not quite accurate now, so be careful and make needed tweaks before running
+#Not very polished yet
+#For now, must be run from within the directory [Tt]/root/
+#Example: > sudo ../Project_Files/runTT.sh
 
-resetting="true"
+#Do you want to delete the account data and archives?
+resetting="false"
 
 if [ $(whoami) = root ] ; then
-	cd ~/TicTrainer-node/root
 	#set PORT
-	ex +'/const\ PORT/s/8888/80' -cwq server.js
+	#ex +'/const\ PORT/s/8888/80' -cwq server.js
 	#set debugging
 	ex +'/const\ debugging/s/[[:digit:]]/0' -cwq scripts/auxiliary.js
 	if [ $resetting = "true" ] ; then
@@ -17,7 +19,7 @@ if [ $(whoami) = root ] ; then
 		rm accounts/trainer_data/*.ttad
 		rm session/archive/*.ttsd
 	fi
-	#actually start it now
+	#start the server
 	nohup node server.js &> ../"Project_Files"/log.txt &
 else
 	echo Script $0 needs to be run as root.
