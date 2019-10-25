@@ -2,6 +2,8 @@ var fs = require("fs");
 
 //depth of debugging: 0(none), 1, 2, 3
 const debugging = 2;
+//How many points to finish the first level. Must also change in session-user.dynh
+const points_to_first_level = 300;
 
 /**Exported Functions
 */
@@ -519,7 +521,7 @@ function genReport(data){
 			Add those subtracted points to the point total.
 		*/
 		for(var i = initL; i<endL; i++){
-			endP += 1000*i*i;//1000L^2 = nextLevel
+			endP += points_to_first_level*i*i;//300L^2 = nextLevel
 		}
 	}
 	if(tics == 0){

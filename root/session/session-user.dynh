@@ -42,7 +42,7 @@
 			if(window.history.pushState)
 				window.history.pushState("", "Session: User", "/session/session-user.dynh");
 		
-			var salido = false;//salido -sp- left
+			var already_left = false;
 			window.onbeforeunload = endS;
 			window.onpagehide = endS;
 			//document.addEventListener('visibilitychange', function(){if(document.hidden){endS();}}, false);
@@ -56,9 +56,11 @@
 				alert('It appears to be your first session. Try not to tic.');
 			}
 			
+			const flash_red = false;
+			const starting_ms_per_reward = 3000;
 			const mspf = 500;//ms per frame. fps=2.
 			var framesSince = 0;
-			var nextLevel = 1000*level*level;
+			var nextLevel = 300*level*level;
 			var cap = 10*level*level;
 			var rate = 0;
 			//Last recorded length of the session file. Used to determine if the file has changed.
@@ -74,7 +76,7 @@
 			function ncr_tic(){
 				//On average, how many frames pass between tics
 				//The 10 means people make it to the cap on avg
-				var avg_period = avg_intertic_interval*2*level;
+				var avg_period = avg_intertic_interval*level/mspf;
 				//(1-t_c)^a_p = .5 --> avg period == a_p
 				var tic_chance = 1 - Math.pow(0.50, 1/avg_period);
 				return Math.random() < tic_chance;
@@ -104,7 +106,6 @@
 							}
 							if(end == 0){
 								**[del:none]**//If reward scheme is none, delete this block of code
-								//Alternatively, I could keep the red flash (ticTrigger) for NONE.
 								**[del:ncr]**//If reward scheme is ncr, delete the traditional reward scheme
 								//Standard reward scheme
 								if(tic == 0)
@@ -116,7 +117,7 @@
 								**[end_del:!ncr]**
 								{
 									framesSince++;
-									if(framesSince >= (level * 1000 / mspf)){
+									if(framesSince >= (level * starting_ms_per_reward / mspf)){
 										// Now, (level) seconds have passed since the last reward/tic, so it is time to increment rate and give reward
 										framesSince = 0;
 										if(rate < cap){
@@ -153,12 +154,14 @@
 				framesSince = 0;
 			  rate = 0;
 				**[del:!reg]**
-			  document.getElementById('counter_panel').setAttribute('style', 'background-color:red;');
-			  setTimeout(function(){document.getElementById('counter_panel').setAttribute('style', '');}, 1000);
+				if(flash_red){
+					document.getElementById('counter_panel').setAttribute('style', 'background-color:red;');
+					setTimeout(function(){document.getElementById('counter_panel').setAttribute('style', '');}, 1000);
+				}
 				**[end_del:!reg]**
 			}
 			function endS(){
-				if(!salido){
+				if(!already_left){
 					var xhr = new XMLHttpRequest();
 					var url = '/session/session-user.dynh'
 					//Needed: reqType, id, lid, l, p, c, pw
@@ -172,7 +175,7 @@
 						}
 					}
 					xhr.send(reqBody);
-					salido = true;
+					already_left = true;
 				}
 			}
 			function levelUp(){
