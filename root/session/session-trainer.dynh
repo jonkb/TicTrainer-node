@@ -81,16 +81,16 @@
 				var reqBody = '&id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=tic';
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){//just check that everything is fine
-						if(xhr.status != 200){
-							var errP = xhr.responseText;
+						var response = xhr.responseText;
+						if(xhr.status != 200){//Error
 							document.open();
-							document.write(errP);
+							document.write(response);
 							document.close();
 						}
 						else{
-							if(xhr.responseText != 'good'){//end page
+							if(response != 'good'){//end page
 								document.open();
-								document.write(xhr.responseText);
+								document.write(response);
 								document.close();
 							}
 						}
@@ -106,8 +106,9 @@
 					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=end';
 					xhr.onreadystatechange = function(){
 						if(xhr.readyState == 4){//just check that everything is fine
+							var response = xhr.responseText;
 							document.open();
-							document.write(xhr.responseText);
+							document.write(response);
 							document.close();
 						}
 					};
