@@ -143,8 +143,9 @@
 							else{ endS(); }
 						}
 						else{//For an Error Page
+							var response = xhr.responseText;
 							document.open();
-							document.write(xhr.responseText);
+							document.write(response);
 							document.close();
 						}//ERROR
 					}
@@ -170,8 +171,9 @@
 					xhr.open('POST', url, true);
 					xhr.onreadystatechange = function(){
 						if(xhr.readyState == 4){
+							var response = xhr.responseText;
 							document.open();
-							document.write(xhr.responseText);
+							document.write(response);
 							document.close();
 						}
 					}
@@ -209,8 +211,9 @@
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
 						if(xhr.status != 200){//Display Error Page
+							var response = xhr.responseText;
 							document.open();
-							document.write(xhr.responseText);
+							document.write(response);
 							document.close();
 						}
 					}

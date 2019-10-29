@@ -19,7 +19,7 @@
 
     <section class="main-content">
       <!--FORM-->
-      <form method="POST" name="addUser" onsubmit="return checkForm();">
+      <form method="POST" name="addUser" onsubmit="return checkForm();" id="addUserForm">
 				<input type="hidden" name="birth" value="-">
         <fieldset>
           <legend>New Account</legend>
@@ -55,6 +55,18 @@
 		<script>
 			function checkForm() {
 				var s = document.forms["addUser"]["sex"].value;
+				if(!s){
+					//Patch for microsoft browsers; they don't deal well with radio elements.
+					var elements = document.getElementById('addUserForm').elements;
+					var i = 0;
+					while(i < elements.length && !s){
+						if(elements[i].name == "sex"){
+							if(elements[i].checked)
+								s = elements[i].value;
+						}
+						i++;
+					}
+				}
 				var m = document.forms["addUser"]["month"].value;
 				var y = document.forms["addUser"]["year"].value;
 				var pw = document.forms["addUser"]["pw"].value;
@@ -97,7 +109,7 @@
 					alert("Invalid year");
 					return false;
 				}
-				//Don't record age if someone is older than 90
+				//If someone is older than 90, just store 90
 				if(now.getFullYear() - parseInt(y) > 89){
 					y = now.getFullYear() - 90;
 				}

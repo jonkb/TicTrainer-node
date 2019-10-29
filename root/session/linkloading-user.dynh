@@ -42,8 +42,9 @@
 								setTimeout(look, 2000);//loop
 							}
 							else{
+								var response = xhr.responseText;
 								document.open();
-								document.write(xhr.responseText);
+								document.write(response);
 								document.close();
 							}
 						}
@@ -59,8 +60,9 @@
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){
 						if(xhr.readyState == 4){
+							var response = xhr.responseText;
 							document.open();
-							document.write(xhr.responseText);
+							document.write(response);
 							document.close();
 						}
 					};
