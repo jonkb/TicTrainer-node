@@ -409,15 +409,15 @@ function getNextID(type, callback){
 /**Generates the content for a new user file
 */
 function newU(id, pass, bd, sex){
-	var s = open_char +	id		+ close_char + "\n";
-		s += 	open_char +	pass	+ close_char + "\n";
-		s += 	open_char +	bd		+ close_char + "\n";
-		s += 	open_char			+			close_char + "\n";//links
-		s += 	open_char +	sex		+ close_char + "\n";
-		s += 	open_char +"0,0,0"+ close_char + "\n";//level,points,coins
-		s += 	open_char 		+			close_char + "\n";//store-bought items
-		s += 	open_char +	"REG"	+	close_char + "\n";//research_state
-		s += 	open_char +	"10"	+	close_char + "\n";//avg intertic interval for ncr
+	var s = "ID:" + 								open_char +	id		+ close_char + "\n";
+		s += 	"PASSWORD:" + 					open_char +	pass	+ close_char + "\n";
+		s += 	"BIRTH DATE:" +					open_char +	bd		+ close_char + "\n";
+		s += 	"LINKED TRAINERS:" + 		open_char			+			close_char + "\n";
+		s += 	"SEX:" + 								open_char +	sex		+ close_char + "\n";
+		s += 	"LEVEL,POINTS,COINS:" +	open_char +"0,0,0"+ close_char + "\n";
+		s += 	"BOUGHT ITEMS:" +				open_char 		+			close_char + "\n";
+		s += 	"RESEARCH STATE:" +		 	open_char +	"REG"	+	close_char + "\n";
+		s += 	"NCR AVG INTERVAL:" + 	open_char +	"10"	+	close_char + "\n";//avg intertic interval for ncr
 		//10 is default because that is the number of intervals before the cap.
 		
 	return s;
@@ -425,10 +425,10 @@ function newU(id, pass, bd, sex){
 /**Generates the content for a new trainer file
 */
 function newT(id, pass, bd){
-	var s = open_char +	id		+ close_char + "\n";
-		s += 	open_char +	pass	+ close_char + "\n";
-		s += 	open_char +	bd		+ close_char + "\n";
-		s += 	open_char			+			close_char + "\n";//links
+	var s = "ID:" + 					open_char +	id		+ close_char + "\n";
+		s += 	"PASSWORD:" + 		open_char +	pass	+ close_char + "\n";
+		s += 	"BIRTH DATE:" + 	open_char +	bd		+ close_char + "\n";
+		s += 	"LINKED USERS:" + open_char			+			close_char + "\n";//links
 	return s;
 }
 /**Generates the content for a new admin file
@@ -436,8 +436,8 @@ function newT(id, pass, bd){
 function newA(id, pass){
 	if(id[0] != "a")
 		return "ide";
-	var s = open_char +	id		+ close_char + "\n";
-		s += 	open_char +	pass	+ close_char + "\n";
+	var s = "ID:" + 			open_char +	id		+ close_char + "\n";
+		s += 	"PASSWORD:" + open_char +	pass	+ close_char + "\n";
 	return s;
 }
 /**Returns a sorted copy of the given 2d array. 

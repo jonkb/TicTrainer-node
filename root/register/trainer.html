@@ -45,8 +45,8 @@
 					alert("Please finish the form");
 					return false;
 				}
-				if(/[<>;]/.test(pw)){
-					alert("Please do not include \";\", \"<\", or \">\" in your password");
+				if(/[<>]/.test(pw)){
+					alert("Please do not include \"<\" or \">\" in your password");
 					return false;
 				}
 				if(isNaN(y)){

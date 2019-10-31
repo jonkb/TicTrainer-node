@@ -83,8 +83,8 @@
 			}
 			function validate_editp(){
 				var pass = document.forms["editP"]["pass"].value;
-				if(/[<>;]/.test(pass)){
-					alert("Please do not include \";\", \"<\", or \">\" in a password");
+				if(/[<>]/.test(pass)){
+					alert("Please do not include \"<\" or \">\" in a password");
 					return false;
 				}
 				return true;

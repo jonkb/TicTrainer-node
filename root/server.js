@@ -53,9 +53,8 @@ function handleRequest(req, res){
 						ret.error(res, "pce", pathname);
 						break;
 					}
-					//Make sure the plain text fields don't include ; or < or >
-					//Could allow semicolon now
-					if(/[<>;]/.test(pass+bD)){
+					//Make sure the plain text fields don't include < or >
+					if(/[<>]/.test(pass+bD)){
 						ret.error(res, "ice", pathname);//Invalid Character Error
 						break;
 					}
@@ -95,9 +94,8 @@ function handleRequest(req, res){
 						ret.error(res, "pce", pathname);
 						break;
 					}
-					//Make sure these don't include ; or < or >
-					//Could allow semicolon now
-					if(/[<>;]/.test(pass+bD)){
+					//Make sure these don't include < or >
+					if(/[<>]/.test(pass+bD)){
 						ret.error(res, "ice", pathname);//Invalid Character Error
 						break;
 					}
@@ -155,7 +153,7 @@ function handleRequest(req, res){
 							var iD = body.id;
 							var opw = body.oldPass;
 							var pw = body.pass;
-							if(/[<>;]/.test(pw)){
+							if(/[<>]/.test(pw)){
 								acc_ret("ice");
 								break;
 							}
@@ -946,9 +944,8 @@ function handleRequest(req, res){
 								ret.error(res, "ide");
 								return;
 							}
-							//Make sure pw doesn't include ; or < or > - VITAL
-							//Could allow semicolon now
-							if(/[<>;]/.test(body.pw)){
+							//Make sure pw doesn't include < or >
+							if(/[<>]/.test(body.pw)){
 								ret.error(res, "ice", "/admin/index.html");//Invalid Character Error
 								break;
 							}
@@ -987,9 +984,8 @@ function handleRequest(req, res){
 								ret.error(res, "ide");
 								return;
 							}
-							//Make sure pw doesn't include ; or < or > - VITAL
-							//Could allow semicolon now
-							if(/[<>;]/.test(body.pw)){
+							//Make sure pw doesn't include < or >
+							if(/[<>]/.test(body.pw)){
 								ret.error(res, "ice", "/admin/index.html");//Invalid Character Error
 								break;
 							}
