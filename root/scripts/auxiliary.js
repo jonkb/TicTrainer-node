@@ -416,9 +416,7 @@ function newU(id, pass, bd, sex){
 		s += 	"SEX:" + 								open_char +	sex		+ close_char + "\n";
 		s += 	"LEVEL,POINTS,COINS:" +	open_char +"0,0,0"+ close_char + "\n";
 		s += 	"BOUGHT ITEMS:" +				open_char 		+			close_char + "\n";
-		s += 	"RESEARCH STATE:" +		 	open_char +	"REG"	+	close_char + "\n";
-		s += 	"NCR AVG INTERVAL:" + 	open_char +	"10"	+	close_char + "\n";//avg intertic interval for ncr
-		//10 is default because that is the number of intervals before the cap.
+		s +=	"RESEARCH SETTINGS (RS,AITI,SMPR,PTIR,FLASH):" + open_char + "REG,10,3000,5,NO" + close_char + "\n";
 		
 	return s;
 }

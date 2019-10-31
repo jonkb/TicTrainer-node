@@ -517,8 +517,15 @@ function handleRequest(req, res){
 								body.points = lpc[1];
 								body.coins = lpc[2];
 								body.heap = uData[6];
-								body.RS = uData[7];
-								body.aiti = uData[8];
+								var ru_settings = uData[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
+								body.RS = ru_settings[0];
+								body.aiti = ru_settings[1];
+								body.smpr = ru_settings[2];
+								body.ptir = ru_settings[3];
+								if(ru_settings[4] == "YES")
+									body.flash = true;
+								else//This could be a moment to check if it says NO or if there's an error
+									body.flash = false;
 								var startLPEntry = "\nstarting user l,p,c|"+ lpc[0]+","+lpc[1]+","+lpc[2];
 								fs.appendFile(searchFile, startLPEntry, function(err){
 									if(err){
@@ -840,7 +847,7 @@ function handleRequest(req, res){
 						case "load_user_data":
 							/*1. check admin pass 
 								2. check user pass
-								3. return research_state
+								3. return user data
 							*/
 							aux.loadAcc(body.admin_id, function(err, admin_acc){
 								if(err){
@@ -858,7 +865,10 @@ function handleRequest(req, res){
 										res.write("error="+err, function(err){res.end();});
 										return;
 									}
-									var res_str = "research_state="+acc[7]+"&aiti="+acc[8];
+									var research_settings = acc[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
+									var res_str = "research_state="+research_settings[0]+
+										"&aiti="+research_settings[1]+"&smpr="+research_settings[2]+
+										"&ptir="+research_settings[3]+"&flash="+research_settings[4];
 									res.writeHead(200, {"Content-Type": "text/plain"});
 									res.write(res_str, function(err){res.end();});
 								});
@@ -874,18 +884,27 @@ function handleRequest(req, res){
 									ret.error(res, "pce", "/admin/index.html");
 									return;
 								}
-								aux.editAcc(body.id, 7, body.RS, function(err, uData){
+								aux.loadAcc(body.id, function(err, user_acc){
 									if(err){
-										if(uData)
-											aux.debugShout("876 "+uData);
 										ret.error(res, err, "/admin/index.html");
 										return;
 									}
-									//If AITI was given, save it too
-									if(body.AITI){
-										//No need to check pw, that was just done
-										aux.editAcc(body.id, 8, body.AITI, function(err, uData){
+									var old_settings = user_acc[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
+									var new_settings = user_acc[7].split(",");;
+									new_settings[0] = body.RS;
+									new_settings[4] = body.FLASH;
+									if(body.AITI)
+										new_settings[1] = body.AITI;
+									if(body.SMPR)
+										new_settings[2] = body.SMPR;
+									if(body.PTIR)
+										new_settings[3] = body.PTIR;
+									aux.debugShout(new_settings, 3);
+									if(new_settings != old_settings){
+										aux.editAcc(body.id, 7, new_settings.join(), function(err, uData){
 											if(err){
+												if(uData)
+													aux.debugShout("899 "+uData);
 												ret.error(res, err, "/admin/index.html");
 												return;
 											}

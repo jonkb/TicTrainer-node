@@ -22,7 +22,7 @@
     </section>
     <section class="main-content">
 			<fieldset>
-				<legend>Manage R.U. Account</legend>
+				<legend>Manage Research User Account</legend>
 				<form method="POST" name="Load_Acc" style="float:left;" onsubmit="return load_user_data();">
 					User Account ID:<br>
 					<input type="text" name="id" placeholder="u0000" required><br>
@@ -31,15 +31,18 @@
 				<form method="POST" name="Edit_Acc" style="float:right;" onsubmit="return edit_acc();">
 					<table>
 						<tr>
+							<th>Property</th>
+							<th>Current</th>
+							<th>New</th>
+						</tr>
+						<tr>
 							<td>ID: </td>
 							<td id="display_user_ID"></td>
+							<td>--</td>
 						</tr>
 						<tr>
 							<td>Research State: </td>
 							<td id="display_user_RS"></td>
-						</tr>
-						<tr>
-							<td>New Research State: </td>
 							<td>
 								<select name="RS">
 									<option value="REG">REGULAR</option>
@@ -52,11 +55,26 @@
 						<tr>
 							<td>Avg Intertic Interval: </td>
 							<td id="display_user_AITI"></td>
+							<td><input type="text" name="aiti" placeholder="10"></td>
 						</tr>
 						<tr>
-							<td>New AITI: </td>
+							<td>Starting ms per reward: </td>
+							<td id="display_user_SMPR"></td>
+							<td><input type="text" name="smpr" placeholder="3000"></td>
+						</tr>
+						<tr>
+							<td>Period to increment rate: </td>
+							<td id="display_user_PTIR"></td>
+							<td><input type="text" name="ptir" placeholder="5"></td>
+						</tr>
+						<tr>
+							<td>Red flash on tic: </td>
+							<td id="display_user_FLASH"></td>
 							<td>
-								<input type="text" name="aiti" placeholder="10">
+								<select name="flash">
+									<option value="NO">NO</option>
+									<option value="YES">YES</option>
+								</select>
 							</td>
 						</tr>
 						<tr>
@@ -95,13 +113,12 @@
 								alert("Error: "+res_data.error);
 								return false;
 							}
-							if(!res_data.research_state || !res_data.aiti){
-								alert("Error: Insufficient response from the server");
-								return false;
-							}
 							document.getElementById("display_user_ID").innerHTML = id;
 							document.getElementById("display_user_RS").innerHTML = res_data.research_state;
 							document.getElementById("display_user_AITI").innerHTML = res_data.aiti;
+							document.getElementById("display_user_SMPR").innerHTML = res_data.smpr;
+							document.getElementById("display_user_PTIR").innerHTML = res_data.ptir;
+							document.getElementById("display_user_FLASH").innerHTML = res_data.flash;
 						}
 						else{
 							document.open();
@@ -115,10 +132,21 @@
 			}
 			function edit_acc(){
 				var id = document.getElementById("display_user_ID").innerHTML.toLowerCase();
-				var RS = document.forms.Edit_Acc.RS.value.toUpperCase();
+				var RS = document.forms.Edit_Acc.RS.value;
 				var AITI = document.forms.Edit_Acc.aiti.value;
-				if(AITI && (isNaN(AITI) || AITI <= 0)){
+				var SMPR = document.forms.Edit_Acc.smpr.value;
+				var PTIR = document.forms.Edit_Acc.ptir.value;
+				var FLASH = document.forms.Edit_Acc.flash.value;
+				if(AITI != "" && (isNaN(AITI) || AITI <= 0)){
 					alert("Please type a positive number for AITI");
+					return false;
+				}
+				if(SMPR != "" && (isNaN(SMPR) || SMPR <= 0)){
+					alert("Please type a positive number for SMPR");
+					return false;
+				}
+				if(PTIR != "" && (isNaN(PTIR) || PTIR <= 0)){
+					alert("Please type a positive number for PTIR");
 					return false;
 				}
 				
@@ -126,9 +154,13 @@
 				var xhr = new XMLHttpRequest();
 				var url = '/admin/manageRU.dynh';
 				var reqBody = 'source=edit_acc&admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&id='+
-					id+'&RS='+RS;
-				if(AITI)
+					id+'&RS='+RS+'&FLASH='+FLASH;
+				if(AITI != "")
 					reqBody += '&AITI='+AITI;
+				if(SMPR != "")
+					reqBody += '&SMPR='+SMPR;
+				if(PTIR != "")
+					reqBody += '&PTIR='+PTIR;
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');
 				xhr.onreadystatechange = function(){
@@ -143,9 +175,14 @@
 								alert("Error: Unknown response from the server");
 								return false;
 							}
+							document.getElementById("display_user_RS").innerHTML = RS;
+							document.getElementById("display_user_FLASH").innerHTML = FLASH;
 							if(AITI)
 								document.getElementById("display_user_AITI").innerHTML = AITI;
-							document.getElementById("display_user_RS").innerHTML = RS;
+							if(SMPR)
+								document.getElementById("display_user_SMPR").innerHTML = SMPR;
+							if(PTIR)
+								document.getElementById("display_user_PTIR").innerHTML = PTIR;
 						}
 						else{
 							document.open();

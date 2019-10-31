@@ -265,7 +265,8 @@ function ret_session_user(res, data){
 		del_obj.none = true;
 	if(data.RS == "REG")
 		del_obj.reg = true;
-	var dynd = {
+	
+	var dynd = {//simplify
 		"id": data.id,
 		"pw": data.pw,
 		"lid": data.lid,
@@ -276,6 +277,9 @@ function ret_session_user(res, data){
 		"heap": data.heap,
 		"RS": data.RS,
 		"aiti": data.aiti,
+		"smpr": data.smpr,
+		"ptir": data.ptir,
+		"flash": data.flash,
 		"del": del_obj
 	};
 	aux.dynamic("./session/session-user.dynh", dynd, function(page){

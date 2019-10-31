@@ -57,17 +57,17 @@
 			}
 			
 			//REWARD SETTINGS
-			const flash_red = false;
+			const flash_red = **[flash]**;
 			const points_to_first_level = 300;
-			const starting_ms_per_reward = 3000;
-			const period_to_increment_rate = 5;//How many rewards are given before incrementing the rate
+			const starting_ms_per_reward = **[smpr]**;
+			const period_to_increment_rate = **[ptir]**;//How many rewards are given before incrementing the rate
 			
 			const mspf = 500;//ms per frame. fps=2.
 			var framesSince = 0;
 			var rewards_since_increment = 0;
 			var nextLevel = points_to_first_level*level*level;
 			var cap = 10*level*level;
-			var rate = level;
+			var rate = level*level;
 			//Last recorded length of the session file. Used to determine if the file has changed.
 			var lastL = **[sesL]**;
 			
@@ -163,7 +163,7 @@
 			}
 			function ticTrigger(){
 				framesSince = 0;
-			  rate = level;
+			  rate = level*level;
 				rewards_since_increment = 0;
 				**[del:!reg]**
 				if(flash_red){
