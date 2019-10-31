@@ -1,6 +1,5 @@
 var https = require("https");
 var http = require("http");//For port 80 redirect server
-const PORT = 443;
 var fs = require("fs");
 var url = require("url");
 //Auxiliary functions stored in aux to make this file shorter
@@ -8,6 +7,10 @@ var aux = require("./scripts/auxiliary.js");
 //Functions that return dynamic webpages. Always pass with res as first arg.
 var ret = require("./scripts/ret_dynamic.js");
 var inventory = require("./scripts/store.js").inv;
+
+const HTTPS_PORT = 443;
+const TESTING_PORT = 8888;
+const testing = false;
 
 function handleRequest(req, res){
 	// Parse the request file name
@@ -1185,28 +1188,28 @@ function handleRequest(req, res){
 	}
 }
 
-//TEMPORARY SERVER FOR TESTING
-//var server = http.createServer(handleRequest);
-//server.listen(8888);
+if(testing){
+	var server = http.createServer(handleRequest);
+	server.listen(TESTING_PORT);
+}
+else{
+	//Set up redirect server to run on port 80
+	var server_80 = http.createServer(function(req, res){
+		res.writeHead(301, {"Location": "https://tictrainer.com:" + HTTPS_PORT});
+		res.end();
+	}).listen(80);
 
-//COMMENT OUT LINES BELOW FOR TESTING
+	//Set up main https server
+	const options = {
+		key: fs.readFileSync("/etc/letsencrypt/live/tictrainer.com/privkey.pem"),
+		cert: fs.readFileSync("/etc/letsencrypt/live/tictrainer.com/fullchain.pem")
+	};
+	//Create server using handleRequest
+	var server = https.createServer(options, handleRequest);
+	//Start server
+	server.listen(HTTPS_PORT, function(){
+		console.log("Started at "+aux.time());
+		console.log("Server listening on: https://localhost:" + HTTPS_PORT);
+	});
 
-//Set up redirect server to run on port 80
-var server_80 = http.createServer(function(req, res){
-	res.writeHead(301, {"Location": "https://tictrainer.com:"+PORT});
-	res.end();
-}).listen(80);
-
-//Set up main https server
-const options = {
-	key: fs.readFileSync("/etc/letsencrypt/live/tictrainer.com/privkey.pem"),
-	cert: fs.readFileSync("/etc/letsencrypt/live/tictrainer.com/fullchain.pem")
-};
-//Create server using handleRequest
-var server = https.createServer(options, handleRequest);
-//Start server
-server.listen(PORT, function(){
-	console.log("Started at "+aux.time());
-	console.log("Server listening on: https://localhost:" + PORT);
-});
-
+}
