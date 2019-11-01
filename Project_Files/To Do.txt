@@ -2,6 +2,7 @@ To Do: (priority,difficulty) (0-5,0-5)
 IN PROGRESS:
 
 FUNCTIONAL:
+-(3,2) Fix the log file report so it counts 10s intervals correctly
 -(3,1) Maybe make the ghost session thing automatic.
 -(3,2) Maybe add a flag at the top of log files indicating the IDs of the user & trainer and the user's RS
 -(3,3) Add the ability for an admin to download a log file.

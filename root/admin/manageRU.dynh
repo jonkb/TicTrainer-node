@@ -53,19 +53,19 @@
 							</td>
 						</tr>
 						<tr>
-							<td>Avg Intertic Interval: </td>
+							<td>Avg Intertic Interval (rewards): </td>
 							<td id="display_user_AITI"></td>
-							<td><input type="text" name="aiti" placeholder="10"></td>
+							<td><input type="text" name="aiti" placeholder="10" size="6"></td>
 						</tr>
 						<tr>
-							<td>Starting ms per reward: </td>
+							<td>Starting time per reward (ms): </td>
 							<td id="display_user_SMPR"></td>
-							<td><input type="text" name="smpr" placeholder="3000"></td>
+							<td><input type="text" name="smpr" placeholder="3000" size="6"></td>
 						</tr>
 						<tr>
-							<td>Period to increment rate: </td>
+							<td>Period to increment rate (rewards): </td>
 							<td id="display_user_PTIR"></td>
-							<td><input type="text" name="ptir" placeholder="5"></td>
+							<td><input type="text" name="ptir" placeholder="5" size="6"></td>
 						</tr>
 						<tr>
 							<td>Red flash on tic: </td>

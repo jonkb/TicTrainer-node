@@ -10,7 +10,7 @@ var inventory = require("./scripts/store.js").inv;
 
 const HTTPS_PORT = 443;
 const TESTING_PORT = 8888;
-const testing = false;
+const testing = true;
 
 function handleRequest(req, res){
 	// Parse the request file name
