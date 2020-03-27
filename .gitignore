@@ -2,3 +2,5 @@
 *.ttad
 *.ttsd
 
+# docker environment
+.env

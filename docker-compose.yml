@@ -2,13 +2,13 @@ version: '3'
 
 services:
   node:
-    image: node:12.13.0-alpine
+    image: node:13.11-alpine
     ports:
       - "8888:8888"
     networks:
       - nodenet
     volumes:
-      - /home/usr/jmk1/git/TicTrainer-node/root:/root
+      - ${NODE_ROOT_PATH}:/root
     working_dir: /root
     entrypoint: "node server.js"
     restart: always
