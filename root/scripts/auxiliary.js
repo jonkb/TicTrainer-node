@@ -472,7 +472,7 @@ function genReport(data){
 	var tics = 0, tenSIntervals = 0, longestInterval = 0;
 	var initL = 0, initP = 0, initT;
 	var endL, endP, endT;
-	var lastTic;
+	var lastTic, ticFree;
 	var entries = data.split("\n");
 	for(var i = 0; i<entries.length; i++){
 		if(entries[i].trim() == ""){
@@ -492,7 +492,7 @@ function genReport(data){
 			case "tic detected":
 				tics++;
 				var ticTime = new Date(entryParts[1]);
-				var ticFree = ticTime - lastTic;
+				ticFree = ticTime - lastTic;
 				lastTic = ticTime;
 				if(ticFree > longestInterval)
 					longestInterval = ticFree;
@@ -503,6 +503,10 @@ function genReport(data){
 			break;
 			case "session ended":
 				endT = new Date(entryParts[1]);
+				ticFree = endT - lastTic;
+				if(ticFree > longestInterval)
+					longestInterval = ticFree;
+				tenSIntervals += Math.floor(ticFree / 1e4);
 			break;
 			case "user l,p,c":
 				endL = entryParts[1].split(",")[0];
@@ -521,10 +525,6 @@ function genReport(data){
 		for(var i = initL; i<endL; i++){
 			endP += points_to_first_level*i*i;//300L^2 = nextLevel
 		}
-	}
-	if(tics == 0){
-		//If there were no tics, just use the session length
-		longestInterval = endT - initT;
 	}
 	debugShout("start: "+initT+". end: "+endT);
 	var report = "\n****************\nReport:";
