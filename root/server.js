@@ -10,7 +10,7 @@ var inventory = require("./scripts/store.js").inv;
 
 const HTTPS_PORT = 443;
 const TESTING_PORT = 8888;
-const testing = false;
+const testing = true;
 
 function handleRequest(req, res){
 	// Parse the request file name
@@ -851,7 +851,7 @@ function handleRequest(req, res){
 							*/
 							aux.loadAcc(body.admin_id, function(err, admin_acc){
 								if(err){
-									debugShout("830", 2);
+									debugShout("854", 2);
 									ret.error(res, err, "/admin/index.html");
 									return;
 								}
@@ -865,10 +865,12 @@ function handleRequest(req, res){
 										res.write("error="+err, function(err){res.end();});
 										return;
 									}
+									var ntid = acc[8];
 									var research_settings = acc[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
 									var res_str = "research_state="+research_settings[0]+
 										"&aiti="+research_settings[1]+"&smpr="+research_settings[2]+
-										"&ptir="+research_settings[3]+"&flash="+research_settings[4];
+										"&ptir="+research_settings[3]+"&flash="+research_settings[4]+
+										"&ntid="+ntid;
 									res.writeHead(200, {"Content-Type": "text/plain"});
 									res.write(res_str, function(err){res.end();});
 								});
@@ -890,7 +892,7 @@ function handleRequest(req, res){
 										return;
 									}
 									var old_settings = user_acc[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
-									var new_settings = user_acc[7].split(",");;
+									var new_settings = user_acc[7].split(",");
 									new_settings[0] = body.RS;
 									new_settings[4] = body.FLASH;
 									if(body.AITI)
@@ -908,13 +910,42 @@ function handleRequest(req, res){
 												ret.error(res, err, "/admin/index.html");
 												return;
 											}
-											res.writeHead(200, {"Content-Type": "text/plain"});
-											res.write("good", function(err){res.end();});
+											if(body.NTID){
+												aux.editAcc(body.id, 8, body.NTID, function(err, uData){
+													if(err){
+														if(uData)
+															aux.debugShout("899 "+uData);
+														ret.error(res, err, "/admin/index.html");
+														return;
+													}
+													res.writeHead(200, {"Content-Type": "text/plain"});
+													res.write("good", function(err){res.end();});
+												});
+											}
+											else{
+												res.writeHead(200, {"Content-Type": "text/plain"});
+												res.write("good", function(err){res.end();});
+											}
 										});
 									}
 									else{
-										res.writeHead(200, {"Content-Type": "text/plain"});
-										res.write("good", function(err){res.end();});
+										//Note, this code here is repeated. I may like to make it into a function instead.
+										if(body.NTID){
+											aux.editAcc(body.id, 8, body.NTID, function(err, uData){
+												if(err){
+													if(uData)
+														aux.debugShout("899 "+uData);
+													ret.error(res, err, "/admin/index.html");
+													return;
+												}
+												res.writeHead(200, {"Content-Type": "text/plain"});
+												res.write("good", function(err){res.end();});
+											});
+										}
+										else{
+											res.writeHead(200, {"Content-Type": "text/plain"});
+											res.write("good", function(err){res.end();});
+										}
 									}
 								});
 							});

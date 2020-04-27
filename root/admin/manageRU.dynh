@@ -41,6 +41,11 @@
 							<td>--</td>
 						</tr>
 						<tr>
+							<td>NewTics ID: </td>
+							<td id="display_user_NTID"></td>
+							<td><input type="text" name="ntid" placeholder="NT###" size="6"></td>
+						</tr>
+						<tr>
 							<td>Research State: </td>
 							<td id="display_user_RS"></td>
 							<td>
@@ -114,6 +119,7 @@
 								return false;
 							}
 							document.getElementById("display_user_ID").innerHTML = id;
+							document.getElementById("display_user_NTID").innerHTML = res_data.ntid;
 							document.getElementById("display_user_RS").innerHTML = res_data.research_state;
 							document.getElementById("display_user_AITI").innerHTML = res_data.aiti;
 							document.getElementById("display_user_SMPR").innerHTML = res_data.smpr;
@@ -132,6 +138,7 @@
 			}
 			function edit_acc(){
 				var id = document.getElementById("display_user_ID").innerHTML.toLowerCase();
+				var NTID = document.forms.Edit_Acc.ntid.value.toUpperCase();
 				var RS = document.forms.Edit_Acc.RS.value;
 				var AITI = document.forms.Edit_Acc.aiti.value;
 				var SMPR = document.forms.Edit_Acc.smpr.value;
@@ -149,17 +156,23 @@
 					alert("Please type a positive number for PTIR");
 					return false;
 				}
+				if(NTID.slice(0,2) != 'NT'){
+					alert("The NewTics id should start with 'NT'");
+					return false;
+				}
 				
 				//Ask the server to save the new RS [& AITI]
 				var xhr = new XMLHttpRequest();
 				var url = '/admin/manageRU.dynh';
 				var reqBody = 'source=edit_acc&admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&id='+
 					id+'&RS='+RS+'&FLASH='+FLASH;
-				if(AITI != "")
+				if(NTID)
+					reqBody += '&NTID='+NTID;
+				if(AITI)
 					reqBody += '&AITI='+AITI;
-				if(SMPR != "")
+				if(SMPR)
 					reqBody += '&SMPR='+SMPR;
-				if(PTIR != "")
+				if(PTIR)
 					reqBody += '&PTIR='+PTIR;
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');
@@ -177,6 +190,8 @@
 							}
 							document.getElementById("display_user_RS").innerHTML = RS;
 							document.getElementById("display_user_FLASH").innerHTML = FLASH;
+							if(NTID)
+								document.getElementById("display_user_NTID").innerHTML = NTID;
 							if(AITI)
 								document.getElementById("display_user_AITI").innerHTML = AITI;
 							if(SMPR)

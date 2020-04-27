@@ -144,7 +144,18 @@ function dynamic(template_path, data, callback){
 	This makes it more like english.
 		"Find the second comma" translates to nth=2 search=","
 */
-function indexNOf(string, search, nth){//t0000;Jonathan;05/20/1999;h;u0000;
+function indexNOf(string, search, nth){
+	if(nth == 0){
+		return 0;
+	}
+	var L= string.length, i= -1;
+	while(nth-- && i++<L){
+		i= string.indexOf(search, i);
+		if (i < 0) break;
+	}
+	return i;
+	
+	/* OLD VERSION
 	if(nth == 0){
 		return 0;
 	}
@@ -163,6 +174,7 @@ function indexNOf(string, search, nth){//t0000;Jonathan;05/20/1999;h;u0000;
 		cutS = cutS.slice(iN+1);
 	}
 	return lenBefore + cutS.indexOf(search);
+	*/
 }
 /**Checks if an ID string looks like an ID
 	Returns false or testID.toLowerCase()
@@ -286,6 +298,22 @@ function editAcc(id, fldInd, newVal, callback){
 		}
 		//write nv in the appropriate field
 		insertIndex = indexNOf(data, open_char, fldInd+1) + 1;
+		debugShout("289: "+insertIndex);
+		if(insertIndex == 0){
+			/*The user's file doesn't have enough fields. 
+				For example, trying to set the NTID of an older user.
+				Or a request was passed to edit a field that doesn't exist.
+				Add blank fields until you get there.
+			*/
+			var fldrx = new RegExp(open_char+'[^'+close_char+']*'+close_char, 'g')
+			var num_flds = data.match(fldrx).length;
+			debugShout("297: "+num_flds);
+			while(fldInd+1 > num_flds){
+				data += open_char+close_char+"\n";
+				num_flds++;
+			}
+			insertIndex = indexNOf(data, open_char, fldInd+1) + 1;
+		}
 		before = data.slice(0,insertIndex);
 		after = data.slice(insertIndex);
 			after = after.slice(after.indexOf(close_char));
@@ -417,6 +445,7 @@ function newU(id, pass, bd, sex){
 		s += 	"LEVEL,POINTS,COINS:" +	open_char +"0,0,0"+ close_char + "\n";
 		s += 	"BOUGHT ITEMS:" +				open_char 		+			close_char + "\n";
 		s +=	"RESEARCH SETTINGS (RS,AITI,SMPR,PTIR,FLASH):" + open_char + "REG,10,3000,5,NO" + close_char + "\n";
+		s += 	"NEWTICS ID:" +					open_char + "-"		+	close_char + "\n";
 		
 	return s;
 }
