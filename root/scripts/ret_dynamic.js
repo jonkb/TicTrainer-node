@@ -9,10 +9,15 @@ module.exports.created = ret_created;
 module.exports.manage_account = ret_manage_account;
 module.exports.link_loading_trainer = ret_link_loading_trainer;
 module.exports.link_loading_user = ret_link_loading_user;
+module.exports.link_loading_rater = ret_link_loading_rater;
+module.exports.link_loading_ntuser = ret_link_loading_ntuser;
 module.exports.start_session_trainer = ret_start_session_trainer;
 module.exports.start_session_user = ret_start_session_user;
+module.exports.start_session_rater = ret_start_session_rater;
+module.exports.start_session_ntuser = ret_start_session_ntuser;
 module.exports.session_trainer = ret_session_trainer;
 module.exports.session_user = ret_session_user;
+module.exports.session_user = ret_session_ntuser;
 module.exports.report_sent = ret_report_sent;
 module.exports.admin = ret_admin;
 module.exports.manageAA = ret_manageAA;
@@ -216,6 +221,28 @@ function ret_link_loading_user(res, data){
 		res.write(page, function(err){res.end();});
 	});
 }
+// Returns a loading page while awaiting link
+function ret_link_loading_rater(res, data){
+	var dynd = {
+		"lid": data.lid,
+		//"pw": data.pw,
+		"tryN": parseInt(data.tryN)+1
+	};
+	aux.dynamic("./nt/linkloading-rater.dynh", dynd, function(page){
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+		res.write(page, function(err){res.end();});
+	});
+}
+function ret_link_loading_ntuser(res, data){
+	var dynd = {
+		"id": data.id,
+		"pw": data.pw
+	};
+	aux.dynamic("./nt/linkloading-ntuser.dynh", dynd, function(page){
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+		res.write(page, function(err){res.end();});
+	});
+}
 //Returns the page with the start button
 function ret_start_session_trainer(res, data){
 	var dynd = {
@@ -239,11 +266,31 @@ function ret_start_session_user(res, data){
 		res.write(page, function(err){res.end();});
 	});
 }
+//Returns the page with the start button
+function ret_start_session_rater(res, data){
+	var dynd = {
+		"id": data.id,
+		"lid": data.lid
+	};
+	aux.dynamic("./nt/startsession-rater.dynh", dynd, function(page){
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+		res.write(page, function(err){res.end();});
+	});
+}
+function ret_start_session_ntuser(res, data){
+	var dynd = {
+		"id": data.id,
+		"pw": data.pw
+	};
+	aux.dynamic("./nt/startsession-ntuser.dynh", dynd, function(page){
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+		res.write(page, function(err){res.end();});
+	});
+}
 function ret_session_trainer(res, data){
 	//[session control page] show Tic Detected, Stop Session butttons
 	var dynd = {
 		"id": data.id,
-		"pw": data.pw,
 		"lid": data.lid
 	};
 	aux.dynamic("./session/session-trainer.dynh", dynd, function(page){
@@ -283,6 +330,21 @@ function ret_session_user(res, data){
 		"del": del_obj
 	};
 	aux.dynamic("./session/session-user.dynh", dynd, function(page){
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+		res.write(page, function(err){res.end();});
+	});
+}
+function ret_session_ntuser(res, data){
+	aux.debugShout(data);
+	
+	var dynd = {
+		"id": data.id,
+		"pw": data.pw,
+		"lid": data.lid,
+		"sesL": data.sesL,
+		"stype": data.stype
+	};
+	aux.dynamic("./nt/session-ntuser.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});

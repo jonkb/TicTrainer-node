@@ -33,6 +33,7 @@
 				var tid = document.forms["ghSession"]["tid"].value.toLowerCase();
 				var uid = document.forms["ghSession"]["uid"].value.toLowerCase();
 				if(tid[0] != "t" || tid.length < 2){
+					//Make this work with admins too.
 					alert("Invalid trainer ID");
 					return false;
 				}

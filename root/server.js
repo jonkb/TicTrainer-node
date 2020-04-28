@@ -246,7 +246,7 @@ function handleRequest(req, res){
 				break;
 				//Start of session-related URLs
 				case "/session/index.html":
-					new_session_req(body,function(err, body){
+					new_session_req(body, function(err, body){
 						if(err){
 							ret.error(res, err, "/session/index.html");
 							return;
@@ -257,6 +257,23 @@ function handleRequest(req, res){
 							ret.link_loading_trainer(res, body);
 						else{ //body.id[0] is definitely "u" because the error would have already been caught otherwise. Except maybe 'a' somehow...
 							ret.link_loading_user(res, body);
+						}
+					});
+				break;
+				case "/nt/index.html": //new NewTics session (user)
+				case "/nt/rater.html": //new NewTics session (rater)
+					new_session_req(body, function(err, body){
+						if(err){
+							ret.error(res, err, pathname);
+							return;
+						}
+						body.tryN = 0;
+						//Go to Link Loading Page
+						aux.debugShout("271: "+body.id);
+						if(body.id == "a")
+							ret.link_loading_rater(res, body);//TO DO: make new page here 
+						else{ //body.id[0] is definitely "u" because the error would have already been caught otherwise.
+							ret.link_loading_ntuser(res, body);//TO DO: make new page here
 						}
 					});
 				break;
@@ -292,6 +309,38 @@ function handleRequest(req, res){
 						}
 					});
 				break;
+				case "/nt/linkloading-rater.dynh":
+					linkloading_t_req(body, function(err, next){
+						if(err){
+							ret.error(res, err, "/nt/rater.html");
+							return;
+						}
+						if(next == "wait"){
+							res.writeHead(200, {"Content-Type": "text/plain"});
+							//res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+							res.write("wait", function(err){res.end();});
+						}
+						else if(next == "start"){
+							ret.start_session_rater(res, body);
+						}
+					});
+				break;
+				case "/nt/linkloading-ntuser.dynh":
+					linkloading_u_req(body, function(err, next){
+						if(err){
+							ret.error(res, err, "/nt/index.html");
+							return;
+						}
+						if(next == "wait"){
+							res.writeHead(200, {"Content-Type": "text/plain"});
+							res.write("wait", function(err){res.end();});
+						}
+						else if(next == "start"){
+							body.tryN = 0;
+							ret.start_session_ntuser(res, body);
+						}
+					});
+				break;
 				case "/session/startsession-trainer.dynh":
 					startsession_t_req(body, function(err,next){
 						if(err){
@@ -307,7 +356,6 @@ function handleRequest(req, res){
 						}
 					});
 				break;
-				//See if the session has started
 				case "/session/startsession-user.dynh":
 					startsession_u_req(body, function(err, next, body){
 						if(err){
@@ -325,6 +373,62 @@ function handleRequest(req, res){
 						}
 						if(next == "session"){
 							ret.session_user(res, body);
+						}
+					});
+				break;
+				case "/nt/startsession-rater.dynh":
+					startsession_rater_req(body, function(err, next){
+						if(err){
+							ret.error(res, err, "/nt/rater.html");
+							return;
+						}
+						if(next == "ended"){
+							ret.redirect(res, "/session/session-ended.html");
+							return;
+						}
+						if(next == "session"){
+							ret.session_trainer(res, body);//Reuse? Will that be ok?
+						}
+					});
+				break;
+				case "/nt/startsession-ntuser.dynh":
+					startsession_u_req(body, function(err, next, body){
+						if(err){
+							ret.error(res, err, "/nt/index.html");
+							return;
+						}
+						if(next == "ended"){
+							ret.redirect(res, "/session/session-ended.html");
+							return;
+						}
+						if(next == "wait"){
+							res.writeHead(200, {"Content-Type": "text/plain"});
+							res.write("wait", function(err){res.end();});
+							return;
+						}
+						if(next == "session"){
+							//Now go in and figure out what kind of session it is. Also insert the NTID.
+							var sesFile = "./session/temp/session" + body.id + body.lid + ".ttsd";
+							fs.readFile(sesFile, "utf8", function(err,data){
+								if(err){
+									ret.error(res, err, "/nt/index.html");
+									return;
+								}
+								var insertIndex = data.indexOf('|')+1;
+								var before = data.slice(0,insertIndex);
+								after = data.slice(insertIndex);
+									after = after.slice(after.indexOf('|'));
+								var stype = after.slice(1);
+									stype = stype.slice(0,stype.indexOf('\n'));
+								body.stype = stype;
+								fs.writeFile(sesFile, before+body.ntid+after, function(err){
+									if(err){
+										ret.error(res, "fe", "/nt/index.html");
+										return;
+									}
+									ret.session_ntuser(res, body);
+								});
+							});
 						}
 					});
 				break;
@@ -364,7 +468,7 @@ function handleRequest(req, res){
 							return;
 						}
 					});
-				break;//session-user
+				break;
 				//End of session-related URLs
 				case "/error/report.html":
 					var content = body.fName+aux.division_char+body.email+aux.division_char+body.message;
@@ -884,7 +988,7 @@ function new_session_req(body, callback){
 	
 	body.id = aux.isID(body.id);
 	body.lid = aux.isID(body.lid);
-	if(body.id === false || body.lid === false || body.id[0] == "a" || body.lid[0] == "a"){
+	if(body.id === false || body.lid === false){
 		callback("ide");
 		//ret.error(res, "ide", "/session/index.html");
 		return;
@@ -904,80 +1008,83 @@ function new_session_req(body, callback){
 			//ret.error(res, "pce", "/session/index.html");
 			return;
 		}
-		var lnAcc = aData[3].split(",");
-		if(lnAcc.indexOf(body.lid) < 0){
-			//Account not linked error
-			callback("anle");
-			//ret.error(res, "anle", "/session/index.html");
+		if(body.id[0] == 'a'){
+			body.id = 'a';//From now on, it doesn't matter which rater it is.
 		}
-		else{
-			/*Continue with the next step.
-				See if a session file already exists between those users.
-				If so, it's called a concurrent or ghost session.
-			*/
-			if("at".indexOf(body.id[0]) != -1){
-				//This section should hopefully never need to be used, but it handles ghost sessions. Logs a ghost session error.
-				var oldSFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
-				fs.stat(oldSFile, function(err){
-					if(err){
-						if(err.code == "ENOENT"){//Does not exist. Good.
-							callback(null, body);
-							/*
-							//Go to trainer loading page. 
-							//A new function is used here to decrease indentation insanity. It is reused though, so it makes sense.
-							success();
-							*/
-						}
-						else
-							callback("fe");
-							//ret.error(res, "fe", "/session/index.html", "new-session: checking if oldSFile exists"); //Some other bizarre error
-					}
-					else{//Bad, it's an old ghost session. Or it's concurrent.
-						callback("conses");
-						//ret.error(res, "conses", "/session/index.html");
-					}
-				});
+		else if(body.lid[0] == 'a'){
+			body.lid = 'a';//From now on, it doesn't matter which rater it is.
+		}
+		else {
+			//Check if accounts are linked only if neither one is a rater (non-nt session)
+			var lnAcc = aData[3].split(",");
+			if(lnAcc.indexOf(body.lid) < 0){
+				//Account not linked error
+				callback("anle");
+				//ret.error(res, "anle", "/session/index.html");
+				return;
 			}
-			else{//user
-				var oldSFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
-				fs.stat(oldSFile, function(err){
-					if(err){
-						if(err.code == "ENOENT"){//Good.
-							/*Data entry for the new waiting link
-								Format: <uN,tM> [no \n]
-							*/
-							var linkData = aux.open_char +body.id+ aux.division_char +body.lid+ aux.close_char;
-							fs.readFile("./session/lnusers.ttd", "utf8", function(err,data){
-								if(err){
-									callback("fe");
-									ret.error(res, "fe", "/session/index.html", "new-session: reading lnusers.ttd");
-									return;
-								}
-								if(data.indexOf(linkData) == -1)
-									fs.appendFile("./session/lnusers.ttd", linkData, function(err){
-										if(err){
-											callback("fe");
-											//ret.error(res, "fe", "/session/index.html", "new-session: appending to lnusers.ttd");
-										}
-										else{
-											//Go to user loading page
-											callback(null, body);
-										}
-									});
-								else//no need to add a new entry - should this throw an error?
-									callback(null, body);
-							});
-						}
-						else//why? weird error.
-							callback("fe");
-							//ret.error(res, "fe", "/session/index.html", "new-session: checking if oldSFile exists");
+		}
+		/*Continue with the next step.
+			See if a session file already exists between those users.
+			If so, it's called a concurrent or ghost session.
+		*/
+		if("at".indexOf(body.id[0]) != -1){
+			//This section should hopefully never need to be used, but it handles ghost sessions. Logs a ghost session error.
+			var oldSFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
+			fs.stat(oldSFile, function(err){
+				if(err){
+					if(err.code == "ENOENT"){//Does not exist. Good.
+						callback(null, body);//go to trainer loading page
 					}
-					else{//There is a concurrent (or 'ghost') session
-						callback("conses");
-						//ret.error(res, "conses", "/session/index.html", "new-session: concurrent/ghost session");
+					else
+						callback("fe");
+						//ret.error(res, "fe", "/session/index.html", "new-session: checking if oldSFile exists"); //Some other bizarre error
+				}
+				else{//Bad, it's an old ghost session. Or it's concurrent.
+					callback("conses");
+					//ret.error(res, "conses", "/session/index.html");
+				}
+			});
+		}
+		else{//user
+			var oldSFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
+			fs.stat(oldSFile, function(err){
+				if(err){
+					if(err.code == "ENOENT"){//Good.
+						/*Data entry for the new waiting link
+							Format: <uN,tM> [no \n]
+						*/
+						var linkData = aux.open_char +body.id+ aux.division_char +body.lid+ aux.close_char;
+						fs.readFile("./session/lnusers.ttd", "utf8", function(err,data){
+							if(err){
+								callback("fe");
+								ret.error(res, "fe", "/session/index.html", "new-session: reading lnusers.ttd");
+								return;
+							}
+							if(data.indexOf(linkData) == -1)
+								fs.appendFile("./session/lnusers.ttd", linkData, function(err){
+									if(err){
+										callback("fe");
+										//ret.error(res, "fe", "/session/index.html", "new-session: appending to lnusers.ttd");
+									}
+									else{
+										//Go to user loading page
+										callback(null, body);
+									}
+								});
+							else//no need to add a new entry - should this throw an error?
+								callback(null, body);
+						});
 					}
-				});
-			}
+					else//why? weird error.
+						callback("fe");
+						//ret.error(res, "fe", "/session/index.html", "new-session: checking if oldSFile exists");
+				}
+				else{//There is a concurrent (or 'ghost') session
+					callback("conses");
+					//ret.error(res, "conses", "/session/index.html", "new-session: concurrent/ghost session");
+				}
+			});
 		}
 	});
 }
@@ -1118,6 +1225,49 @@ function startsession_t_req(body, callback){
 	}
 }
 
+function startsession_rater_req(body, callback){
+	//If aborting, delete the session file - don't bother with archive because it hasn't even started yet
+	var sesFile = "./session/temp/session" + body.id + body.lid + ".ttsd";
+	if(body.reqType == 'leave'){
+		aux.debugShout("1270", 3);
+		fs.unlink(sesFile, function(err){
+			if(err)
+				callback("fe");
+				//ret.error(res, "fe", "/session/index.html", "start_session-trainer: leave");
+		});
+	}
+	else{ //One of the START buttons pressed
+		//If file does not exist, the user must have left early
+		fs.stat(sesFile, function(err){
+			if(err){
+				if(err.code == "ENOENT"){
+					//user left (or magic ghosts deleted the file)
+					aux.debugShout("1284", 3);
+					callback(null, "ended");
+					//ret.redirect(res, "/session/session-ended.html");
+				}
+				else
+					callback("fe");
+					//ret.error(res, "fe","/session/index.html", "start_session-trainer: stat session file");
+			}
+			else{//file exists
+				//Append "session started at"+time, show Tic Detected, Stop Session butttons
+				var sEntry = "NewTics subject|?|"+body.stype+"\n";
+				sEntry += "session started|" + aux.time();
+				fs.appendFile(sesFile, sEntry, function(err){
+					if(err)
+						callback("fe");
+						//ret.error(res, "fe", "/session/index.html", "start_session-trainer: append to sesFile");
+					else{
+						callback(null, "session");
+						//ret.session_trainer(res, body);
+					}
+				});
+			}
+		});
+	}
+}
+
 function startsession_u_req(body, callback){
 	if(body.reqType == 'leave' || body.reqType == 'timeout'){
 		//end session - it has not started yet, so just delete it
@@ -1179,6 +1329,7 @@ function startsession_u_req(body, callback){
 					body.flash = true;
 				else//This could be a moment to check if it says NO or if there's an error
 					body.flash = false;
+				body.ntid = uData[8];
 				var startLPEntry = "\nstarting user l,p,c|"+ lpc[0]+","+lpc[1]+","+lpc[2];
 				fs.appendFile(searchFile, startLPEntry, function(err){
 					if(err){

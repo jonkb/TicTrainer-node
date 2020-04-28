@@ -19,8 +19,9 @@
     </section>
 		<script>
 			//Change the URL bar
+			var url = '/session/linkloading-user.dynh';
 			if(window.history.pushState)
-				window.history.pushState("", "Link Loading: User", "/session/linkloading-user.dynh");
+				window.history.pushState("", "Link Loading: User", url);
 			
 			var tryN = 0;
 			var salido = false;//salido -sp- left
@@ -32,7 +33,6 @@
 			function look(){
 				if(tryN < 30){
 					var xhr = new XMLHttpRequest();
-					var url = '/session/linkloading-user.dynh';
 					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=exists';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
@@ -54,7 +54,6 @@
 				}
 				else{//Timeout
 					var xhr = new XMLHttpRequest();
-					var url = '/session/linkloading-user.dynh';
 					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=timeout';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
@@ -72,7 +71,6 @@
 			function leave(){
 				if(!salido){
 					var xhr = new XMLHttpRequest();
-					var url = '/session/linkloading-user.dynh'
 					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=leave';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');

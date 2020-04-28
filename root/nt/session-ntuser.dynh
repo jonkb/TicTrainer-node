@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<title>TicTrainer Session: User</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+	</head>
+	<body>
+    <section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>TicTrainer Session: User</h1>
+				<div style="clear: both;"></div>
+			</div>
+    </section>
+    <section class="main-content">
+			
+			Token Dispenser Goes Here
+			
+    </section>
+		<!--For genHeap-->
+		<script src="/scripts/store.js"></script>
+		<script>
+			//Change the URL bar
+			if(window.history.pushState)
+				window.history.pushState("", "Session: User", "/nt/session-ntuser.dynh");
+		
+			var already_left = false;
+			window.onbeforeunload = endS;
+			window.onpagehide = endS;
+			
+			//stype is one of: "baseline", "verbal", "DRZ", "NCR"
+			var reward_scheme = "**[stype]**";
+			
+			//Last recorded length of the session file. Used to determine if the file has changed.
+			var lastL = **[sesL]**;
+			
+			/** **[del:!ncr]** This code could be used for ncr (though it's not the same as the current TicTimer ncr)
+				//Number of reward periods between random ncr tics on avg.
+				//At level one, the unit is seconds, because reward periods occur once per second,
+				//but it scales linearly at higher levels.
+			
+			const avg_intertic_interval = **[aiti]**; 
+			//Return true every once in a while, randomly.
+			function ncr_tic(){
+				//On average, how many frames pass between tics
+				//The 10 means people make it to the cap on avg
+				var avg_period = avg_intertic_interval*level/mspf;
+				//(1-t_c)^a_p = .5 --> avg period == a_p
+				var tic_chance = 1 - Math.pow(0.50, 1/avg_period);
+				return Math.random() < tic_chance;
+			}
+			**[end_del:!ncr]**
+			*/
+			
+			/**OLD
+			
+			update_display();
+			frame();
+			genHeap("**[heap]**");
+			function frame(){
+				var xhr = new XMLHttpRequest();
+				var url = '/session/session-user.dynh';
+				//Needed: reqType, id, lid, sesL
+				var reqBody = 'reqType=check&id=**[id]**&lid=**[lid]**&sesL='+lastL;
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Content-type', 'text/plain');//'application/x-www-form-urlencoded'
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){//4: request finished & response ready - readystate codes:http://www.w3schools.com/ajax/ajax_xmlhttprequest_onreadystatechange.asp
+						if(xhr.status == 200){
+							var tic = 0;
+							var end = 0;
+							var fields = xhr.responseText.split('&');
+							lastL = fields[0];//The first field is the newest length of the session file.
+							for(i=1; i<fields.length; i++){
+								if(fields[i] == 'tic') tic++;
+								if(fields[i] == 'end') end++;
+							}
+							if(end == 0){
+								**[del:none]** //If reward scheme is none, delete this block of code
+								**[del:ncr]** //If reward scheme is ncr, delete the traditional reward scheme
+								//Standard reward scheme
+								if(tic == 0)
+								**[end_del:ncr]**
+								**[del:!ncr]** //Delete this unless it's ncr
+								//Alternative reward scheme
+								//Uses the random ticcer
+								if(!ncr_tic())
+								**[end_del:!ncr]**
+								{
+									framesSince++;
+									if(framesSince >= (level * starting_ms_per_reward / mspf)){
+										// Now, (level) seconds have passed since the last reward/tic, so it is time to give reward
+										framesSince = 0;
+										if(rewards_since_increment >= period_to_increment_rate){
+											rewards_since_increment = 0;
+											if(rate < cap){
+												rate += level*level;
+												if(rate > cap)//Overshot
+													rate = cap;
+											}
+										}
+										points += rate;
+										rewards_since_increment++;
+										
+										if(points > nextLevel)
+											levelUp();
+										loglpc();//record the new points (it changed)
+										update_display();
+									}
+								}
+								else{
+									ticTrigger(); 
+									update_display();
+								}
+								**[end_del:none]**
+								setTimeout(function(){ frame(); }, mspf);
+							}
+							else{ endS(); }
+						}
+						else{//For an Error Page
+							var response = xhr.responseText;
+							document.open();
+							document.write(response);
+							document.close();
+						}//ERROR
+					}
+				};
+				xhr.send(reqBody);
+			}
+			function ticTrigger(){
+				framesSince = 0;
+			  rate = level*level;
+				rewards_since_increment = 0;
+				**[del:!reg]**
+				if(flash_red){
+					document.getElementById('counter_panel').setAttribute('style', 'background-color:red;');
+					setTimeout(function(){document.getElementById('counter_panel').setAttribute('style', '');}, 1000);
+				}
+				**[end_del:!reg]**
+			}
+			function endS(){
+				if(!already_left){
+					var xhr = new XMLHttpRequest();
+					var url = '/session/session-user.dynh'
+					//Needed: reqType, id, lid, l, p, c, pw
+					var reqBody = 'reqType=end&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
+					xhr.open('POST', url, true);
+					xhr.onreadystatechange = function(){
+						if(xhr.readyState == 4){
+							var response = xhr.responseText;
+							document.open();
+							document.write(response);
+							document.close();
+						}
+					}
+					xhr.send(reqBody);
+					already_left = true;
+				}
+			}
+			function levelUp(){
+				level++;
+				points -= nextLevel;
+				coins += nextLevel/points_to_first_level;
+				loglpc();
+				nextLevel = points_to_first_level*level*level;
+				cap = 10*level*level;
+				//Flash green (this green is 10% lighter than the green in the page header)
+			  document.getElementById('counter_panel').setAttribute('style', 'background-color:#1fe080');
+			  setTimeout(function(){document.getElementById('counter_panel').setAttribute('style', '');}, 1000);
+			}
+			function update_display(){
+				document.getElementById('pCounter').innerHTML = points;
+				document.getElementById('rCounter').innerHTML = '+'+rate;
+				document.getElementById('lCounter').innerHTML = level;
+				document.getElementById('cCounter').innerHTML = coins;
+				document.getElementById('lUp').innerHTML = nextLevel;
+			}
+			//Make an entry in the session file
+			//And save progress to the user's account
+			
+			function loglpc(){
+				var xhr = new XMLHttpRequest();
+				var url = '/session/session-user.dynh'
+				//Needed: reqType, id, pw, lid, l, p, c
+				var reqBody = 'reqType=loglpc&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
+				xhr.open('POST', url, true);
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(xhr.status != 200){//Display Error Page
+							var response = xhr.responseText;
+							document.open();
+							document.write(response);
+							document.close();
+						}
+					}
+				}
+				xhr.send(reqBody);
+			}
+			*/
+		</script>
+	</body>
+</html>

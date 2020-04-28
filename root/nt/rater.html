@@ -23,6 +23,8 @@
 					<input type="text" name="id" placeholder="a0000" required><br>
 					Password:<br>
 					<input type="password" name="pw" required><br>
+					User ID:<br>
+					<input type="text" name="lid" placeholder="u0000" required><br>
 					<input type="submit" value="Link" class="btn">
 				</fieldset>
 			</form>
@@ -30,8 +32,13 @@
 		<script>
 			function checkForm(){
 				var id = document.forms["newSession"]["id"].value.toLowerCase();
+				var lid = document.forms["newSession"]["lid"].value.toLowerCase();
 				if(id[0] != 'a' || id.length < 2){
-					alert("Invalid ID");
+					alert("Invalid ID:");
+					return false;
+				}
+				if(lid[0] != 'u' || id.length < 2){
+					alert("Invalid ID:");
 					return false;
 				}
 			}

@@ -10,7 +10,7 @@
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
 				<h1>Loading Link</h1>
-				<h2>**[id]** - **[lid]**</h2>
+				<h2>rater - **[lid]**</h2>
 				<div style="clear: both;"></div>
 			</div>
     </section>
@@ -19,8 +19,8 @@
     </section>
 		<script>
 			//Change the URL bar
-			var url = '/session/linkloading-trainer.dynh';
-			window.history.pushState("", "Link Loading: Trainer", url);
+			var url = '/nt/linkloading-rater.dynh';
+			window.history.pushState("", "Link Loading: Rater", url);
 			
 			//30 tries, 2s per try --> 1 min
 			var tryN = 0;
@@ -31,7 +31,7 @@
 			function look(){
 				if(tryN < max_tries){
 					var xhr = new XMLHttpRequest();
-					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**';
+					var reqBody = 'id=a&lid=**[lid]**';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){

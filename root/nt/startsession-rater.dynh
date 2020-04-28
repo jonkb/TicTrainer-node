@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<title>Link Successful</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+	</head>
+	<body>
+    <section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>Link Successful</h1>
+				<h2>Press Button To Start Session</h2>
+				<div style="clear: both;"></div>
+			</div>
+    </section>
+    <section class="main-content">
+			Choose Session Type:
+			<div id='type_btns'>
+				<div class='bigBtn' id='bsln_btn'>Baseline</div>
+				<div class='bigBtn' id='vrbl_btn'>Verbal</div>
+				<div class='bigBtn' id='drz_btn'>DRZ</div>
+				<div class='bigBtn' id='ncr_btn'>NCR</div>
+			</div>
+    </section>
+		<script>
+			//Change the URL bar
+			var url = '/nt/startsession-rater.dynh';
+			window.history.pushState("", "Start Session: Trainer", url);
+			
+			var salido = false;//salido -sp- left
+			var submitted = false;
+			window.onbeforeunload = leave;
+			window.onpagehide = leave;
+			
+			document.getElementById('bsln_btn').addEventListener('click', function(){start("baseline");});
+			document.getElementById('vrbl_btn').addEventListener('click', function(){start("verbal");});
+			document.getElementById('drz_btn').addEventListener('click', function(){start("DRZ");});
+			document.getElementById('ncr_btn').addEventListener('click', function(){start("NCR");});
+			
+			function start(stype){
+				if(!salido){
+					var xhr = new XMLHttpRequest();
+					var reqBody = 'id=a&lid=**[lid]**&reqType=start&stype='+stype;
+					xhr.open('POST', url, true);
+					xhr.setRequestHeader('Content-type', 'text/plain');
+					xhr.onreadystatechange = function(){
+						if(xhr.readyState == 4){
+							document.open();
+							document.write(xhr.responseText);
+							document.close();
+						}
+					};
+					xhr.send(reqBody);
+					submitted = true;
+				}
+			}
+			
+			function leave(){
+				if(!(submitted || salido)){
+					var xhr = new XMLHttpRequest();
+					var reqBody = 'id=a&lid=**[lid]**&reqType=leave';
+					xhr.open('POST', url, true);
+					xhr.send(reqBody);
+					salido = true;
+				}
+			}
+		</script>
+	</body>
+</html>
