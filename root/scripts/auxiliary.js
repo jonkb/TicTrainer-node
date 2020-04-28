@@ -298,7 +298,7 @@ function editAcc(id, fldInd, newVal, callback){
 		}
 		//write nv in the appropriate field
 		insertIndex = indexNOf(data, open_char, fldInd+1) + 1;
-		debugShout("289: "+insertIndex);
+		//debugShout("289: "+insertIndex);
 		if(insertIndex == 0){
 			/*The user's file doesn't have enough fields. 
 				For example, trying to set the NTID of an older user.
