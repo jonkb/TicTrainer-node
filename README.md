@@ -21,3 +21,6 @@ It was built to implement the RE-ERP strategy proposed by Kevin Black (see descr
 4. Make sure the domain name is linked to the server's IP
 	- AWS elastic IPs help with this.
 	- (From godaddy.com) link the domain name (_e.g._ TicTrainer.com) to the IP address of the server. 
+Important Note: if restarting a server that was previously running, make sure that root/account/next_IDs.ttd is set correctly, 
+	otherwise registering a new account may replace an already existing account. It should contain the next unused id numbers, 
+	so the server knows not to reuse an id that already exists.
