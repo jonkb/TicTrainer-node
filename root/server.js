@@ -469,6 +469,18 @@ function handleRequest(req, res){
 						}
 					});
 				break;
+				case "/nt/session-ntuser.dynh":
+					session_ntu_req(body, function(err, next){
+						if(err){
+							ret_error(res, err, "/nt/index.html");
+							return;
+						}
+						if(next == "ended"){
+							ret.redirect(res, "/session/session-ended.html");
+							return;
+						}
+					});
+				break;
 				//End of session-related URLs
 				case "/error/report.html":
 					var content = body.fName+aux.division_char+body.email+aux.division_char+body.message;
@@ -1249,6 +1261,57 @@ function session_u_req(body, callback){
 				});
 			});
 		break;
+	}
+}
+
+function session_ntu_req(body, callback){
+	if(body.reqType == "end"){
+		aux.debugShout("SE-U");
+		var sesFile = "./session/temp/session" + body.lid + body.id + ".ttsd";
+		var sF2 = "./session/archive/session" + body.lid + body.id + aux.time("forfile") + ".ttsd";
+		function archiveSession(){
+			fs.rename(sesFile, sF2, function(err){
+				if(err){
+					callback("fe");
+				}
+				else{
+					/**append report*/
+					fs.readFile(sF2, "utf8", function(err, data){
+						if(err){
+							callback("fe");
+							return;
+						}
+						fs.appendFile(sF2, aux.genReport(data), function(err){
+							if(err)
+								callback("fe");
+							else
+								callback(null, "ended");
+						});
+					});
+				}
+			});
+		}
+		//End and archive session
+		fs.readFile(sesFile, "utf8", function(err, sData){
+			if(err){
+				callback("fe");
+				return;
+			}
+			if(sData.indexOf("session ended") == -1){
+				//The session still needs to be ended
+				var eEntry = "\nsession ended|"+aux.time();
+				fs.appendFile(sesFile, eEntry, function(err){
+					if(err){
+						callback("fe");
+						return;
+					}
+					archiveSession();
+				});
+			}
+			else{
+				archiveSession();
+			}
+		});
 	}
 }
 

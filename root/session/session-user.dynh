@@ -39,9 +39,10 @@
 		<script src="/scripts/store.js"></script>
 		<script>
 			//Change the URL bar
+			var url = '/session/session-user.dynh';
 			if(window.history.pushState)
-				window.history.pushState("", "Session: User", "/session/session-user.dynh");
-		
+				window.history.pushState("", "Session: User", url);
+			
 			var already_left = false;
 			window.onbeforeunload = endS;
 			window.onpagehide = endS;
@@ -93,7 +94,6 @@
 			genHeap("**[heap]**");
 			function frame(){
 				var xhr = new XMLHttpRequest();
-				var url = '/session/session-user.dynh';
 				//Needed: reqType, id, lid, sesL
 				var reqBody = 'reqType=check&id=**[id]**&lid=**[lid]**&sesL='+lastL;
 				xhr.open('POST', url, true);
@@ -175,7 +175,6 @@
 			function endS(){
 				if(!already_left){
 					var xhr = new XMLHttpRequest();
-					var url = '/session/session-user.dynh'
 					//Needed: reqType, id, lid, l, p, c, pw
 					var reqBody = 'reqType=end&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
 					xhr.open('POST', url, true);
@@ -214,7 +213,6 @@
 			*/
 			function loglpc(){
 				var xhr = new XMLHttpRequest();
-				var url = '/session/session-user.dynh'
 				//Needed: reqType, id, pw, lid, l, p, c
 				var reqBody = 'reqType=loglpc&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='+level+'&points='+points+'&coins='+coins;
 				xhr.open('POST', url, true);

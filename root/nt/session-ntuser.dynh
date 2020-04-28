@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en-us">
 	<head>
-		<title>TicTrainer Session: User</title>
+		<title>NewTics Session: User</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
 	</head>
@@ -9,7 +9,7 @@
     <section class="page-header">
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
-				<h1>TicTrainer Session: User</h1>
+				<h1>NewTics Session: User</h1>
 				<div style="clear: both;"></div>
 			</div>
     </section>
@@ -20,12 +20,13 @@
     </section>
 		<script>
 			//Change the URL bar
+			var url = "/nt/session-ntuser.dynh";
 			if(window.history.pushState)
-				window.history.pushState("", "Session: User", "/nt/session-ntuser.dynh");
-		
-			//var already_left = false;
-			//window.onbeforeunload = endS;
-			//window.onpagehide = endS;
+				window.history.pushState("", "Session: User", url);
+			
+			var already_left = false;
+			window.onbeforeunload = endS;
+			window.onpagehide = endS;
 			
 			//stype is one of: "baseline", "verbal", "DRZ", "NCR"
 			var reward_scheme = "**[stype]**";
@@ -33,6 +34,27 @@
 			
 			//Last recorded length of the session file. Used to determine if the file has changed.
 			var lastL = **[sesL]**;
+			
+			//INSERT CODE FOR TOKEN DISPENSER
+			
+			function endS(){
+				if(!already_left){
+					var xhr = new XMLHttpRequest();
+					var reqBody = 'reqType=end&id=**[id]**&pw=**[pw]**&lid=a';
+					xhr.open('POST', url, true);
+					xhr.onreadystatechange = function(){
+						if(xhr.readyState == 4){
+							var response = xhr.responseText;
+							document.open();
+							document.write(response);
+							document.close();
+						}
+					}
+					xhr.send(reqBody);
+					already_left = true;
+				}
+			}
+			
 		</script>
 	</body>
 </html>
