@@ -1,5 +1,6 @@
 var fs = require("fs");
 
+const tt_version = "2020.04.28";
 //depth of debugging: 0(none), 1, 2, 3
 const debugging = 2;
 //How many points to finish the first level. Must also change in session-user.dynh
@@ -496,6 +497,7 @@ function sort2d(inArray, sortColumn){
 
 /**Generates a report for the end of a session
 	Takes the text of the session file (data)
+	TO DO: switch to async. Is there a reason for it to be sync?
 */
 function genReport(data){
 	var tics = 0, tenSIntervals = 0, longestInterval = 0;
@@ -541,6 +543,7 @@ function genReport(data){
 				endL = entryParts[1].split(",")[0];
 				endP = entryParts[1].split(",")[1];
 			break;
+			case "NewTics subject": break;
 			default:
 				return "Error: unknown entry: "+entries[i];
 			break;
@@ -563,6 +566,7 @@ function genReport(data){
 	report += "\nnumber of tics|"+ tics;
 	report += "\nlongest tic free interval|"+ longestInterval/1000;
 	report += "\nnumber of 10s tic free intervals|"+ tenSIntervals;
+	report += "\nreport generated with TicTrainer version|"+tt_version+"\n";
 	return report;
 }
 /**Returns the current time in the requested format type
