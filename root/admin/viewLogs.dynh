@@ -38,6 +38,9 @@
 			<div id="log_content">
 				<!--Filled in by script-->
 			</div>
+			<div id="download_link">
+				<!--Filled in by script-->
+			</div>
     </section>
 		<script>
 			//TO DO: Include download button
@@ -170,8 +173,12 @@
 								loghtml = ttd_to_HTML(xhr.responseText);
 							else if(type == "ses")
 								loghtml = ttsd_to_HTML(xhr.responseText);
-								
 							document.getElementById("log_content").innerHTML = loghtml;
+							
+							//Make download link
+							var log_href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(xhr.responseText);
+							var filename = logfile.slice(logfile.lastIndexOf("/")+1);
+							document.getElementById("download_link").innerHTML = "<a href='"+log_href+"' class='btn' download='"+filename+"'>Download Log File<\a>";
 						}
 						else{
 							document.open();
