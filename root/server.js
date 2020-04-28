@@ -554,77 +554,26 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/admin/viewLogs.dynh":
-					if(body.admin_id[0] != "a"){
-						ret.error(res, "ide");
-						return;
-					}
-					switch(body.source){
-						case "reqlist":
-							/*Authenticate
-								Return list
-							*/
-							aux.loadAcc(body.admin_id, function(err, admin_acc){
-								if(err){
-									aux.debugShout("896", 2);
-									ret.error(res, err, "/admin/index.html");
-									return;
-								}
-								if(body.admin_pw != admin_acc[1]){
-									ret.error(res, "pce", "/admin/index.html");
-									return;
-								}
-								fs.readdir("./session/archive", function(err,items){
-									if(err){
-										ret.error(res, "fe", "/admin/index.html", "admin/viewLogs - reqlist");
-										return;
-									}
-									var loglist = [];
-									for(var i=0; i<items.length; i++){
-										var item = items[i];
-										if(item[0] != ".")
-											loglist.push(item);
-									}
-									res.writeHead(200, {"Content-Type": "text/plain"});
-									res.write(JSON.stringify(loglist), function(err){res.end();});
-								});
-							});
-						break;
-						case "reqlog":
-							/*Authenticate
-								Load Log file
-								Parse it to HTML and respond
-							*/
-							aux.loadAcc(body.admin_id, function(err, admin_acc){
-								if(err){
-									aux.debugShout("927", 2);
-									ret.error(res, err, "/admin/index.html");
-									return;
-								}
-								if(body.admin_pw != admin_acc[1]){
-									ret.error(res, "pce", "/admin/index.html");
-									return;
-								}
-								var ext = body.file.slice(body.file.lastIndexOf("."));
-								if([".ttd", ".ttsd", ".txt"].indexOf(ext) < 0){
-									//Requested the wrong type of file somehow
-									aux.debugShout("938", 2);
-									res.writeHead(403, {"Content-Type": "text/html; charset=UTF-8"});
-									res.end();
-								}
-								fs.readFile(body.file, "utf8", function(err, data){
-									if(err){
-										ret.error("fe", "/admin/index.html", "admin/viewLogs - reqlog");
-										return;
-									}
-									res.writeHead(200, {"Content-Type": "text/plain"});
-									if(data.length > 0)
-										res.write(data, function(err){res.end();});
-									else
-										res.end();
-								});
-							});
-						break;
-					}
+					VL_req(body, function(err, next_code, to_write){
+						if(err){
+							ret.error(res, err, "/admin/index.html");
+							return;
+						}
+						if(next_code == 403){
+							res.writeHead(403, {"Content-Type": "text/html; charset=UTF-8"});
+							res.end();
+							return;
+						}
+						if(next_code == 200){
+							res.writeHead(200, {"Content-Type": "text/plain"});
+							if(to_write.length > 0)
+								res.write(to_write, function(err){res.end();});
+							else
+								res.end();
+						}
+						else
+							ret.error(res, "se", "/admin/index.html");
+					});
 				break;
 				case "/account/store/index.html":
 					switch(body.source){
@@ -1624,6 +1573,90 @@ function MAA_req(body, callback){
 		break;
 	}
 }
+
+function VL_req(body, callback){
+	if(body.admin_id[0] != "a"){
+		callback("ide");
+		//ret.error(res, "ide");
+		return;
+	}
+	switch(body.source){
+		case "reqlist":
+			/*Authenticate
+				Return list
+			*/
+			aux.loadAcc(body.admin_id, function(err, admin_acc){
+				if(err){
+					aux.debugShout("896", 2);
+					callback(err);
+					//ret.error(res, err, "/admin/index.html");
+					return;
+				}
+				if(body.admin_pw != admin_acc[1]){
+					callback("pce");
+					//ret.error(res, "pce", "/admin/index.html");
+					return;
+				}
+				fs.readdir("./session/archive", function(err,items){
+					if(err){
+						callback("fe");
+						//ret.error(res, "fe", "/admin/index.html", "admin/viewLogs - reqlist");
+						return;
+					}
+					var loglist = [];
+					for(var i=0; i<items.length; i++){
+						var item = items[i];
+						if(item[0] != "." && item.indexOf(body.uid) != -1)//Only return those log files involving uid
+							loglist.push(item);
+					}
+					callback(null, 200, JSON.stringify(loglist));
+					//res.writeHead(200, {"Content-Type": "text/plain"});
+					//res.write(JSON.stringify(loglist), function(err){res.end();});
+				});
+			});
+		break;
+		case "reqlog":
+			/*Authenticate
+				Load Log file
+				Parse it to HTML and respond
+			*/
+			aux.loadAcc(body.admin_id, function(err, admin_acc){
+				if(err){
+					aux.debugShout("927", 2);
+					callback(err);
+					//ret.error(res, err, "/admin/index.html");
+					return;
+				}
+				if(body.admin_pw != admin_acc[1]){
+					callback("pce");
+					//ret.error(res, "pce", "/admin/index.html");
+					return;
+				}
+				var ext = body.file.slice(body.file.lastIndexOf("."));
+				if([".ttd", ".ttsd", ".txt"].indexOf(ext) < 0){
+					//Requested the wrong type of file somehow
+					aux.debugShout("1618", 2);
+					callback(null, 403);
+					//res.writeHead(403, {"Content-Type": "text/html; charset=UTF-8"});
+					//res.end();
+				}
+				fs.readFile(body.file, "utf8", function(err, data){
+					if(err){
+						ret.error("fe", "/admin/index.html", "admin/viewLogs - reqlog");
+						return;
+					}
+					callback(null, 200, data);
+					/*res.writeHead(200, {"Content-Type": "text/plain"});
+					if(data.length > 0)
+						res.write(data, function(err){res.end();});
+					else
+						res.end();*/
+				});
+			});
+		break;
+	}
+}
+
 
 if(testing){
 	var server = http.createServer(handleRequest);

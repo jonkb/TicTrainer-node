@@ -29,9 +29,9 @@
 					<br>
 					<div style="clear:right;"></div>
 					Session Logs: <select name="ses_file" id="ses_option">
-						<option value="-">Pick one</option>
 						<!--Filled in by script-->
 					</select>
+					For User: <input type="text" name="uid" id="uid_input" placeholder="u0000" size="6">
 					<button class="btn" style="float: right; margin-top: .25rem;" onclick="load_ses_files(); reqLog('ses');">Reload</button>
 				</fieldset>
 			</form>
@@ -40,11 +40,14 @@
 			</div>
     </section>
 		<script>
+			//TO DO: Include download button
 			//Load a list of session log files for ses_option
 			function load_ses_files(){
+				var uid = document.getElementById('uid_input').value;
+				
 				var xhr = new XMLHttpRequest();
 				var url = '/admin/viewLogs.dynh';
-				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&source=reqlist';
+				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&source=reqlist&uid='+uid;
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');
 				xhr.onreadystatechange = function(){
@@ -134,9 +137,6 @@
 				type: "ses" or "sys" (for session or system)
 			*/
 			function reqLog(type){
-				//Show Loading animation
-				document.getElementById("log_content").innerHTML = "<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>";
-				
 				var logfile;
 				if(type == "sys")
 					logfile = document.getElementById('sys_option').value;
@@ -145,11 +145,16 @@
 				else
 					return "error";
 					
-				if(logfile == "-"){
-					//Not really necessary to alert.
-					alert("Choose a log file"); 
+				if(!logfile){
+					//This happens the first time
 					return false;
 				}
+				if(logfile == "-"){
+					return false;
+				}
+				
+				//Show Loading animation
+				document.getElementById("log_content").innerHTML = "<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>";
 				
 				//Ask the server for the log file and display it
 				var xhr = new XMLHttpRequest();
