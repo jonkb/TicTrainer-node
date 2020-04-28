@@ -32,8 +32,7 @@
 			function checkForm(){
 				var tid = document.forms["ghSession"]["tid"].value.toLowerCase();
 				var uid = document.forms["ghSession"]["uid"].value.toLowerCase();
-				if(tid[0] != "t" || tid.length < 2){
-					//Make this work with admins too.
+				if("ta".indexOf(tid[0]) == -1 || tid.length < 2){
 					alert("Invalid trainer ID");
 					return false;
 				}

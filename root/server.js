@@ -408,7 +408,7 @@ function handleRequest(req, res){
 						}
 						if(next == "session"){
 							//Now go in and figure out what kind of session it is. Also insert the NTID.
-							var sesFile = "./session/temp/session" + body.id + body.lid + ".ttsd";
+							var sesFile = "./session/temp/session" + body.lid + body.id + ".ttsd";
 							fs.readFile(sesFile, "utf8", function(err,data){
 								if(err){
 									ret.error(res, err, "/nt/index.html");
@@ -476,60 +476,12 @@ function handleRequest(req, res){
 					ret.report_sent(res, body);
 				break;
 				case "/error/ghses.html":
-					body.tid = aux.isID(body.tid);
-					body.uid = aux.isID(body.uid);
-					if(body.tid === false || body.uid === false){
-						ret.error(res, "ide", pathname);
-						break;
-					}
-					
-					//verify password
-					aux.loadAcc(body.tid, function(err, tData){
+					ghses_req(body, function(err){
 						if(err){
-							ret.error(res, err);
+							ret_error(res, err, pathname);
 							return;
 						}
-						if(tData[1] != body.pw){
-							ret.error(res, "pce");
-							return;
-						}
-						var sesFile = "./session/temp/session"+ body.tid + body.uid + ".ttsd";
-						fs.stat(sesFile, function(err){
-							if(err){
-								if(err.code == "ENOENT"){//already deleted
-									ret.redirect(res, "/session/index.html");
-								}
-								else{
-									ret.error(res, "fe", pathname, "ghost session: looking at ghost session file");
-								}
-							}
-							else{//legit ghost file
-								//Archive the session file under a new name
-								var sF2 = "./session/archive/session" + body.tid + body.uid + aux.time("forfile") + ".ttsd";
-								fs.rename(sesFile, sF2, function(err){
-									if(err){
-										ret.error(res, "fe", pathname, "ghost session: rename sesFile");
-									}
-									else{
-										/**append report*/
-										fs.readFile(sF2, "utf8", function(err, data){
-											if(err){
-												ret.error(res, "fe", pathname, "ghost session: read sf2");
-												return;
-											}
-											fs.appendFile(sF2, aux.genReport(data), function(err){
-												if(err)
-													ret.error(res, "fe", pathname, "ghost session: append report");
-												else{
-													ret.redirect(res, "/session/index.html");
-													aux.log_error("ghost session", "ghost session archived between "+body.tid+" and "+body.uid);
-												}
-											});
-										});
-									}
-								});
-							}
-						});
+						ret.redirect(res, "/session/index.html");
 					});
 				break;
 				case "/admin/index.html":
@@ -578,239 +530,28 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/admin/manageRU.dynh":
-					if(body.admin_id[0] != "a" || body.id[0] != "u"){
-						ret.error(res, "ide");
-						return;
-					}
-					switch(body.source){
-						case "load_user_data":
-							/*1. check admin pass 
-								2. check user pass
-								3. return user data
-							*/
-							aux.loadAcc(body.admin_id, function(err, admin_acc){
-								if(err){
-									debugShout("854", 2);
-									ret.error(res, err, "/admin/index.html");
-									return;
-								}
-								if(body.admin_pw != admin_acc[1]){
-									ret.error(res, "pce", "/admin/index.html");
-									return;
-								}
-								aux.loadAcc(body.id, function(err, acc){
-									if(err){
-										res.writeHead(200, {"Content-Type": "text/plain"});
-										res.write("error="+err, function(err){res.end();});
-										return;
-									}
-									var ntid = acc[8];
-									var research_settings = acc[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
-									var res_str = "research_state="+research_settings[0]+
-										"&aiti="+research_settings[1]+"&smpr="+research_settings[2]+
-										"&ptir="+research_settings[3]+"&flash="+research_settings[4]+
-										"&ntid="+ntid;
-									res.writeHead(200, {"Content-Type": "text/plain"});
-									res.write(res_str, function(err){res.end();});
-								});
-							});
-						break;
-						case "edit_acc":
-							aux.loadAcc(body.admin_id, function(err, admin_acc){
-								if(err){
-									ret.error(res, err, "/admin/index.html");
-									return;
-								}
-								if(body.admin_pw != admin_acc[1]){
-									ret.error(res, "pce", "/admin/index.html");
-									return;
-								}
-								aux.loadAcc(body.id, function(err, user_acc){
-									if(err){
-										ret.error(res, err, "/admin/index.html");
-										return;
-									}
-									var old_settings = user_acc[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
-									var new_settings = user_acc[7].split(",");
-									new_settings[0] = body.RS;
-									new_settings[4] = body.FLASH;
-									if(body.AITI)
-										new_settings[1] = body.AITI;
-									if(body.SMPR)
-										new_settings[2] = body.SMPR;
-									if(body.PTIR)
-										new_settings[3] = body.PTIR;
-									aux.debugShout(new_settings, 3);
-									if(new_settings != old_settings){
-										aux.editAcc(body.id, 7, new_settings.join(), function(err, uData){
-											if(err){
-												if(uData)
-													aux.debugShout("899 "+uData);
-												ret.error(res, err, "/admin/index.html");
-												return;
-											}
-											if(body.NTID){
-												aux.editAcc(body.id, 8, body.NTID, function(err, uData){
-													if(err){
-														if(uData)
-															aux.debugShout("899 "+uData);
-														ret.error(res, err, "/admin/index.html");
-														return;
-													}
-													res.writeHead(200, {"Content-Type": "text/plain"});
-													res.write("good", function(err){res.end();});
-												});
-											}
-											else{
-												res.writeHead(200, {"Content-Type": "text/plain"});
-												res.write("good", function(err){res.end();});
-											}
-										});
-									}
-									else{
-										//Note, this code here is repeated. I may like to make it into a function instead.
-										if(body.NTID){
-											aux.editAcc(body.id, 8, body.NTID, function(err, uData){
-												if(err){
-													if(uData)
-														aux.debugShout("899 "+uData);
-													ret.error(res, err, "/admin/index.html");
-													return;
-												}
-												res.writeHead(200, {"Content-Type": "text/plain"});
-												res.write("good", function(err){res.end();});
-											});
-										}
-										else{
-											res.writeHead(200, {"Content-Type": "text/plain"});
-											res.write("good", function(err){res.end();});
-										}
-									}
-								});
-							});
-						break;
-					}
+					MRU_req(body, function(err, to_write){
+						if(err){
+							ret.error(res, err, "/admin/index.html");
+							return;
+						}
+						res.writeHead(200, {"Content-Type": "text/plain"});
+						res.write(to_write, function(err){res.end();});
+					});
 				break;
 				case "/admin/manageAA.dynh":
-					switch(body.source){
-						case "load_user_data":
-							if(body.admin_id[0] != "a" || body.id[0] != "a"){
-								ret.error(res, "ide");
-								return;
-							}
-							/*1. check admin pass 
-								2. check aa pass
-								3. return aa pass
-							*/
-							aux.loadAcc(body.admin_id, function(err, admin_acc){
-								if(err){
-									debugShout("901", 2);
-									ret.error(res, err, "/admin/index.html");
-									return;
-								}
-								if(body.admin_pw != admin_acc[1]){
-									ret.error(res, "pce", "/admin/index.html");
-									return;
-								}
-								aux.loadAcc(body.id, function(err, acc){
-									if(err){
-										res.writeHead(200, {"Content-Type": "text/plain"});
-										res.write("error="+err, function(err){res.end();});
-										return;
-									}
-									if(body.pw != acc[1]){
-										res.writeHead(200, {"Content-Type": "text/plain"});
-										res.write("error=pce", function(err){res.end();});
-										return;
-									}
-									res.writeHead(200, {"Content-Type": "text/plain"});
-									res.write("aa_pass="+acc[1], function(err){res.end();});
-								});
-							});
-						break;
-						case "change_pw":
-							if(body.admin_id[0] != "a" || body.id[0] != "a"){
-								ret.error(res, "ide");
-								return;
-							}
-							//Make sure pw doesn't include < or >
-							if(/[<>]/.test(body.pw)){
-								ret.error(res, "ice", "/admin/index.html");//Invalid Character Error
-								break;
-							}
-							aux.loadAcc(body.admin_id, function(err, admin_acc){
-								if(err){
-									ret.error(res, err, "/admin/index.html");
-									return;
-								}
-								if(body.admin_pw != admin_acc[1]){
-									ret.error(res, "pce", "/admin/index.html");
-									return;
-								}
-								aux.editAcc(body.id, 1, function(uData){
-									if(body.pw != uData[1]){
-										res.writeHead(200, {"Content-Type": "text/plain"});
-										res.write("error=pce", function(err){res.end();});
-										return "<cancel>";
-									}
-									return body.new_pw;
-								}, function(err, uData){
-									if(err){
-										if(err !== "canceled"){
-											if(uData)
-												aux.debugShout("946 "+uData);
-											ret.error(res, err, "/admin/index.html");
-										}
-										return;//already sent res
-									}
-									res.writeHead(200, {"Content-Type": "text/plain"});
-									res.write("good", function(err){res.end();});
-								});
-							});
-						break;
-						case "register":
-							if(body.admin_id[0] != "a"){
-								ret.error(res, "ide");
-								return;
-							}
-							//Make sure pw doesn't include < or >
-							if(/[<>]/.test(body.pw)){
-								ret.error(res, "ice", "/admin/index.html");//Invalid Character Error
-								break;
-							}
-							if(body.pw != body.pwc){
-								ret.error(res, "pce", "/admin/index.html");
-								break;
-							}
-							//Authenticate admin
-							aux.loadAcc(body.admin_id, function(err, admin_acc){
-								if(err){
-									ret.error(res, err, "/admin/index.html");
-									return;
-								}
-								aux.debugShout("981");
-								if(body.admin_pw != admin_acc[1]){
-									ret.error(res, "pce", "/admin/index.html");
-									return;
-								}
-								//Get the next available iD number
-								aux.getNextID("a", function(err, ID){
-									if(err){
-										ret.error(res, err);
-										return;
-									}
-									var newAFile = "./account/admin_data/"+ID+".ttad";
-									var aData = aux.newA(ID, body.pw);
-									fs.writeFile(newAFile, aData, function(err){
-										if(err)
-											ret.error(res, "fe", "/admin/index.html", "register-admin: write newAFile");
-										else
-											ret.created(res, aData);
-									});
-								});
-							});
-						break;
-					}
+					MAA_req(body, function(err, to_write, adata){
+						if(err){
+							ret.error(res, err, "/admin/index.html");
+							return;
+						}
+						if(to_write){
+							res.writeHead(200, {"Content-Type": "text/plain"});
+							res.write(to_write, function(err){res.end();});
+							return;
+						}
+						ret.created(res, adata);
+					});
 				break;
 				case "/admin/viewLogs.dynh":
 					if(body.admin_id[0] != "a"){
@@ -1555,6 +1296,328 @@ function session_u_req(body, callback){
 						callback(null, "log");
 						//res.writeHead(200);
 						//res.end();
+					});
+				});
+			});
+		break;
+	}
+}
+
+function ghses_req(body, callback){
+	body.tid = aux.isID(body.tid);
+	body.uid = aux.isID(body.uid);
+	if(body.tid === false || body.uid === false){
+		callback("ide");
+		//ret.error(res, "ide", pathname);
+		return;
+	}
+	
+	//verify password
+	aux.loadAcc(body.tid, function(err, tData){
+		if(err){
+			callback(err);
+			//ret.error(res, err);
+			return;
+		}
+		if(tData[1] != body.pw){
+			callback("pce");
+			//ret.error(res, "pce");
+			return;
+		}
+		if(body.tid[0] == 'a'){
+			body.tid = 'a';
+		}
+		var sesFile = "./session/temp/session"+ body.tid + body.uid + ".ttsd";
+		fs.stat(sesFile, function(err){
+			if(err){
+				if(err.code == "ENOENT"){//already deleted
+					callback();
+					//ret.redirect(res, "/session/index.html");
+				}
+				else{
+					callback("fe");
+					//ret.error(res, "fe", pathname, "ghost session: looking at ghost session file");
+				}
+			}
+			else{//legit ghost file
+				//Archive the session file under a new name
+				var sF2 = "./session/archive/session" + body.tid + body.uid + aux.time("forfile") + ".ttsd";
+				fs.rename(sesFile, sF2, function(err){
+					if(err){
+						callback("fe");
+						//ret.error(res, "fe", pathname, "ghost session: rename sesFile");
+					}
+					else{
+						/**append report*/
+						fs.readFile(sF2, "utf8", function(err, data){
+							if(err){
+								callback("fe");
+								//ret.error(res, "fe", pathname, "ghost session: read sf2");
+								return;
+							}
+							fs.appendFile(sF2, aux.genReport(data), function(err){
+								if(err)
+									callback("fe");
+									//ret.error(res, "fe", pathname, "ghost session: append report");
+								else{
+									callback();
+									//ret.redirect(res, "/session/index.html");
+									aux.log_error("ghost session", "ghost session archived between "+body.tid+" and "+body.uid);
+								}
+							});
+						});
+					}
+				});
+			}
+		});
+	});
+}
+
+function MRU_req(body, callback){
+	if(body.admin_id[0] != "a" || body.id[0] != "u"){
+		callback("ide");
+		//ret.error(res, "ide");
+		return;
+	}
+	switch(body.source){
+		case "load_user_data":
+			/*1. check admin pass 
+				2. check user pass
+				3. return user data
+			*/
+			aux.loadAcc(body.admin_id, function(err, admin_acc){
+				if(err){
+					debugShout("854", 2);
+					callback(err);
+					//ret.error(res, err, "/admin/index.html");
+					return;
+				}
+				if(body.admin_pw != admin_acc[1]){
+					callback("pce");
+					//ret.error(res, "pce", "/admin/index.html");
+					return;
+				}
+				aux.loadAcc(body.id, function(err, acc){
+					if(err){
+						callback(null, "error="+err);
+						//res.writeHead(200, {"Content-Type": "text/plain"});
+						//res.write("error="+err, function(err){res.end();});
+						return;
+					}
+					var ntid = acc[8];
+					var research_settings = acc[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
+					var res_str = "research_state="+research_settings[0]+
+						"&aiti="+research_settings[1]+"&smpr="+research_settings[2]+
+						"&ptir="+research_settings[3]+"&flash="+research_settings[4]+
+						"&ntid="+ntid;
+					callback(null, res_str);
+					//res.writeHead(200, {"Content-Type": "text/plain"});
+					//res.write(res_str, function(err){res.end();});
+				});
+			});
+		break;
+		case "edit_acc":
+			aux.loadAcc(body.admin_id, function(err, admin_acc){
+				if(err){
+					callback(err);
+					//ret.error(res, err, "/admin/index.html");
+					return;
+				}
+				if(body.admin_pw != admin_acc[1]){
+					callback("pce");
+					//ret.error(res, "pce", "/admin/index.html");
+					return;
+				}
+				aux.loadAcc(body.id, function(err, user_acc){
+					if(err){
+						callback(err);
+						//ret.error(res, err, "/admin/index.html");
+						return;
+					}
+					var old_settings = user_acc[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
+					var new_settings = user_acc[7].split(",");
+					new_settings[0] = body.RS;
+					new_settings[4] = body.FLASH;
+					if(body.AITI)
+						new_settings[1] = body.AITI;
+					if(body.SMPR)
+						new_settings[2] = body.SMPR;
+					if(body.PTIR)
+						new_settings[3] = body.PTIR;
+					aux.debugShout(new_settings, 3);
+					if(new_settings != old_settings){
+						aux.editAcc(body.id, 7, new_settings.join(), function(err, uData){
+							if(err){
+								if(uData)
+									aux.debugShout("899 "+uData);
+								callback(err);
+								//ret.error(res, err, "/admin/index.html");
+								return;
+							}
+							edit_ntid(body);
+						});
+					}
+					else{
+						edit_ntid(body);
+					}
+				});
+			});
+			function edit_ntid(body){
+				if(body.NTID){
+					aux.editAcc(body.id, 8, body.NTID, function(err, uData){
+						if(err){
+							if(uData)
+								aux.debugShout("899 "+uData);
+							callback(err);
+							return;
+						}
+						callback(null, "good");
+					});
+				}
+				else{
+					callback(null, "good");
+				}
+			}
+		break;
+	}
+}
+
+function MAA_req(body, callback){
+	switch(body.source){
+		case "load_user_data":
+			if(body.admin_id[0] != "a" || body.id[0] != "a"){
+				callback("ide");
+				//ret.error(res, "ide");
+				return;
+			}
+			/*1. check admin pass 
+				2. check aa pass
+				3. return aa pass
+			*/
+			aux.loadAcc(body.admin_id, function(err, admin_acc){
+				if(err){
+					debugShout("901", 2);
+					callback(err);
+					//ret.error(res, err, "/admin/index.html");
+					return;
+				}
+				if(body.admin_pw != admin_acc[1]){
+					callback("pce");
+					//ret.error(res, "pce", "/admin/index.html");
+					return;
+				}
+				aux.loadAcc(body.id, function(err, acc){
+					if(err){
+						callback(null, "error="+err);
+						//res.writeHead(200, {"Content-Type": "text/plain"});
+						//res.write("error="+err, function(err){res.end();});
+						return;
+					}
+					if(body.pw != acc[1]){
+						callback(null, "error=pce");
+						//res.writeHead(200, {"Content-Type": "text/plain"});
+						//res.write("error=pce", function(err){res.end();});
+						return;
+					}
+					callback(null, "aa_pass="+acc[1]);
+					//res.writeHead(200, {"Content-Type": "text/plain"});
+					//res.write("aa_pass="+acc[1], function(err){res.end();});
+				});
+			});
+		break;
+		case "change_pw":
+			if(body.admin_id[0] != "a" || body.id[0] != "a"){
+				callback("ide");
+				//ret.error(res, "ide");
+				return;
+			}
+			//Make sure pw doesn't include < or >
+			if(/[<>]/.test(body.pw)){
+				callback("ice");
+				//ret.error(res, "ice", "/admin/index.html");//Invalid Character Error
+				break;
+			}
+			aux.loadAcc(body.admin_id, function(err, admin_acc){
+				if(err){
+					callback(err);
+					//ret.error(res, err, "/admin/index.html");
+					return;
+				}
+				if(body.admin_pw != admin_acc[1]){
+					callback("pce");
+					//ret.error(res, "pce", "/admin/index.html");
+					return;
+				}
+				aux.editAcc(body.id, 1, function(uData){
+					if(body.pw != uData[1]){
+						callback(null, "error=pce");
+						//res.writeHead(200, {"Content-Type": "text/plain"});
+						//res.write("error=pce", function(err){res.end();});
+						return "<cancel>";
+					}
+					return body.new_pw;
+				}, function(err, uData){
+					if(err){
+						if(err !== "canceled"){
+							if(uData)
+								aux.debugShout("946 "+uData);
+							callback(err);
+							//ret.error(res, err, "/admin/index.html");
+						}
+						return;//already sent res
+					}
+					callback(null, "good");
+					//res.writeHead(200, {"Content-Type": "text/plain"});
+					//res.write("good", function(err){res.end();});
+				});
+			});
+		break;
+		case "register":
+			if(body.admin_id[0] != "a"){
+				callback("ide");
+				//ret.error(res, "ide");
+				return;
+			}
+			//Make sure pw doesn't include < or >
+			if(/[<>]/.test(body.pw)){
+				callback("ice");
+				//ret.error(res, "ice", "/admin/index.html");//Invalid Character Error
+				break;
+			}
+			if(body.pw != body.pwc){
+				callback("pce");
+				//ret.error(res, "pce", "/admin/index.html");
+				break;
+			}
+			//Authenticate admin
+			aux.loadAcc(body.admin_id, function(err, admin_acc){
+				if(err){
+					callback(err);
+					//ret.error(res, err, "/admin/index.html");
+					return;
+				}
+				aux.debugShout("981");
+				if(body.admin_pw != admin_acc[1]){
+					callback("pce");
+					//ret.error(res, "pce", "/admin/index.html");
+					return;
+				}
+				//Get the next available iD number
+				aux.getNextID("a", function(err, ID){
+					if(err){
+						callback(err);
+						//ret.error(res, err);
+						return;
+					}
+					var newAFile = "./account/admin_data/"+ID+".ttad";
+					var aData = aux.newA(ID, body.pw);
+					fs.writeFile(newAFile, aData, function(err){
+						if(err)
+							callback("fe");
+							//ret.error(res, "fe", "/admin/index.html", "register-admin: write newAFile");
+						else
+							callback(null, null, aData);
+							//ret.created(res, aData);
 					});
 				});
 			});
