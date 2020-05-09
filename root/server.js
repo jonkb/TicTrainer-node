@@ -459,25 +459,35 @@ function handleRequest(req, res){
 							res.writeHead(200, {"Content-Type": "text/plain"});
 							res.write(retMessage, function(err){res.end();});
 						}
-						if(next == "log"){
+						else if(next == "log"){
 							res.writeHead(200);
 							res.end();
 						}
-						if(next == "ended"){
+						else if(next == "ended"){
 							ret.redirect(res, "/session/session-ended.html");
-							return;
 						}
 					});
 				break;
 				case "/nt/session-ntuser.dynh":
-					session_ntu_req(body, function(err, next){
+					aux.debugShout("472: "+aux.time())
+					session_ntu_req(body, function(err, next, retMessage){
 						if(err){
 							ret_error(res, err, "/nt/index.html");
 							return;
 						}
-						if(next == "ended"){
-							ret.redirect(res, "/session/session-ended.html");
+						if(next == "check"){
+							aux.debugShout("479: "+aux.time())
+							res.writeHead(200, {"Content-Type": "text/plain"});
+							res.write(retMessage, function(err){res.end();});
 							return;
+						}
+						else if(next == "log"){
+							aux.debugShout("485: "+aux.time())
+							res.writeHead(200);
+							res.end();
+						}
+						else if(next == "ended"){
+							ret.redirect(res, "/session/session-ended.html");
 						}
 					});
 				break;
@@ -1265,53 +1275,108 @@ function session_u_req(body, callback){
 }
 
 function session_ntu_req(body, callback){
-	if(body.reqType == "end"){
-		aux.debugShout("SE-U");
-		var sesFile = "./session/temp/session" + body.lid + body.id + ".ttsd";
-		var sF2 = "./session/archive/session" + body.lid + body.id + aux.time("forfile") + ".ttsd";
-		function archiveSession(){
-			fs.rename(sesFile, sF2, function(err){
+	switch(body.reqType){
+		case "check":
+			var oldL = body.sesL;
+			var sesFile = "./session/temp/sessiona" + body.id + ".ttsd";
+			fs.readFile(sesFile, "utf8", function(err, data){
 				if(err){
 					callback("fe");
+					//ret.error(res, "fe", "/session/index.html", "session-user: read sesFile");
+					return;
 				}
-				else{
-					/**append report*/
-					fs.readFile(sF2, "utf8", function(err, data){
-						if(err){
-							callback("fe");
-							return;
-						}
-						fs.appendFile(sF2, aux.genReport(data), function(err){
-							if(err)
-								callback("fe");
-							else
-								callback(null, "ended");
-						});
-					});
+				var newL = data.length;
+				aux.debugShout("old: "+oldL+"new:"+newL+"sub: "+data.slice(oldL+1));
+				var entries = data.slice(oldL).split("\n");// = cut off first ""\n
+				aux.debugShout("deltadata == "+entries);
+				var retMessage = data.length.toString();//new sesL
+				for(i = 1; i<entries.length; i++){//i=1 cut off first ""\n
+					var entryType = entries[i].split("|")[0];//First part
+					switch(entryType){
+						case "tic detected":
+							ttime = entries[i].split("|")[1];
+							retMessage += "&tic@"+ttime;
+						break;
+						case "session ended":
+							retMessage += "&end";
+						break;
+						case "reward dispensed":
+						break;
+						default:
+							retMessage += "&?";
+						break;
+					}
 				}
+				callback(null, "check", retMessage);
 			});
-		}
-		//End and archive session
-		fs.readFile(sesFile, "utf8", function(err, sData){
-			if(err){
-				callback("fe");
-				return;
-			}
-			if(sData.indexOf("session ended") == -1){
-				//The session still needs to be ended
-				var eEntry = "\nsession ended|"+aux.time();
-				fs.appendFile(sesFile, eEntry, function(err){
+		break;
+		case "logtoken":
+			//Write a line saying reward dispensed
+			var sesFile = "./session/temp/sessiona" + body.id + ".ttsd";
+			var rdentry = "\nreward dispensed|" +aux.time();
+			//The "access" function is here so it returns an error if the file doesn't exist 
+			//instead of creating a new file
+			fs.access(sesFile, function(err){
+				if(err){
+					callback("fe");
+					return;
+				}
+				fs.appendFile(sesFile, rdentry, function(err){
 					if(err){
 						callback("fe");
 						return;
 					}
-					archiveSession();
+					callback(null, "log");
+				});
+			});
+		break;
+		case "end":
+			var sesFile = "./session/temp/sessiona" + body.id + ".ttsd";
+			var sF2 = "./session/archive/sessiona" + body.id + aux.time("forfile") + ".ttsd";
+			function archiveSession(){
+				fs.rename(sesFile, sF2, function(err){
+					if(err){
+						callback("fe");
+					}
+					else{
+						/**append report*/
+						fs.readFile(sF2, "utf8", function(err, data){
+							if(err){
+								callback("fe");
+								return;
+							}
+							fs.appendFile(sF2, aux.genReport(data), function(err){
+								if(err)
+									callback("fe");
+								else
+									callback(null, "ended");
+							});
+						});
+					}
 				});
 			}
-			else{
-				archiveSession();
-			}
-		});
+			//End and archive session
+			fs.readFile(sesFile, "utf8", function(err, sData){
+				if(err){
+					callback("fe");
+					return;
+				}
+				if(sData.indexOf("session ended") == -1){
+					//The session still needs to be ended
+					var eEntry = "\nsession ended|"+aux.time();
+					fs.appendFile(sesFile, eEntry, function(err){
+						if(err){
+							callback("fe");
+							return;
+						}
+						archiveSession();
+					});
+				}
+				else{
+					archiveSession();
+				}
+			});
+		break;
 	}
 }
 

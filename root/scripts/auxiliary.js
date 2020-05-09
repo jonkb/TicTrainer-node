@@ -1,6 +1,6 @@
 var fs = require("fs");
 
-const tt_version = "2020.04.28";
+const tt_version = "2020.05.08";
 //depth of debugging: 0(none), 1, 2, 3
 const debugging = 2;
 //How many points to finish the first level. Must also change in session-user.dynh
@@ -504,6 +504,8 @@ function genReport(data){
 	var initL = 0, initP = 0, initT;
 	var endL, endP, endT;
 	var lastTic, ticFree;
+	var is_nt = false;
+	var rewards = 0;
 	var entries = data.split("\n");
 	for(var i = 0; i<entries.length; i++){
 		if(entries[i].trim() == ""){
@@ -543,7 +545,12 @@ function genReport(data){
 				endL = entryParts[1].split(",")[0];
 				endP = entryParts[1].split(",")[1];
 			break;
-			case "NewTics subject": break;
+			case "NewTics subject": 
+				is_nt = true;
+			break;
+			case "reward dispensed": 
+				rewards++;
+			break;
 			default:
 				return "Error: unknown entry: "+entries[i];
 			break;
@@ -566,6 +573,8 @@ function genReport(data){
 	report += "\nnumber of tics|"+ tics;
 	report += "\nlongest tic free interval|"+ longestInterval/1000;
 	report += "\nnumber of 10s tic free intervals|"+ tenSIntervals;
+	if(is_nt)
+		report += "\nnumber of rewards dispensed|"+ rewards;
 	report += "\nreport generated with TicTrainer version|"+tt_version+"\n";
 	return report;
 }

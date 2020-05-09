@@ -147,7 +147,8 @@
 									update_display();
 								}
 								**[end_del:none]**
-								setTimeout(function(){ frame(); }, mspf);
+								setTimeout(frame, mspf);
+								//Maybe replace this with one setInterval()
 							}
 							else{ endS(); }
 						}
