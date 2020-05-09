@@ -15,9 +15,11 @@
     </section>
     <section class="main-content">
 			
+			<div style="font-size: 2em;"> <!-- word-wrap: break-word;-->
 			Reward Tokens:<br>
 			<div id="tokens">
 				
+			</div>
 			</div>
 			
     </section>
@@ -36,49 +38,75 @@
 			//alert("This should be a "+reward_scheme+" session");
 			
 			const ms_per_reward = 10*1000;
-			const lag_adjust = 25;
-			const ms_interval = ms_per_reward - lag_adjust
+			var lag_adjust = 0;//SEE trip time below
 			const session_length = 5*60*1000;
-			const token_HTML = "\u2B50"
+			const token_HTML = "\u2B50 "
 			
 			//Last recorded length of the session file. Used to determine if the file has changed.
 			var lastL = **[sesL]**;
+			var timed_check = null;
 			
-			if(reward_scheme == "DRZ")
-				setTimeout(check_for_tic, ms_interval);
-			if(session_length != null)
-				setTimeout(endS, session_length)
+			start();
 			
-			/*Procedure: Check when the last tic was,
-				If it's been 10s, give reward and check again in 10s
-				If not, check in [10-(Now-TicTime)]s
-			*/
-			function check_for_tic(){
+			function start(){
+				var timesent = Date.now();
 				var xhr = new XMLHttpRequest();
-				var reqBody = 'reqType=check&id=**[id]**&sesL='+lastL;
+				var reqBody = 'reqType=start&id=**[id]**';
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
 						if(xhr.status == 200){
+							lag_adjust = Date.now() - timesent;
+							var since_start = xhr.responseText
+							if(reward_scheme == "DRZ")
+								//May fall a bit early...
+								timed_check = setTimeout(check_for_tic, ms_interval() - since_start);
+							if(session_length != null)
+								setTimeout(endS, session_length - since_start)
+						}
+						else{//For an Error Page
+							var response = xhr.responseText;
+							document.open();
+							document.write(response);
+							document.close();
+						}//ERROR
+					}
+				};
+				xhr.send(reqBody);
+			}
+			
+			function ms_interval(){
+				return ms_per_reward - lag_adjust;
+			}
+			
+			function check_for_tic(){
+				var timesent = Date.now();
+				var xhr = new XMLHttpRequest();
+				var reqBody = 'reqType=check&id=**[id]**&sesL='+lastL+'&msi='+ms_per_reward;
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Content-type', 'text/plain');
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(xhr.status == 200){
+							if(xhr.responseText == "end"){
+								endS();
+								return;
+							}
+							lag_adjust = Date.now() - timesent;
 							var fields = xhr.responseText.split('&');
 							lastL = fields[0];
-							lastTic = null;
-							for(i=1; i<fields.length; i++){
-								if(fields[i].indexOf('tic') != -1){
-									lastTic = new Date(fields[i].split("@")[1])
-								}
-								else if(fields[i] == 'end'){
-									endS();
-									return;
-								}
-							}
-							timeSince = Date.now() - lastTic;
-							if(timeSince > ms_interval){
+							if(fields.indexOf("reward") != -1){
 								send_reward();
+								return;
 							}
-							else{
-								setTimeout(check_for_tic, ms_interval-timeSince);
+							for(f in fields){
+								if(fields[f].indexOf("wait:") != -1){
+									var time_left = parseInt(fields[f].slice(fields[f].indexOf(':')+1));
+									//alert("75: "+time_left);
+									timed_check = setTimeout(check_for_tic, time_left - lag_adjust);
+									break;
+								}
 							}
 						}
 						else{//For an Error Page
@@ -93,26 +121,16 @@
 			}
 			
 			function send_reward(){
+				timed_check = setTimeout(check_for_tic, ms_interval());
+				//It's already been logged in the session file.
 				document.getElementById('tokens').innerHTML += token_HTML;
-				setTimeout(check_for_tic, ms_interval);
-				var xhr = new XMLHttpRequest();
-				var reqBody = 'reqType=logtoken&id=**[id]**';
-				xhr.open('POST', url, true);
-				xhr.onreadystatechange = function(){
-					if(xhr.readyState == 4){
-						if(xhr.status != 200){//Display Error Page
-							var response = xhr.responseText;
-							document.open();
-							document.write(response);
-							document.close();
-						}
-					}
-				}
-				xhr.send(reqBody);
 			}
 			
 			function endS(){
 				if(!already_left){
+					if(timed_check){
+						clearTimeout(timed_check)
+					}
 					var xhr = new XMLHttpRequest();
 					var reqBody = 'reqType=end&id=**[id]**&pw=**[pw]**&lid=a';
 					xhr.open('POST', url, true);

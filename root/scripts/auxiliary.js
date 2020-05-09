@@ -1,6 +1,6 @@
 var fs = require("fs");
 
-const tt_version = "2020.05.08";
+const tt_version = "2020.05.09";
 //depth of debugging: 0(none), 1, 2, 3
 const debugging = 2;
 //How many points to finish the first level. Must also change in session-user.dynh
@@ -578,6 +578,13 @@ function genReport(data){
 	report += "\nreport generated with TicTrainer version|"+tt_version+"\n";
 	return report;
 }
+function pad2(num){
+	if(num < 10){
+		return "0" + num.toString();
+	}
+	return num
+}
+	
 /**Returns the current time in the requested format type
 	type:
 		"forfile": YYYY-MM-DD-hh-mm-ss (Local time)
@@ -587,9 +594,9 @@ function genReport(data){
 function time(type){
 	var d = new Date();
 	switch(type){
-		case "forfile"://YYYY-MM-DD-hh-mm-ss
-			return d.getFullYear()+"."+(d.getMonth()+1)+"."+d.getDate()+
-				"-"+d.getHours()+"."+d.getMinutes()+"."+d.getSeconds();
+		case "forfile"://YYYYMMDD-hhmmss
+			return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+
+				"-"+pad2(d.getHours())+pad2(d.getMinutes())+pad2(d.getSeconds());
 		break;
 		case "millis":
 			return d.now();

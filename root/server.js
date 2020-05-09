@@ -469,22 +469,20 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/nt/session-ntuser.dynh":
-					aux.debugShout("472: "+aux.time())
 					session_ntu_req(body, function(err, next, retMessage){
 						if(err){
-							ret_error(res, err, "/nt/index.html");
+							ret.error(res, err, "/nt/index.html");
 							return;
 						}
-						if(next == "check"){
+						if(next == "check" || next == "start"){
 							aux.debugShout("479: "+aux.time())
 							res.writeHead(200, {"Content-Type": "text/plain"});
 							res.write(retMessage, function(err){res.end();});
 							return;
 						}
-						else if(next == "log"){
-							aux.debugShout("485: "+aux.time())
-							res.writeHead(200);
-							res.end();
+						else if(next == "end"){
+							res.writeHead(200, {"Content-Type": "text/plain"});
+							res.write("end", function(err){res.end();});
 						}
 						else if(next == "ended"){
 							ret.redirect(res, "/session/session-ended.html");
@@ -1179,10 +1177,8 @@ function session_u_req(body, callback){
 							fs.appendFile(sF2, aux.genReport(data), function(err){
 								if(err)
 									callback("fe");
-									//ret.error(res, "fe", "/session/index.html", "session_end-user: append report");
 								else
 									callback(null, "ended");
-									//ret.redirect(res, "/session/session-ended.html");
 							});
 						});
 					}
@@ -1276,58 +1272,70 @@ function session_u_req(body, callback){
 
 function session_ntu_req(body, callback){
 	switch(body.reqType){
+		case "start":
+			var sesFile = "./session/temp/sessiona" + body.id + ".ttsd";
+			fs.readFile(sesFile, "utf8", function(err, data){
+				if(err){
+					callback("fe");
+					return;
+				}
+				var sliced_d = data.slice(data.indexOf("session started|"));
+				var stime = sliced_d.slice(sliced_d.indexOf("|")+1, sliced_d.indexOf("\n"));
+				sdate = new Date(stime);
+				var timesince = Date.now() - sdate;
+				callback(null, "start", timesince.toString());
+			});
+		break;
 		case "check":
 			var oldL = body.sesL;
 			var sesFile = "./session/temp/sessiona" + body.id + ".ttsd";
 			fs.readFile(sesFile, "utf8", function(err, data){
 				if(err){
 					callback("fe");
-					//ret.error(res, "fe", "/session/index.html", "session-user: read sesFile");
 					return;
 				}
 				var newL = data.length;
-				aux.debugShout("old: "+oldL+"new:"+newL+"sub: "+data.slice(oldL+1));
-				var entries = data.slice(oldL).split("\n");// = cut off first ""\n
+				aux.debugShout("old: "+oldL+"new:"+newL);
+				var entries = data.slice(oldL).split("\n");
 				aux.debugShout("deltadata == "+entries);
 				var retMessage = data.length.toString();//new sesL
+				var ttime = 0;//Last tic, reward, or s.start
 				for(i = 1; i<entries.length; i++){//i=1 cut off first ""\n
 					var entryType = entries[i].split("|")[0];//First part
 					switch(entryType){
 						case "tic detected":
 							ttime = entries[i].split("|")[1];
-							retMessage += "&tic@"+ttime;
 						break;
 						case "session ended":
-							retMessage += "&end";
+							callback(null, "end");
+							return;
 						break;
 						case "reward dispensed":
+							ttime = entries[i].split("|")[1];
 						break;
 						default:
 							retMessage += "&?";
 						break;
 					}
 				}
-				callback(null, "check", retMessage);
-			});
-		break;
-		case "logtoken":
-			//Write a line saying reward dispensed
-			var sesFile = "./session/temp/sessiona" + body.id + ".ttsd";
-			var rdentry = "\nreward dispensed|" +aux.time();
-			//The "access" function is here so it returns an error if the file doesn't exist 
-			//instead of creating a new file
-			fs.access(sesFile, function(err){
-				if(err){
-					callback("fe");
-					return;
+				if(ttime == 0){
+					var sliced_d = data.slice(data.indexOf("session started|"));
+					ttime = sliced_d.slice(sliced_d.indexOf("|")+1, sliced_d.indexOf("\n"));
 				}
-				fs.appendFile(sesFile, rdentry, function(err){
-					if(err){
-						callback("fe");
-						return;
-					}
-					callback(null, "log");
-				});
+				var lasttic = new Date(ttime);
+				var timesince = Date.now() - lasttic;
+				if(timesince > body.msi){
+					retMessage += "&reward";
+					var rdentry = "\nreward dispensed|" +aux.time();
+					//Not done sequentially because I want it to reply fast
+					callback(null, "check", retMessage);
+					fs.appendFile(sesFile, rdentry, function(err){});
+				}
+				else{
+					timeleft = body.msi - timesince;
+					retMessage += "&wait:"+timeleft;
+					callback(null, "check", retMessage);
+				}
 			});
 		break;
 		case "end":

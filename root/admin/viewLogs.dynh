@@ -84,7 +84,7 @@
 					//This is probably .txt
 					return data.replace(/\n/g,"<br>");
 				}
-				var html = "\n<table>\n";
+				var html = "\n<table style='table-layout: auto;'>\n";
 				for(var i = 0; i< data.length; i++){
 					var character = data[i];
 					switch(character){
@@ -116,7 +116,7 @@
 					~|~
 			*/
 			function ttsd_to_HTML(data){
-				var html = "\n<table>\n";
+				var html = "\n<table style='table-layout: auto;'>\n";
 				var rows = data.split(/\s*\n\s*/);
 				for(var i=0; i<rows.length; i++){
 					var entries = rows[i].split("|");
