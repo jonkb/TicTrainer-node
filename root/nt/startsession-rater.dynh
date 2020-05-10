@@ -39,6 +39,10 @@
 			document.getElementById('ncr_btn').addEventListener('click', function(){start("NCR");});
 			
 			function start(stype){
+				if(stype == "NCR"){
+					alert("NCR sessions are not yet implemented.");
+					return;
+				}
 				if(!salido){
 					var xhr = new XMLHttpRequest();
 					var reqBody = 'id=a&lid=**[lid]**&reqType=start&stype='+stype;

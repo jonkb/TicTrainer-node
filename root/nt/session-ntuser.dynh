@@ -38,13 +38,12 @@
 			//alert("This should be a "+reward_scheme+" session");
 			
 			const ms_per_reward = 10*1000;
-			var lag_adjust = 0;//SEE trip time below
 			const session_length = 5*60*1000;
-			const token_HTML = "\u2B50 "
+			const token_HTML = "<img src='/media/coin.svg' alt='\u2B50 ' height='40px' style='margin:0.3rem'>"
 			
-			//Last recorded length of the session file. Used to determine if the file has changed.
-			var lastL = **[sesL]**;
 			var timed_check = null;
+			var lag_adjust = 0;
+			var bell_audio = new Audio('/media/bike-bell.mp3');
 			
 			start();
 			
@@ -61,7 +60,8 @@
 							var since_start = xhr.responseText
 							if(reward_scheme == "DRZ")
 								//May fall a bit early...
-								timed_check = setTimeout(check_for_tic, ms_interval() - since_start);
+								timed_check = setTimeout(check_for_tic, 
+									ms_per_reward - lag_adjust - since_start);
 							if(session_length != null)
 								setTimeout(endS, session_length - since_start)
 						}
@@ -76,37 +76,31 @@
 				xhr.send(reqBody);
 			}
 			
-			function ms_interval(){
-				return ms_per_reward - lag_adjust;
-			}
-			
 			function check_for_tic(){
 				var timesent = Date.now();
 				var xhr = new XMLHttpRequest();
-				var reqBody = 'reqType=check&id=**[id]**&sesL='+lastL+'&msi='+ms_per_reward;
+				var reqBody = 'reqType=check&id=**[id]**'+'&msi='+ms_per_reward;
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
 						if(xhr.status == 200){
-							if(xhr.responseText == "end"){
+							var res_txt = xhr.responseText;
+							if(res_txt == "end"){
 								endS();
 								return;
 							}
 							lag_adjust = Date.now() - timesent;
-							var fields = xhr.responseText.split('&');
-							lastL = fields[0];
-							if(fields.indexOf("reward") != -1){
-								send_reward();
+							if(res_txt.indexOf("reward:") != -1){
+								var to_next = parseInt(res_txt.slice(res_txt.indexOf(':')+1));
+								send_reward(to_next);
+								//alert("l: "+lag_adjust)
 								return;
 							}
-							for(f in fields){
-								if(fields[f].indexOf("wait:") != -1){
-									var time_left = parseInt(fields[f].slice(fields[f].indexOf(':')+1));
-									//alert("75: "+time_left);
-									timed_check = setTimeout(check_for_tic, time_left - lag_adjust);
-									break;
-								}
+							if(res_txt.indexOf("wait:") != -1){
+								var time_left = parseInt(res_txt.slice(res_txt.indexOf(':')+1));
+								timed_check = setTimeout(check_for_tic, time_left - lag_adjust);
+								return;
 							}
 						}
 						else{//For an Error Page
@@ -120,10 +114,11 @@
 				xhr.send(reqBody);
 			}
 			
-			function send_reward(){
-				timed_check = setTimeout(check_for_tic, ms_interval());
+			function send_reward(to_next){
+				timed_check = setTimeout(check_for_tic, to_next - lag_adjust);
 				//It's already been logged in the session file.
 				document.getElementById('tokens').innerHTML += token_HTML;
+				bell_audio.play();
 			}
 			
 			function endS(){

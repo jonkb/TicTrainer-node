@@ -475,7 +475,7 @@ function handleRequest(req, res){
 							return;
 						}
 						if(next == "check" || next == "start"){
-							aux.debugShout("479: "+aux.time())
+							aux.debugShout("479: "+aux.time()+":"+retMessage);
 							res.writeHead(200, {"Content-Type": "text/plain"});
 							res.write(retMessage, function(err){res.end();});
 							return;
@@ -1287,54 +1287,59 @@ function session_ntu_req(body, callback){
 			});
 		break;
 		case "check":
-			var oldL = body.sesL;
 			var sesFile = "./session/temp/sessiona" + body.id + ".ttsd";
 			fs.readFile(sesFile, "utf8", function(err, data){
 				if(err){
 					callback("fe");
 					return;
 				}
-				var newL = data.length;
-				aux.debugShout("old: "+oldL+"new:"+newL);
-				var entries = data.slice(oldL).split("\n");
-				aux.debugShout("deltadata == "+entries);
-				var retMessage = data.length.toString();//new sesL
-				var ttime = 0;//Last tic, reward, or s.start
+				var entries = data.split("\n");
+				var ttime = 0;//Last tic or s.start
+				var rtime = 0;
 				for(i = 1; i<entries.length; i++){//i=1 cut off first ""\n
 					var entryType = entries[i].split("|")[0];//First part
+					var entryVal = entries[i].split("|")[1];
 					switch(entryType){
+						case "session started":
+							ttime = entryVal;
+							rtime = entryVal;
+						break;
 						case "tic detected":
-							ttime = entries[i].split("|")[1];
+							ttime = entryVal;
 						break;
 						case "session ended":
 							callback(null, "end");
 							return;
 						break;
 						case "reward dispensed":
-							ttime = entries[i].split("|")[1];
+							rtime = entryVal;
 						break;
-						default:
-							retMessage += "&?";
-						break;
+						//default:
+						//	retMessage += "&?";
+						//break;
 					}
 				}
-				if(ttime == 0){
-					var sliced_d = data.slice(data.indexOf("session started|"));
-					ttime = sliced_d.slice(sliced_d.indexOf("|")+1, sliced_d.indexOf("\n"));
-				}
+				
+				const undershoot_ms = 50;
+				var msi = parseInt(body.msi);
 				var lasttic = new Date(ttime);
-				var timesince = Date.now() - lasttic;
-				if(timesince > body.msi){
-					retMessage += "&reward";
-					var rdentry = "\nreward dispensed|" +aux.time();
-					//Not done sequentially because I want it to reply fast
-					callback(null, "check", retMessage);
-					fs.appendFile(sesFile, rdentry, function(err){});
+				var lastrew = new Date(rtime);
+				var n = Math.max(Math.round((lastrew.getTime()-lasttic.getTime())/msi), 0) + 1;
+				var nextrew = new Date(lasttic.getTime() + n*msi);
+				var now = Date.now();
+				var torew = nextrew.getTime()-now;
+				aux.debugShout("lt: "+lasttic.getTime()+", lr: "+lastrew.getTime()+", n: "+n
+					+", nextrew: "+nextrew.getTime()+", now: "+now +", torew: "+torew);
+				if(torew > undershoot_ms){
+					var msg = "wait:" + torew;
+					callback(null, "check", msg);
 				}
 				else{
-					timeleft = body.msi - timesince;
-					retMessage += "&wait:"+timeleft;
-					callback(null, "check", retMessage);
+					var msg = "reward:" + (torew+msi);
+					var rdentry = "\nreward dispensed|" +aux.time();
+					//Not done sequentially because I want it to reply fast
+					callback(null, "check", msg);
+					fs.appendFile(sesFile, rdentry, function(err){});
 				}
 			});
 		break;
