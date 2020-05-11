@@ -387,7 +387,7 @@ function handleRequest(req, res){
 							return;
 						}
 						if(next == "session"){
-							ret.session_trainer(res, body);//Reuse? Will that be ok?
+							ret.session_rater(res, body);
 						}
 					});
 				break;
@@ -432,6 +432,7 @@ function handleRequest(req, res){
 						}
 					});
 				break;
+				case "/nt/session-rater.dynh":
 				case "/session/session-trainer.dynh":
 					session_t_req(body, function(err, next){
 						if(err){

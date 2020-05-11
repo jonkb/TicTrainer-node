@@ -15,11 +15,11 @@
     </section>
     <section class="main-content">
 			
-			<div style="font-size: 2em;"> <!-- word-wrap: break-word;-->
-			Reward Tokens:<br>
-			<div id="tokens">
-				
-			</div>
+			<div style="font-size: 2em;">
+				Reward Tokens:<br>
+				<div id="tokens">
+					
+				</div>
 			</div>
 			
     </section>

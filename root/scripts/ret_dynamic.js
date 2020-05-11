@@ -18,6 +18,7 @@ module.exports.start_session_ntuser = ret_start_session_ntuser;
 module.exports.session_trainer = ret_session_trainer;
 module.exports.session_user = ret_session_user;
 module.exports.session_ntuser = ret_session_ntuser;
+module.exports.session_rater = ret_session_rater;
 module.exports.report_sent = ret_report_sent;
 module.exports.admin = ret_admin;
 module.exports.manageAA = ret_manageAA;
@@ -294,6 +295,16 @@ function ret_session_trainer(res, data){
 		"lid": data.lid
 	};
 	aux.dynamic("./session/session-trainer.dynh", dynd, function(page){
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+		res.write(page, function(err){res.end();});
+	});
+}
+function ret_session_rater(res, data){
+	var dynd = {
+		"id": data.id,
+		"lid": data.lid
+	};
+	aux.dynamic("./nt/session-rater.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});

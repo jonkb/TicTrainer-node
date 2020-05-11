@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en-us">
 	<head>
-		<title>TicTrainer Session: Trainer</title>
+		<title>NewTics Session: Rater</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
 	</head>
@@ -9,70 +9,74 @@
     <section class="page-header">
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
-				<h1>TicTrainer Session: Trainer</h1>
+				<h1>NewTics Session: Rater</h1>
 				<div style="clear: both;"></div>
 			</div>
     </section>
     <section class="main-content">
+		
 			<div id='tr_btns'>
 				<button type='button' class='bigBtn' id='ticBtn'>Tic Detected</button><br>
 				<button type='button' class='bigBtn' id='endBtn'>End Session</button>
 			</div>
-			
-			<div id='paying_attention'>
-				<div style="float:right; margin:0;">
-					<div id='here_btn' class='btn' style="white-space:nowrap; margin: 0;">
-						I'm Here
-					</div>
+			<div style='padding: 1rem 0 0 10%;'>
+				Approximate Session Clock:
+				<div style='padding: 0 0 0 5%;' class='medCounter' id='clock'>
+					00:00
 				</div>
-				<div style="height:100%; overflow:hidden;">
-					<div id='animation' style='height:100%; width:100%; float:right; background-color:#808080;'></div>
+			</div>
+			<div style='margin: 1rem 10% 0 10%;'>
+				Tic Log:
+				<div style='margin: 0 5% 0 5%; overflow:auto; height:6em' id='tic_log'>
 				</div>
 			</div>
 			
     </section>
 		<script>
 			//Change the URL bar
-			window.history.pushState("", "Session: Trainer", "/session/session-trainer.dynh");
+			var url = '/nt/session-rater.dynh';
+			window.history.pushState("", "NewTics Session: Rater", url);
 			
 			var already_left = false;
 			window.onbeforeunload = endS;
 			window.onpagehide = endS;
-			document.addEventListener('visibilitychange', function(){if(document.hidden){endS();}}, false);
 			
 			document.getElementById('ticBtn').addEventListener('click', tic);
 			document.getElementById('endBtn').addEventListener('click', endS);
-			document.getElementById('here_btn').addEventListener('click', here);
-			var anim_bar = document.getElementById('animation');
-			var tTotal = 60;
-			var tLeft = 60;
+			onkeydown = key_press;
 			
-			setInterval(progress, 1000);
+			//Half a second later because the user's timer is more accurate.
+			//We hope to rely on that one.
+			const session_length = 5*60*1000;
+			setTimeout(endS, session_length + 500);
 			
-			function set_anim_wid(width){
-				var color = '808080';
-				if(width < 18)
-					color = 'FF0000';
-				anim_bar.setAttribute('style', 'height:100%; float:right; background-color:#'+color+'; width:'+width+'%;');
-			}
-			function progress(){
-				if(tLeft > 0){
-					tLeft -= 1;
-					var width = 100 * tLeft / tTotal;
-					set_anim_wid(width);
+			var session_time = 0;//in seconds
+			var clock = document.getElementById('clock');
+			var tic_log = document.getElementById('tic_log');
+			setInterval(advance_clock, 1000);
+			
+			
+			function key_press(event){
+				var key = event.keyCode
+				//32=SPACE; 84=T; 69=E
+				if(key == 32 || key == 84){
+					tic();
 				}
-				else{
+				else if(key == 69){
 					endS();
 				}
 			}
-			function here(){
-				tLeft = tTotal;
-				set_anim_wid(100);
+			function time_string(){
+				var min = Math.floor(session_time / 60).toString().padStart(2,'0');
+				var sec = ( session_time % 60 ).toString().padStart(2,'0');
+				return min+":"+sec;
+			}
+			function advance_clock(){
+				session_time++;
+				clock.innerHTML = time_string();
 			}
 		  function tic(){
-				here();
 		    var xhr = new XMLHttpRequest();
-				var url = '/session/session-trainer.dynh';
 				var reqBody = '&id=**[id]**&lid=**[lid]**&reqType=tic';
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){//just check that everything is fine
@@ -93,11 +97,13 @@
 				};
 				xhr.open('POST', url, true);
 				xhr.send(reqBody);
+				
+				var tic_line = "Tic detected at "+time_string()+"<br>";
+				tic_log.innerHTML = tic_line + tic_log.innerHTML;
 		  }
 		  function endS(){
 				if(!already_left){
 					var xhr = new XMLHttpRequest();
-					var url = '/session/session-trainer.dynh';
 					var reqBody = 'id=**[id]**&lid=**[lid]**&reqType=end';
 					xhr.onreadystatechange = function(){
 						if(xhr.readyState == 4){//just check that everything is fine
