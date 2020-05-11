@@ -1,6 +1,6 @@
 var fs = require("fs");
 
-const tt_version = "2020.05.09";
+const tt_version = "2020.05.11";
 //depth of debugging: 0(none), 1, 2, 3
 const debugging = 2;
 //How many points to finish the first level. Must also change in session-user.dynh
@@ -520,7 +520,9 @@ function genReport(data){
 			break;
 			case "starting user l,p,c":
 				initL = entryParts[1].split(",")[0];
+				endL = initL;
 				initP = entryParts[1].split(",")[1];
+				endP = initP;
 			break;
 			case "tic detected":
 				tics++;
