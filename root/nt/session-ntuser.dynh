@@ -24,26 +24,26 @@
 			
     </section>
 		<script>
+			var token_HTML = "<img src='/media/coin.svg' alt='\u2B50 ' height='40px' style='margin:0.3rem'>"
+			var bell_audio = new Audio('/media/bike-bell.mp3');
+			var already_left = false;
+			
 			//Change the URL bar
 			var url = "/nt/session-ntuser.dynh";
 			if(window.history.pushState)
 				window.history.pushState("", "NewTics Session: User", url);
 			
-			var already_left = false;
 			window.onbeforeunload = endS;
 			window.onpagehide = endS;
 			
-			//stype is one of: "baseline", "verbal", "DRZ", "NCR"
-			var reward_scheme = "**[stype]**";
-			//alert("This should be a "+reward_scheme+" session");
-			
-			const ms_per_reward = 10*1000;
-			const session_length = 5*60*1000;
-			const token_HTML = "<img src='/media/coin.svg' alt='\u2B50 ' height='40px' style='margin:0.3rem'>"
-			
-			var timed_check = null;
-			var lag_adjust = 0;
-			var bell_audio = new Audio('/media/bike-bell.mp3');
+			var ses_vars = {
+				//stype is one of: "baseline", "verbal", "DRZ", "NCR"
+				"reward_scheme" : "**[stype]**",
+				"ms_per_reward" : 10*1000,
+				"session_length" : 5*60*1000,
+				"timed_check" : null,
+				"lag_adjust" : 0
+			}
 			
 			start();
 			
@@ -56,14 +56,14 @@
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
 						if(xhr.status == 200){
-							lag_adjust = Date.now() - timesent;
+							ses_vars.lag_adjust = Date.now() - timesent;
 							var since_start = xhr.responseText
-							if(reward_scheme == "DRZ")
+							if(ses_vars.reward_scheme == "DRZ")
 								//May fall a bit early...
-								timed_check = setTimeout(check_for_tic, 
-									ms_per_reward - lag_adjust - since_start);
-							if(session_length != null)
-								setTimeout(endS, session_length - since_start)
+								ses_vars.timed_check = setTimeout(check_for_tic, 
+									ses_vars.ms_per_reward - ses_vars.lag_adjust - since_start);
+							if(ses_vars.session_length != null)
+								setTimeout(endS, ses_vars.session_length - since_start)
 						}
 						else{//For an Error Page
 							var response = xhr.responseText;
@@ -79,7 +79,7 @@
 			function check_for_tic(){
 				var timesent = Date.now();
 				var xhr = new XMLHttpRequest();
-				var reqBody = 'reqType=check&id=**[id]**'+'&msi='+ms_per_reward;
+				var reqBody = 'reqType=check&id=**[id]**'+'&msi='+ses_vars.ms_per_reward;
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Content-type', 'text/plain');
 				xhr.onreadystatechange = function(){
@@ -90,16 +90,15 @@
 								endS();
 								return;
 							}
-							lag_adjust = Date.now() - timesent;
+							ses_vars.lag_adjust = Date.now() - timesent;
 							if(res_txt.indexOf("reward:") != -1){
 								var to_next = parseInt(res_txt.slice(res_txt.indexOf(':')+1));
 								send_reward(to_next);
-								//alert("l: "+lag_adjust)
 								return;
 							}
 							if(res_txt.indexOf("wait:") != -1){
 								var time_left = parseInt(res_txt.slice(res_txt.indexOf(':')+1));
-								timed_check = setTimeout(check_for_tic, time_left - lag_adjust);
+								ses_vars.timed_check = setTimeout(check_for_tic, time_left - ses_vars.lag_adjust);
 								return;
 							}
 						}
@@ -115,7 +114,7 @@
 			}
 			
 			function send_reward(to_next){
-				timed_check = setTimeout(check_for_tic, to_next - lag_adjust);
+				ses_vars.timed_check = setTimeout(check_for_tic, to_next - ses_vars.lag_adjust);
 				//It's already been logged in the session file.
 				document.getElementById('tokens').innerHTML += token_HTML;
 				bell_audio.play();
@@ -123,11 +122,12 @@
 			
 			function endS(){
 				if(!already_left){
-					if(timed_check){
-						clearTimeout(timed_check)
+					if(ses_vars.timed_check){
+						clearTimeout(ses_vars.timed_check)
 					}
+					ses_vars = {};
 					var xhr = new XMLHttpRequest();
-					var reqBody = 'reqType=end&id=**[id]**&pw=**[pw]**&lid=a';
+					var reqBody = 'reqType=end&id=**[id]**&lid=a';
 					xhr.open('POST', url, true);
 					xhr.onreadystatechange = function(){
 						if(xhr.readyState == 4){

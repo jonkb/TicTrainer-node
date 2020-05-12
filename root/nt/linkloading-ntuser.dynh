@@ -15,25 +15,28 @@
 			</div>
     </section>
     <section class="main-content">
+			Waiting for Rater
 			<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>
     </section>
 		<script>
+			var already_left = false;
 			//Change the URL bar
 			var url = '/nt/linkloading-ntuser.dynh';
 			if(window.history.pushState)
 				window.history.pushState("", "Link Loading: NewTics User", url);
 			
-			var tryN = 0;
-			var salido = false;//salido -sp- left
 			window.onbeforeunload = leave;
 			window.onpagehide = leave;
-			//document.addEventListener('visibilitychange', function(){if(document.hidden){leave();}}, false);
+			document.addEventListener('visibilitychange', function(){if(document.hidden){leave();}}, false);
 			
-			look();//automatic
+			var tryN = 0;
+			
+			look();
+			
 			function look(){
 				if(tryN < 30){
 					var xhr = new XMLHttpRequest();
-					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=a&reqType=exists';
+					var reqBody = 'id=**[id]**&lid=a&reqType=exists';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){
@@ -54,7 +57,7 @@
 				}
 				else{//Timeout
 					var xhr = new XMLHttpRequest();
-					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=a&reqType=timeout';
+					var reqBody = 'id=**[id]**&lid=a&reqType=timeout';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){
@@ -69,13 +72,13 @@
 				}
 			}
 			function leave(){
-				if(!salido){
+				if(!already_left){
 					var xhr = new XMLHttpRequest();
-					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=a&reqType=leave';
+					var reqBody = 'id=**[id]**&lid=a&reqType=leave';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.send(reqBody);
-					salido = true;
+					already_left = true;
 				}
 			}
 		</script>

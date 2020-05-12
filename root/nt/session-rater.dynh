@@ -33,11 +33,12 @@
 			
     </section>
 		<script>
+			var already_left = false;
 			//Change the URL bar
 			var url = '/nt/session-rater.dynh';
-			window.history.pushState("", "NewTics Session: Rater", url);
+			if(window.history.pushState)
+				window.history.pushState("", "NewTics Session: Rater", url);
 			
-			var already_left = false;
 			window.onbeforeunload = endS;
 			window.onpagehide = endS;
 			
@@ -45,15 +46,18 @@
 			document.getElementById('endBtn').addEventListener('click', endS);
 			onkeydown = key_press;
 			
-			//Half a second later because the user's timer is more accurate.
-			//We hope to rely on that one.
-			const session_length = 5*60*1000;
-			setTimeout(endS, session_length + 500);
-			
-			var session_time = 0;//in seconds
 			var clock = document.getElementById('clock');
 			var tic_log = document.getElementById('tic_log');
-			setInterval(advance_clock, 1000);
+			
+			//Encapsulating some data better
+			var ses_vars = {
+				//Half a second later because the user's timer is more accurate.
+				//We hope to rely on that one.
+				"session_length" : 5*60*1000,
+				"session_time" : 0//in seconds
+			}
+			ses_vars.clock_timer = setInterval(advance_clock, 1000);
+			ses_vars.end_timer = setTimeout(endS, ses_vars.session_length + 500);
 			
 			
 			function key_press(event){
@@ -67,17 +71,17 @@
 				}
 			}
 			function time_string(){
-				var min = Math.floor(session_time / 60).toString().padStart(2,'0');
-				var sec = ( session_time % 60 ).toString().padStart(2,'0');
+				var min = Math.floor(ses_vars.session_time / 60).toString().padStart(2,'0');
+				var sec = ( ses_vars.session_time % 60 ).toString().padStart(2,'0');
 				return min+":"+sec;
 			}
 			function advance_clock(){
-				session_time++;
+				ses_vars.session_time++;
 				clock.innerHTML = time_string();
 			}
 		  function tic(){
 		    var xhr = new XMLHttpRequest();
-				var reqBody = '&id=**[id]**&lid=**[lid]**&reqType=tic';
+				var reqBody = 'id=**[id]**&lid=**[lid]**&reqType=tic';
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){//just check that everything is fine
 						var response = xhr.responseText;
@@ -103,6 +107,9 @@
 		  }
 		  function endS(){
 				if(!already_left){
+					clearInterval(ses_vars.clock_timer);
+					clearTimeout(ses_vars.end_timer);
+					ses_vars = {};
 					var xhr = new XMLHttpRequest();
 					var reqBody = 'id=**[id]**&lid=**[lid]**&reqType=end';
 					xhr.onreadystatechange = function(){

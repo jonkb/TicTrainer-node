@@ -24,12 +24,12 @@
 			</div>
     </section>
 		<script>
+			var already_left = false;
+			var submitted = false;
 			//Change the URL bar
 			var url = '/nt/startsession-rater.dynh';
 			window.history.pushState("", "Start Session: Trainer", url);
 			
-			var salido = false;//salido -sp- left
-			var submitted = false;
 			window.onbeforeunload = leave;
 			window.onpagehide = leave;
 			
@@ -43,7 +43,7 @@
 					alert("NCR sessions are not yet implemented.");
 					return;
 				}
-				if(!salido){
+				if(!already_left){
 					var xhr = new XMLHttpRequest();
 					var reqBody = 'id=a&lid=**[lid]**&reqType=start&stype='+stype;
 					xhr.open('POST', url, true);
@@ -61,12 +61,12 @@
 			}
 			
 			function leave(){
-				if(!(submitted || salido)){
+				if(!(submitted || already_left)){
 					var xhr = new XMLHttpRequest();
 					var reqBody = 'id=a&lid=**[lid]**&reqType=leave';
 					xhr.open('POST', url, true);
 					xhr.send(reqBody);
-					salido = true;
+					already_left = true;
 				}
 			}
 		</script>

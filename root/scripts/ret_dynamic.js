@@ -19,6 +19,7 @@ module.exports.session_trainer = ret_session_trainer;
 module.exports.session_user = ret_session_user;
 module.exports.session_ntuser = ret_session_ntuser;
 module.exports.session_rater = ret_session_rater;
+module.exports.nt_session_ended = ret_nt_session_ended;
 module.exports.report_sent = ret_report_sent;
 module.exports.admin = ret_admin;
 module.exports.manageAA = ret_manageAA;
@@ -226,8 +227,6 @@ function ret_link_loading_user(res, data){
 function ret_link_loading_rater(res, data){
 	var dynd = {
 		"lid": data.lid,
-		//"pw": data.pw,
-		"tryN": parseInt(data.tryN)+1
 	};
 	aux.dynamic("./nt/linkloading-rater.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
@@ -237,7 +236,7 @@ function ret_link_loading_rater(res, data){
 function ret_link_loading_ntuser(res, data){
 	var dynd = {
 		"id": data.id,
-		"pw": data.pw
+		//"pw": data.pw
 	};
 	aux.dynamic("./nt/linkloading-ntuser.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
@@ -281,7 +280,7 @@ function ret_start_session_rater(res, data){
 function ret_start_session_ntuser(res, data){
 	var dynd = {
 		"id": data.id,
-		"pw": data.pw
+		//"pw": data.pw
 	};
 	aux.dynamic("./nt/startsession-ntuser.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
@@ -350,15 +349,26 @@ function ret_session_ntuser(res, data){
 	
 	var dynd = {
 		"id": data.id,
-		"pw": data.pw,
+		//"pw": data.pw,
 		"lid": data.lid,
-		"sesL": data.sesL,
+		//"sesL": data.sesL,
 		"stype": data.stype
 	};
 	aux.dynamic("./nt/session-ntuser.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
+}
+function ret_nt_session_ended(res, data){
+	var dynd = {
+		"id": data.id,
+		"lid": data.lid,
+	};
+	aux.dynamic("./nt/nt-session-ended.dynh", dynd, function(page){
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+		res.write(page, function(err){res.end();});
+	});
+	
 }
 // After error/report
 function ret_report_sent(res, data){

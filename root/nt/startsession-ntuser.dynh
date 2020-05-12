@@ -18,11 +18,11 @@
 			<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>
     </section>
 		<script>
+			var already_left = false;
 			//Change the URL bar
 			var url = '/nt/startsession-ntuser.dynh';
 			window.history.pushState("", "Start Session: NewTics User", url);
 			
-			var salido = false;//salido -sp- left
 			window.onbeforeunload = leave;
 			window.onpagehide = leave;
 			
@@ -31,7 +31,7 @@
 			function look(){
 				if(tryN < 30){
 					var xhr = new XMLHttpRequest();
-					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=a&reqType=started';
+					var reqBody = 'id=**[id]**&lid=a&reqType=started';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){
@@ -52,7 +52,7 @@
 				}
 				else{//Timeout
 					var xhr = new XMLHttpRequest();
-					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=a&reqType=timeout';
+					var reqBody = 'id=**[id]**&lid=a&reqType=timeout';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){
@@ -67,12 +67,12 @@
 				}
 			}
 			function leave(){
-				if(!salido){
+				if(!already_left){
 					var xhr = new XMLHttpRequest();
-					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=a&reqType=leave';
+					var reqBody = 'id=**[id]**&lid=a&reqType=leave';
 					xhr.open('POST', url, true);
 					xhr.send(reqBody);
-					salido = true;
+					already_left = true;
 				}
 			}
 		</script>

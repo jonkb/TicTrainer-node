@@ -267,14 +267,13 @@ function handleRequest(req, res){
 							ret.error(res, err, pathname);
 							return;
 						}
-						body.tryN = 0;
+						//body.tryN = 0;
 						//Go to Link Loading Page
 						aux.debugShout("271: "+body.id);
 						if(body.id == "a")
-							ret.link_loading_rater(res, body);//TO DO: make new page here 
-						else{ //body.id[0] is definitely "u" because the error would have already been caught otherwise.
-							ret.link_loading_ntuser(res, body);//TO DO: make new page here
-						}
+							ret.link_loading_rater(res, body);
+						else
+							ret.link_loading_ntuser(res, body);
 					});
 				break;
 				case "/session/linkloading-trainer.dynh":
@@ -317,7 +316,6 @@ function handleRequest(req, res){
 						}
 						if(next == "wait"){
 							res.writeHead(200, {"Content-Type": "text/plain"});
-							//res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 							res.write("wait", function(err){res.end();});
 						}
 						else if(next == "start"){
@@ -383,7 +381,8 @@ function handleRequest(req, res){
 							return;
 						}
 						if(next == "ended"){
-							ret.redirect(res, "/session/session-ended.html");
+							ret.nt_session_ended(res, body);
+							//ret.redirect(res, "/session/session-ended.html");
 							return;
 						}
 						if(next == "session"){
@@ -398,7 +397,8 @@ function handleRequest(req, res){
 							return;
 						}
 						if(next == "ended"){
-							ret.redirect(res, "/session/session-ended.html");
+							ret.nt_session_ended(res, body);
+							//ret.redirect(res, "/session/session-ended.html");
 							return;
 						}
 						if(next == "wait"){
@@ -432,7 +432,6 @@ function handleRequest(req, res){
 						}
 					});
 				break;
-				case "/nt/session-rater.dynh":
 				case "/session/session-trainer.dynh":
 					session_t_req(body, function(err, next){
 						if(err){
@@ -441,6 +440,23 @@ function handleRequest(req, res){
 						}
 						if(next == "ended"){
 							ret.redirect(res, "/session/session-ended.html");
+							return;
+						}
+						if(next == "good"){
+							res.writeHead(200, {"Content-Type": "text/plain"});
+							res.write("good", function(err){res.end();});
+							return;
+						}
+					});
+				break;
+				case "/nt/session-rater.dynh":
+					session_t_req(body, function(err, next){
+						if(err){
+							ret_error(res, err, "/session/index.html");
+							return;
+						}
+						if(next == "ended"){
+							ret.nt_session_ended(res, body);
 							return;
 						}
 						if(next == "good"){
@@ -486,8 +502,22 @@ function handleRequest(req, res){
 							res.write("end", function(err){res.end();});
 						}
 						else if(next == "ended"){
-							ret.redirect(res, "/session/session-ended.html");
+							ret.nt_session_ended(res, body);
 						}
+					});
+				break;
+				case "/nt/nt-session-ended.dynh":
+					ff_nt_ses(body, function(err){
+						if(err){
+							ret.error(res, err, "/nt/index.html");
+							return;
+						}
+						//Go to Link Loading Page
+						aux.debugShout("498: "+body.id);
+						if(body.id == "a")
+							ret.link_loading_rater(res, body);
+						else
+							ret.link_loading_ntuser(res, body);
 					});
 				break;
 				//End of session-related URLs
@@ -716,7 +746,6 @@ function new_session_req(body, callback){
 		if(aData[1] != body.pw){
 			//Password Confirmation Error
 			callback("pce");
-			//ret.error(res, "pce", "/session/index.html");
 			return;
 		}
 		if(body.id[0] == 'a'){
@@ -849,7 +878,7 @@ function linkloading_u_req(body, callback){
 	if(body.reqType == 'leave' || body.reqType == 'timeout'){
 		//remove entry in lnusers
 		fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
-			if(err){//lnusers got destroyed?
+			if(err){
 				callback("fe");
 				//ret.error(res, "fe", "/", "linkloading-user: leave/timeout - read lnusers");
 			}
@@ -887,7 +916,6 @@ function linkloading_u_req(body, callback){
 			}
 			else//Some other error
 				callback("fe");
-				//ret.error(res, "fe", "/session/index.html", "linkloading-user: stat session file");
 		});
 	}
 }
@@ -944,7 +972,6 @@ function startsession_rater_req(body, callback){
 		fs.unlink(sesFile, function(err){
 			if(err)
 				callback("fe");
-				//ret.error(res, "fe", "/session/index.html", "start_session-trainer: leave");
 		});
 	}
 	else{ //One of the START buttons pressed
@@ -989,7 +1016,7 @@ function startsession_u_req(body, callback){
 				//ret.error(res, "fe", "/session/index.html", "start_session-user: unlink");
 			}
 			else{
-				callback(null, "ended");
+				callback(null, "ended", body);
 				//ret.redirect(res, "/session/session-ended.html");
 			}
 		});
@@ -1000,7 +1027,7 @@ function startsession_u_req(body, callback){
 		fs.readFile(searchFile, "utf8", function(err, sfdata){
 			if(err){
 				if(err.code == "ENOENT")//trainer left
-					callback(null, "ended");
+					callback(null, "ended", body);
 					//ret.redirect(res, "/session/session-ended.html");
 				else
 					callback("fe");
@@ -1021,10 +1048,11 @@ function startsession_u_req(body, callback){
 					//ret.error(res, err);//anfe or ide
 					return;
 				}
-				if(body.pw != uData[1]){
-					callback("pce");
-					//ret.error(res, "pce");
-					return;
+				if(body.lid != 'a'){
+					if(body.pw != uData[1]){
+						callback("pce");
+						return;
+					}
 				}
 				var lpc = uData[5].split(",");
 				body.level = lpc[0];
@@ -1391,6 +1419,71 @@ function session_ntu_req(body, callback){
 				}
 			});
 		break;
+	}
+}
+
+function ff_nt_ses(body, callback){
+	/*Here, we skip password verification and everything,
+		fast-forwarding to the linkloading pages.
+	*/
+	if(body.id[0] == 'u'){
+		var oldSFile = "./session/temp/session"+ body.lid + body.id + ".ttsd";
+		fs.stat(oldSFile, function(err){
+			if(err){
+				if(err.code == "ENOENT"){//Good.
+					/*Data entry for the new waiting link
+						Format: <uN,tM> [with no \n]
+					*/
+					var linkData = aux.open_char +body.id+ aux.division_char +body.lid+ aux.close_char;
+					fs.readFile("./session/lnusers.ttd", "utf8", function(err,data){
+						if(err){
+							callback("fe");
+							ret.error(res, "fe", "/session/index.html", "new-session: reading lnusers.ttd");
+							return;
+						}
+						if(data.indexOf(linkData) == -1)
+							fs.appendFile("./session/lnusers.ttd", linkData, function(err){
+								if(err){
+									callback("fe");
+									//ret.error(res, "fe", "/session/index.html", "new-session: appending to lnusers.ttd");
+								}
+								else{
+									//Go to user loading page
+									callback(null, body);
+								}
+							});
+						else//no need to add a new entry - should this throw an error?
+							callback(null, body);
+					});
+				}
+				else
+					callback("fe");
+			}
+			else{//There is a concurrent (or 'ghost') session
+				callback("conses");
+			}
+		});
+	}
+	else if(body.id == "a"){
+		var oldSFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
+		/*Concurrent session check.
+			This could happen if the rater doesn't wait for the user's session to end.
+		*/
+		fs.stat(oldSFile, function(err){
+			if(err){
+				if(err.code == "ENOENT"){//Does not exist. Good.
+					callback(null, body);
+				}
+				else
+					callback("fe");
+			}
+			else{
+				callback("conses");
+			}
+		});
+	}
+	else{
+		callback("ife");
 	}
 }
 
