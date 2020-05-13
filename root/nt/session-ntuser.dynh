@@ -42,6 +42,7 @@
 				"ms_per_reward" : 10*1000,
 				"session_length" : 5*60*1000,
 				"timed_check" : null,
+				"end_timer" : null,
 				"lag_adjust" : 0
 			}
 			
@@ -63,9 +64,10 @@
 								ses_vars.timed_check = setTimeout(check_for_tic, 
 									ses_vars.ms_per_reward - ses_vars.lag_adjust - since_start);
 							if(ses_vars.session_length != null)
-								setTimeout(endS, ses_vars.session_length - since_start)
+								ses_vars.end_timer = setTimeout(endS, ses_vars.session_length - since_start);
 						}
 						else{//For an Error Page
+							cleanup();
 							var response = xhr.responseText;
 							document.open();
 							document.write(response);
@@ -103,6 +105,7 @@
 							}
 						}
 						else{//For an Error Page
+							cleanup();
 							var response = xhr.responseText;
 							document.open();
 							document.write(response);
@@ -120,12 +123,17 @@
 				bell_audio.play();
 			}
 			
+			function cleanup(){
+				if(ses_vars.end_timer)
+					clearTimeout(ses_vars.end_timer);
+				if(ses_vars.timed_check)
+					clearTimeout(ses_vars.timed_check);
+				ses_vars = {};
+			}
+			
 			function endS(){
 				if(!already_left){
-					if(ses_vars.timed_check){
-						clearTimeout(ses_vars.timed_check)
-					}
-					ses_vars = {};
+					cleanup();
 					var xhr = new XMLHttpRequest();
 					var reqBody = 'reqType=end&id=**[id]**&lid=a';
 					xhr.open('POST', url, true);

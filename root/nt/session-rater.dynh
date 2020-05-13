@@ -60,6 +60,12 @@
 			ses_vars.end_timer = setTimeout(endS, ses_vars.session_length + 500);
 			
 			
+			function cleanup(){
+				//alert(JSON.stringify(ses_vars));
+				clearInterval(ses_vars.clock_timer);
+				clearTimeout(ses_vars.end_timer);
+				ses_vars = {};
+			}
 			function key_press(event){
 				var key = event.keyCode
 				//32=SPACE; 84=T; 69=E
@@ -86,12 +92,14 @@
 					if(xhr.readyState == 4){//just check that everything is fine
 						var response = xhr.responseText;
 						if(xhr.status != 200){//Error
+							cleanup();
 							document.open();
 							document.write(response);
 							document.close();
 						}
 						else{
 							if(response != 'good'){//end page
+								cleanup();
 								document.open();
 								document.write(response);
 								document.close();
@@ -107,9 +115,7 @@
 		  }
 		  function endS(){
 				if(!already_left){
-					clearInterval(ses_vars.clock_timer);
-					clearTimeout(ses_vars.end_timer);
-					ses_vars = {};
+					cleanup();
 					var xhr = new XMLHttpRequest();
 					var reqBody = 'id=**[id]**&lid=**[lid]**&reqType=end';
 					xhr.onreadystatechange = function(){
