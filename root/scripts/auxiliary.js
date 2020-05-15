@@ -1,13 +1,9 @@
 var fs = require("fs");
-
-const tt_version = "2020.05.11";
-//depth of debugging: 0(none), 1, 2, 3
-const debugging = 2;
-//How many points to finish the first level. Must also change in session-user.dynh
-const points_to_first_level = 300;
+const settings = JSON.parse(fs.readFileSync("./scripts/settings.json"));
 
 /**Exported Functions
 */
+module.exports.settings = settings;
 module.exports.dynamic = dynamic;
 module.exports.indexNOf = indexNOf;
 module.exports.isID = isID;
@@ -564,7 +560,7 @@ function genReport(data){
 			Add those subtracted points to the point total.
 		*/
 		for(var i = initL; i<endL; i++){
-			endP += points_to_first_level*i*i;//300L^2 = nextLevel
+			endP += settings.points_to_first_level*i*i;//300L^2 = nextLevel
 		}
 	}
 	debugShout("start: "+initT+". end: "+endT);
@@ -577,7 +573,7 @@ function genReport(data){
 	report += "\nnumber of 10s tic free intervals|"+ tenSIntervals;
 	if(is_nt)
 		report += "\nnumber of rewards dispensed|"+ rewards;
-	report += "\nreport generated with TicTrainer version|"+tt_version+"\n";
+	report += "\nreport generated with TicTrainer version|"+settings.tt_version+"\n";
 	return report;
 }
 function pad2(num){
@@ -619,7 +615,7 @@ function time(type){
 function debugShout(message, depth){
 	if(!depth)
 		depth = 2;
-	if(debugging >= depth)
+	if(settings.debugging >= depth)
 		console.log(message);
 }
 /**Writes an error to the error log (/error/log.ttd)

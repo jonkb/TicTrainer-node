@@ -2,11 +2,9 @@ const inventory = {"b":5,
 	"s":30,
 	"g":100};
 
-/*Throws an error when loaded by the browser, 
-	but this is used by node scripts too. It's fine
-	(At least in Chrome)
-*/
-module.exports = {"inv": inventory};
+//This script is used by the server and by the client, so it needs this.
+if(typeof module != "undefined")
+	module.exports = {"inv": inventory};
 
 /**Fills a div with the given medals. 
 	heap is a string made of the 1-letter codes for the medals (eg. "gsgsbgbbbss")

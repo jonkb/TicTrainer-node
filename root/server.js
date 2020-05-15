@@ -10,7 +10,6 @@ var inventory = require("./scripts/store.js").inv;
 
 const HTTPS_PORT = 443;
 const TESTING_PORT = 8888;
-const testing = true;
 
 
 function handleRequest(req, res){
@@ -1893,7 +1892,7 @@ function VL_req(body, callback){
 }
 
 
-if(testing){
+if(aux.settings.testing){
 	var server = http.createServer(handleRequest);
 	server.listen(TESTING_PORT);
 }

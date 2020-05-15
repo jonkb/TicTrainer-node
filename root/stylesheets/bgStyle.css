@@ -82,6 +82,11 @@ footer {
   font-weight: bold;
 }
 
+.med_lbl {
+	display: block;
+	font-weight: bold;
+}
+
 .main-content .btn {
 	-webkit-user-select: none;/*You can't select the text in the btn label*/
   -khtml-user-select: none;
@@ -243,6 +248,9 @@ footer {
 	#paying_attention{
 		height: 3rem;
 	}
+	.med_lbl{
+		font-size: 2.8rem;
+	}
 	.bigCounter{
 		font-size: 7rem;
 	}
@@ -278,6 +286,9 @@ footer {
 	#paying_attention{
 		height: 2.6rem;
 	}
+	.med_lbl{
+		font-size: 2rem;
+	}
 	.bigCounter{
 		font-size: 5rem;
 	}
@@ -312,6 +323,9 @@ footer {
 	}
 	#paying_attention{
 		height: 2.4rem;
+	}
+	.med_lbl{
+		font-size: 1.2rem;
 	}
 	.bigCounter{
 		font-size: 3rem;

@@ -14,18 +14,16 @@
 			</div>
     </section>
     <section class="main-content">
-			
-			<div style="font-size: 2em;">
-				Reward Tokens:<br>
-				<div id="tokens">
-					
-				</div>
-			</div>
+			<p id="top_lbl" class="med_lbl" style="text-align: center;"></p>
+			<div id="tokens_lbl" class="med_lbl"></div>
+			<div id="tokens" style="font-size: 2em;"></div>
 			
     </section>
+		<script src="/scripts/req_settings.js"></script>
 		<script>
 			var token_HTML = "<img src='/media/coin.svg' alt='\u2B50 ' height='40px' style='margin:0.3rem'>"
 			var bell_audio = new Audio('/media/bike-bell.mp3');
+			var token_box = document.getElementById('tokens');
 			var already_left = false;
 			
 			//Change the URL bar
@@ -33,6 +31,7 @@
 			if(window.history.pushState)
 				window.history.pushState("", "NewTics Session: User", url);
 			
+			window.onload = init;
 			window.onbeforeunload = endS;
 			window.onpagehide = endS;
 			
@@ -43,12 +42,41 @@
 				"session_length" : 5*60*1000,
 				"timed_check" : null,
 				"end_timer" : null,
-				"lag_adjust" : 0
+				"lag_adjust" : 0,
+				"lbl_bgc" : null
 			}
 			
-			start();
+			function init(){
+				req_settings(function(code, res){
+					if(code == 200){
+						ses_vars.lbl_bgc = res.nts_lbl_bgc;
+						start();
+					}
+					else{
+						cleanup();
+						document.open();
+						document.write(res);
+						document.close();
+					}
+				});
+			}
 			
 			function start(){
+				var top_lbl = document.getElementById("top_lbl");
+				var tokens_lbl = document.getElementById("tokens_lbl");
+				if(ses_vars.reward_scheme == "baseline"){
+					top_lbl.innerHTML = "OK to tic";
+					if(ses_vars.lbl_bgc)
+						top_lbl.style.backgroundColor = "#6f6";
+				}
+				else{
+					top_lbl.innerHTML = "Don't tic";
+					if(ses_vars.lbl_bgc)
+						top_lbl.style.backgroundColor = "#f66";
+				}
+				if(ses_vars.reward_scheme == "DRZ" || ses_vars.reward_scheme == "NCR"){
+					tokens_lbl.innerHTML = "Reward Tokens:";
+				}
 				var timesent = Date.now();
 				var xhr = new XMLHttpRequest();
 				var reqBody = 'reqType=start&id=**[id]**';
@@ -119,7 +147,7 @@
 			function send_reward(to_next){
 				ses_vars.timed_check = setTimeout(check_for_tic, to_next - ses_vars.lag_adjust);
 				//It's already been logged in the session file.
-				document.getElementById('tokens').innerHTML += token_HTML;
+				token_box.innerHTML += token_HTML;
 				bell_audio.play();
 			}
 			

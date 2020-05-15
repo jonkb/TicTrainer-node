@@ -35,6 +35,7 @@
 			</div>
 			
     </section>
+		<script src="/scripts/req_settings.js"></script>
 		<!--For genHeap-->
 		<script src="/scripts/store.js"></script>
 		<script>
@@ -59,9 +60,9 @@
 			
 			//REWARD SETTINGS
 			const flash_red = **[flash]**;
-			const points_to_first_level = 300;
 			const starting_ms_per_reward = **[smpr]**;
 			const period_to_increment_rate = **[ptir]**;//How many rewards are given before incrementing the rate
+			var points_to_first_level = 300;
 			
 			const mspf = 500;//ms per frame. fps=2.
 			var framesSince = 0;
@@ -71,6 +72,18 @@
 			var rate = level*level;
 			//Last recorded length of the session file. Used to determine if the file has changed.
 			var lastL = **[sesL]**;
+			
+			req_settings(function(code, res){
+				if(code == 200){
+					points_to_first_level = res.points_to_first_level;
+					start();
+				}
+				else{
+					document.open();
+					document.write(res);
+					document.close();
+				}
+			});
 			
 			**[del:!ncr]**
 			/*Number of reward periods between random ncr tics on avg.
@@ -89,9 +102,11 @@
 			}
 			**[end_del:!ncr]**
 			
-			update_display();
-			frame();
-			genHeap("**[heap]**");
+			function start(){
+				update_display();
+				frame();
+				genHeap("**[heap]**");
+			}
 			function frame(){
 				var xhr = new XMLHttpRequest();
 				//Needed: reqType, id, lid, sesL
