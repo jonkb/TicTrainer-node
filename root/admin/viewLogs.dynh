@@ -42,98 +42,27 @@
 				<!--Filled in by script-->
 			</div>
     </section>
+		<script src="/scripts/req_logs.js"></script>
 		<script>
-			//TO DO: Include download button
-			//Load a list of session log files for ses_option
 			function load_ses_files(){
+				var aid = '**[admin_id]**';
+				var apw = '**[admin_pw]**';
 				var uid = document.getElementById('uid_input').value;
-				
-				var xhr = new XMLHttpRequest();
-				var url = '/admin/viewLogs.dynh';
-				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&source=reqlist&uid='+uid;
-				xhr.open('POST', url, true);
-				xhr.setRequestHeader('Content-type', 'text/plain');
-				xhr.onreadystatechange = function(){
-					if(xhr.readyState == 4){
-						if(xhr.status == 200){
-							var loglist = JSON.parse(xhr.responseText);
-							//text to fill ses_option
-							var optionHTML = "<option value='-'>Pick one</option>\n";
-							for(var i=0; i<loglist.length; i++){
-								optionHTML += "<option value='./session/archive/"+loglist[i]+"'>"+loglist[i]+"</option>";
-							}
-							document.getElementById('ses_option').innerHTML = optionHTML;
+				req_ses_list(aid, apw, uid, function(code, res){
+					if(code == 200){
+						//text to fill ses_option
+						var optionHTML = "<option value='-'>Pick one</option>\n";
+						for(var i=0; i<res.length; i++){
+							optionHTML += "<option value='./session/archive/"+res[i]+"'>"+res[i]+"</option>";
 						}
-						else{
-							document.open();
-							document.write(xhr.responseText);
-							document.close();
-						}
+						document.getElementById('ses_option').innerHTML = optionHTML;
 					}
-				};
-				xhr.send(reqBody);
-			}
-			
-			/*Parse plain text from a .ttd file to a table.
-				.ttd files are organized like this: <~;~>\n<~;~;~>
-				See the leaderboard scripts.
-			*/
-			function ttd_to_HTML(data){
-				//Or I could say: if the first line is "Started at ..."
-				if(data.indexOf("<") < 0 && data.indexOf(">") < 0){
-					//This is probably .txt
-					return data.replace(/\n/g,"<br>");
-				}
-				var html = "\n<table style='table-layout: auto;'>\n";
-				for(var i = 0; i< data.length; i++){
-					var character = data[i];
-					switch(character){
-						case "<":
-							html += "<tr>\n<td>";
-						break;
-						case ">":
-							html += "</td>\n</tr>\n";
-						break;
-						case ";":
-							html += "</td>\n<td>";
-						break;
-						default:
-							html += character;
-						break;
+					else{
+						document.open();
+						document.write(res);
+						document.close();
 					}
-				}//For each character
-				html += "</table>\n";
-				return html;
-			}
-			
-			/*Parse plain text from a .ttsd file to a table.
-				.ttsd files are organized like this: 
-					~|~
-					~|~|~
-					******
-					Report:
-					~|~
-					~|~
-			*/
-			function ttsd_to_HTML(data){
-				var html = "\n<table style='table-layout: auto;'>\n";
-				var rows = data.split(/\s*\n\s*/);
-				for(var i=0; i<rows.length; i++){
-					var entries = rows[i].split("|");
-					if(entries.length > 1){
-						html += "<tr>\n";
-						for(var j=0; j<entries.length; j++){
-							html += "<td>" + entries[j] + "</td>\n";
-						}
-						html += "</tr>\n";
-					}
-					else if(rows[i] == "Report:"){
-						//Divider Row
-						html += "<tr><td style='height:0;border-bottom:1pt solid black;'></td></tr>\n";
-					}
-				}
-				html += "</table>\n"
-				return html;
+				});
 			}
 			
 			/*To be used to request a log file from the server.
@@ -196,8 +125,6 @@
 			//Send the request as soon as they pick an option.
 			document.getElementById('sys_option').onchange = function(){reqLog("sys");};
 			document.getElementById('ses_option').onchange = function(){reqLog("ses");};
-			//Maybe add a button too. For refresh?
-			
 		</script>
 	</body>
 </html>
