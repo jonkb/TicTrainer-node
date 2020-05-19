@@ -983,7 +983,6 @@ function startsession_rater_req(body, callback){
 		});
 	}
 	else{ //One of the START buttons pressed
-		//If file does not exist, the user must have left early
 		fs.stat(sesFile, function(err){
 			if(err){
 				if(err.code == "ENOENT"){
@@ -994,27 +993,31 @@ function startsession_rater_req(body, callback){
 				}
 				else
 					callback("fe");
-					//ret.error(res, "fe","/session/index.html", "start_session-trainer: stat session file");
 			}
 			else{//file exists
-				//Append "session started at"+time, show Tic Detected, Stop Session butttons
 				var sEntry = "NewTics subject|?|"+body.stype;
 				sEntry += "\nsession started|" + aux.time();
 				if(body.stype == "NCR"){
 					sEntry += "\nncr reward times|";
+					if(typeof(body.rew_times) == "undefined"){
+						body.rew_times = [];
+					}
+					else if(typeof(body.rew_times.length) == "undefined"){
+						body.rew_times = [ body.rew_times ];
+					}
 					for(const t of body.rew_times){
 						sEntry += t+",";
 					}
-					sEntry = sEntry.slice(0,-1);
+					if(sEntry[sEntry.length-1] == ','){
+						sEntry = sEntry.slice(0,-1);
+					}
 				}
 				
 				fs.appendFile(sesFile, sEntry, function(err){
 					if(err)
 						callback("fe");
-						//ret.error(res, "fe", "/session/index.html", "start_session-trainer: append to sesFile");
 					else{
 						callback(null, "session");
-						//ret.session_trainer(res, body);
 					}
 				});
 			}

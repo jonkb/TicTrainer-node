@@ -23,6 +23,7 @@
 		<script>
 			var token_HTML = "<img src='/media/coin.svg' alt='\u2B50 ' height='40px' style='margin:0.3rem'>"
 			var bell_audio = new Audio('/media/bike-bell.mp3');
+			bell_audio.volume = .25;
 			var token_box = document.getElementById('tokens');
 			var already_left = false;
 			
@@ -93,8 +94,10 @@
 								var since_start = res_parts[0];
 								let rew_times = res_parts[1].split(",");
 								for(t of rew_times){
-									let t_i = parseInt(t)-since_start-ses_vars.lag_adjust/2;
-									ses_vars.ncr_timers.push(setTimeout(ncr_rew, t_i));
+									if(!isNaN(parseInt(t))){
+										let t_i = parseInt(t)-since_start-ses_vars.lag_adjust/2;
+										ses_vars.ncr_timers.push(setTimeout(ncr_rew, t_i));
+									}
 								}
 							}
 							else{
