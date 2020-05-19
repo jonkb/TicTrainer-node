@@ -28,7 +28,7 @@
 			function new_ses(){
 				if(!sent){
 					var xhr = new XMLHttpRequest();
-					var reqBody = 'id=**[id]**&lid=**[lid]**';
+					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**';
 					xhr.onreadystatechange = function(){
 						if(xhr.readyState == 4){
 							var response = xhr.responseText;

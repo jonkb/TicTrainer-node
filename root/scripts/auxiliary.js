@@ -543,14 +543,16 @@ function genReport(data){
 				endL = entryParts[1].split(",")[0];
 				endP = entryParts[1].split(",")[1];
 			break;
-			case "NewTics subject": 
+			case "NewTics subject":
 				is_nt = true;
 			break;
-			case "reward dispensed": 
+			case "reward dispensed":
 				rewards++;
 			break;
+			case "ncr reward times":
+			break;
 			default:
-				return "Error: unknown entry: "+entries[i];
+				return "\nError: unknown entry: "+entries[i];
 			break;
 		}
 	}

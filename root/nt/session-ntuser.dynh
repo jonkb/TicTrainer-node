@@ -42,6 +42,7 @@
 				"session_length" : 5*60*1000,
 				"timed_check" : null,
 				"end_timer" : null,
+				"ncr_timers" : [],
 				"lag_adjust" : 0,
 				"lbl_bgc" : null
 			}
@@ -85,12 +86,24 @@
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
 						if(xhr.status == 200){
+							//alert(xhr.responseText);
 							ses_vars.lag_adjust = Date.now() - timesent;
-							var since_start = xhr.responseText
-							if(ses_vars.reward_scheme == "DRZ")
-								//May fall a bit early...
-								ses_vars.timed_check = setTimeout(check_for_tic, 
-									ses_vars.ms_per_reward - ses_vars.lag_adjust - since_start);
+							if(ses_vars.reward_scheme == "NCR"){
+								let res_parts = xhr.responseText.split("&");
+								var since_start = res_parts[0];
+								let rew_times = res_parts[1].split(",");
+								for(t of rew_times){
+									let t_i = parseInt(t)-since_start-ses_vars.lag_adjust/2;
+									ses_vars.ncr_timers.push(setTimeout(ncr_rew, t_i));
+								}
+							}
+							else{
+								var since_start = xhr.responseText;
+								if(ses_vars.reward_scheme == "DRZ"){
+									ses_vars.timed_check = setTimeout(check_for_tic, 
+										ses_vars.ms_per_reward - ses_vars.lag_adjust - since_start);
+								}
+							}
 							if(ses_vars.session_length != null)
 								ses_vars.end_timer = setTimeout(endS, ses_vars.session_length - since_start);
 						}
@@ -104,6 +117,27 @@
 					}
 				};
 				xhr.send(reqBody);
+			}
+			
+			function ncr_rew(){
+				//Send reward. Also log in session file?
+				var xhr = new XMLHttpRequest();
+				var reqBody = 'reqType=logrew&id=**[id]**&lid=**[lid]**';
+				xhr.open('POST', url, true);
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(xhr.status != 200){//Display Error Page
+							cleanup();
+							var response = xhr.responseText;
+							document.open();
+							document.write(response);
+							document.close();
+						}
+					}
+				}
+				xhr.send(reqBody);
+				token_box.innerHTML += token_HTML;
+				bell_audio.play();
 			}
 			
 			function check_for_tic(){
@@ -156,6 +190,11 @@
 					clearTimeout(ses_vars.end_timer);
 				if(ses_vars.timed_check)
 					clearTimeout(ses_vars.timed_check);
+				if(ses_vars.ncr_timers.length > 0){
+					for(t of ses_vars.ncr_timers){
+						clearTimeout(t);
+					}
+				}
 				ses_vars = {};
 			}
 			

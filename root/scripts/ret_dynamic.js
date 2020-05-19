@@ -226,7 +226,9 @@ function ret_link_loading_user(res, data){
 // Returns a loading page while awaiting link
 function ret_link_loading_rater(res, data){
 	var dynd = {
-		"lid": data.lid,
+		"id": data.id,
+		"pw": data.pw,
+		"lid": data.lid
 	};
 	aux.dynamic("./nt/linkloading-rater.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
@@ -270,6 +272,7 @@ function ret_start_session_user(res, data){
 function ret_start_session_rater(res, data){
 	var dynd = {
 		"id": data.id,
+		"pw": data.pw, //needed for req_logs
 		"lid": data.lid
 	};
 	aux.dynamic("./nt/startsession-rater.dynh", dynd, function(page){
@@ -301,6 +304,7 @@ function ret_session_trainer(res, data){
 function ret_session_rater(res, data){
 	var dynd = {
 		"id": data.id,
+		"pw": data.pw,
 		"lid": data.lid
 	};
 	aux.dynamic("./nt/session-rater.dynh", dynd, function(page){
@@ -362,7 +366,8 @@ function ret_session_ntuser(res, data){
 function ret_nt_session_ended(res, data){
 	var dynd = {
 		"id": data.id,
-		"lid": data.lid,
+		"pw": data.pw,
+		"lid": data.lid
 	};
 	aux.dynamic("./nt/nt-session-ended.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});

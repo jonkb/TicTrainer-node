@@ -87,7 +87,7 @@
 			}
 		  function tic(){
 		    var xhr = new XMLHttpRequest();
-				var reqBody = 'id=**[id]**&lid=**[lid]**&reqType=tic';
+				var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=tic';
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){//just check that everything is fine
 						var response = xhr.responseText;
@@ -117,7 +117,7 @@
 				if(!already_left){
 					cleanup();
 					var xhr = new XMLHttpRequest();
-					var reqBody = 'id=**[id]**&lid=**[lid]**&reqType=end';
+					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=end';
 					xhr.onreadystatechange = function(){
 						if(xhr.readyState == 4){//just check that everything is fine
 							var response = xhr.responseText;

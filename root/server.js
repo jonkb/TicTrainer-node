@@ -2,6 +2,7 @@ var https = require("https");
 var http = require("http");//For port 80 redirect server
 var fs = require("fs");
 var url = require("url");
+var qs = require("querystring");
 //Auxiliary functions stored in aux to make this file shorter
 var aux = require("./scripts/auxiliary.js");
 //Functions that return dynamic webpages. Always pass with res as first arg.
@@ -29,7 +30,6 @@ function handleRequest(req, res){
 		req.on('data', function(chunk) {
 			body.push(chunk);
 		}).on('end', function(){
-			var qs = require("querystring");
 			body = qs.parse(Buffer.concat(body).toString());
 			aux.debugShout("request body:"+ JSON.stringify(body));
 			
@@ -269,7 +269,7 @@ function handleRequest(req, res){
 						//body.tryN = 0;
 						//Go to Link Loading Page
 						aux.debugShout("271: "+body.id);
-						if(body.id == "a")
+						if(body.id[0] == "a")
 							ret.link_loading_rater(res, body);
 						else
 							ret.link_loading_ntuser(res, body);
@@ -396,6 +396,7 @@ function handleRequest(req, res){
 							return;
 						}
 						if(next == "ended"){
+							body.pw = "";//blank stand in so there's no error. Could switch with actual pw.
 							ret.nt_session_ended(res, body);
 							//ret.redirect(res, "/session/session-ended.html");
 							return;
@@ -490,18 +491,25 @@ function handleRequest(req, res){
 							ret.error(res, err, "/nt/index.html");
 							return;
 						}
-						if(next == "check" || next == "start"){
-							aux.debugShout("479: "+aux.time()+":"+retMessage);
-							res.writeHead(200, {"Content-Type": "text/plain"});
-							res.write(retMessage, function(err){res.end();});
-							return;
-						}
-						else if(next == "end"){
-							res.writeHead(200, {"Content-Type": "text/plain"});
-							res.write("end", function(err){res.end();});
-						}
-						else if(next == "ended"){
-							ret.nt_session_ended(res, body);
+						switch(next){
+							case "check":
+							case "start":
+								aux.debugShout("479: "+aux.time()+":"+retMessage);
+								res.writeHead(200, {"Content-Type": "text/plain"});
+								res.write(retMessage, function(err){res.end();});
+							break;
+							case "rewlogged":
+								res.writeHead(200, {"Content-Type": "text/plain"});
+								res.end();
+							break;
+							case "end":
+								res.writeHead(200, {"Content-Type": "text/plain"});
+								res.write("end", function(err){res.end();});
+							break;
+							case "ended":
+								body.pw = "";//blank stand in so there's no error. Could switch with actual pw.
+								ret.nt_session_ended(res, body);
+							break;
 						}
 					});
 				break;
@@ -513,7 +521,7 @@ function handleRequest(req, res){
 						}
 						//Go to Link Loading Page
 						aux.debugShout("498: "+body.id);
-						if(body.id == "a")
+						if(body.id[0] == "a")
 							ret.link_loading_rater(res, body);
 						else
 							ret.link_loading_ntuser(res, body);
@@ -747,13 +755,10 @@ function new_session_req(body, callback){
 			callback("pce");
 			return;
 		}
-		if(body.id[0] == 'a'){
-			body.id = 'a';//From now on, it doesn't matter which rater it is.
-		}
-		else if(body.lid[0] == 'a'){
+		if(body.lid[0] == 'a'){
 			body.lid = 'a';//From now on, it doesn't matter which rater it is.
 		}
-		else {
+		else if(body.id[0] != 'a'){
 			//Check if accounts are linked only if neither one is a rater (non-nt session)
 			var lnAcc = aData[3].split(",");
 			if(lnAcc.indexOf(body.lid) < 0){
@@ -769,7 +774,7 @@ function new_session_req(body, callback){
 		*/
 		if("at".indexOf(body.id[0]) != -1){
 			//This section should hopefully never need to be used, but it handles ghost sessions. Logs a ghost session error.
-			var oldSFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
+			var oldSFile = "./session/temp/sessiona" + body.lid + ".ttsd";
 			fs.stat(oldSFile, function(err){
 				if(err){
 					if(err.code == "ENOENT"){//Does not exist. Good.
@@ -843,6 +848,11 @@ function linkloading_t_req(body, callback){
 		else{
 			//look for other account
 			var searchEntry = aux.open_char +body.lid+ aux.division_char +body.id+ aux.close_char;
+			var sesFileName = "./session/temp/session"+ body.id + body.lid + ".ttsd";
+			if(body.id[0] == "a"){
+				searchEntry = aux.open_char +body.lid+ aux.division_char +"a"+ aux.close_char;
+				sesFileName = "./session/temp/sessiona"+ body.lid + ".ttsd";
+			}
 			var iSE = data.indexOf(searchEntry);
 			if(iSE == -1){
 				callback(null, "wait");
@@ -858,7 +868,6 @@ function linkloading_t_req(body, callback){
 				/*make a session file - this should only exist for the duration of the session.
 					when the session ends, rename and copy the file to an archive: ./session/archive
 				*/
-				var sesFileName = "./session/temp/session"+ body.id + body.lid + ".ttsd";
 				fs.writeFile(sesFileName, "", function(err){
 					if(err)
 						callback("fe");
@@ -965,7 +974,7 @@ function startsession_t_req(body, callback){
 
 function startsession_rater_req(body, callback){
 	//If aborting, delete the session file - don't bother with archive because it hasn't even started yet
-	var sesFile = "./session/temp/session" + body.id + body.lid + ".ttsd";
+	var sesFile = "./session/temp/sessiona" + body.lid + ".ttsd";
 	if(body.reqType == 'leave'){
 		aux.debugShout("1270", 3);
 		fs.unlink(sesFile, function(err){
@@ -989,8 +998,16 @@ function startsession_rater_req(body, callback){
 			}
 			else{//file exists
 				//Append "session started at"+time, show Tic Detected, Stop Session butttons
-				var sEntry = "NewTics subject|?|"+body.stype+"\n";
-				sEntry += "session started|" + aux.time();
+				var sEntry = "NewTics subject|?|"+body.stype;
+				sEntry += "\nsession started|" + aux.time();
+				if(body.stype == "NCR"){
+					sEntry += "\nncr reward times|";
+					for(const t of body.rew_times){
+						sEntry += t+",";
+					}
+					sEntry = sEntry.slice(0,-1);
+				}
+				
 				fs.appendFile(sesFile, sEntry, function(err){
 					if(err)
 						callback("fe");
@@ -1085,8 +1102,11 @@ function startsession_u_req(body, callback){
 }
 
 function session_t_req(body, callback){
+	var sesFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
+	if(body.id[0] == 'a'){
+		sesFile = "./session/temp/sessiona" + body.lid + ".ttsd";
+	}
 	if(body.reqType == "tic"){
-		var sesFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
 		var tEntry = "\ntic detected|" +aux.time();
 		fs.stat(sesFile, function(err, stats){
 			if(err == null){//File exists
@@ -1114,7 +1134,6 @@ function session_t_req(body, callback){
 	}
 	else if(body.reqType == "end"){
 		aux.debugShout("SE-T");
-		var sesFile = "./session/temp/session" + body.id + body.lid + ".ttsd";
 		var eEntry = "\nsession ended|"+aux.time();
 		fs.stat(sesFile, function(err, stats){
 			if(err == null){//File exists
@@ -1299,9 +1318,9 @@ function session_u_req(body, callback){
 }
 
 function session_ntu_req(body, callback){
+	var sesFile = "./session/temp/sessiona" + body.id + ".ttsd";
 	switch(body.reqType){
 		case "start":
-			var sesFile = "./session/temp/sessiona" + body.id + ".ttsd";
 			fs.readFile(sesFile, "utf8", function(err, data){
 				if(err){
 					callback("fe");
@@ -1311,11 +1330,16 @@ function session_ntu_req(body, callback){
 				var stime = sliced_d.slice(sliced_d.indexOf("|")+1, sliced_d.indexOf("\n"));
 				sdate = new Date(stime);
 				var timesince = Date.now() - sdate;
-				callback(null, "start", timesince.toString());
+				let res = timesince.toString();
+				if(data.indexOf("ncr reward times|") != -1){
+					let sliced_d = data.slice(data.indexOf("ncr reward times|"));
+					let rtimes = sliced_d.slice(sliced_d.indexOf("|")+1, sliced_d.indexOf("\n"));
+					res += "&" + rtimes;
+				}
+				callback(null, "start", res);
 			});
 		break;
 		case "check":
-			var sesFile = "./session/temp/sessiona" + body.id + ".ttsd";
 			fs.readFile(sesFile, "utf8", function(err, data){
 				if(err){
 					callback("fe");
@@ -1371,8 +1395,23 @@ function session_ntu_req(body, callback){
 				}
 			});
 		break;
+		case "logrew":
+			var rdentry = "\nreward dispensed|" +aux.time();
+			fs.readFile(sesFile, "utf8", function(err, data){
+				if(err){
+					callback("fe");
+					return;
+				}
+				fs.appendFile(sesFile, rdentry, function(err){
+					if(err){
+						callback("fe");
+						return;
+					}
+					callback(null, "rewlogged");
+				});
+			});
+		break;
 		case "end":
-			var sesFile = "./session/temp/sessiona" + body.id + ".ttsd";
 			var sF2 = "./session/archive/sessiona" + body.id + aux.time("forfile") + ".ttsd";
 			function archiveSession(){
 				fs.rename(sesFile, sF2, function(err){
@@ -1463,8 +1502,8 @@ function ff_nt_ses(body, callback){
 			}
 		});
 	}
-	else if(body.id == "a"){
-		var oldSFile = "./session/temp/session"+ body.id + body.lid + ".ttsd";
+	else if(body.id[0] == "a"){
+		var oldSFile = "./session/temp/sessiona" + body.lid + ".ttsd";
 		/*Concurrent session check.
 			This could happen if the rater doesn't wait for the user's session to end.
 		*/

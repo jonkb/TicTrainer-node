@@ -39,7 +39,7 @@
 				if(ll_vars.tryN < ll_vars.max_tries){
 					ll_vars.tryN++;
 					var xhr = new XMLHttpRequest();
-					var reqBody = 'id=a&lid=**[lid]**';
+					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**';
 					xhr.open('POST', url, true);
 					xhr.setRequestHeader('Content-type', 'text/plain');
 					xhr.onreadystatechange = function(){
