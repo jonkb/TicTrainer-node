@@ -861,20 +861,22 @@ function linkloading_t_req(body, callback){
 			else{
 				var iSEEnd = iSE + searchEntry.length;
 				var newData = data.slice(0, iSE) + data.slice(iSEEnd, data.length);
-				/*Cut out entry
-					It's done sync so that the old entry isn't sitting in lnusers too long
-				*/
-				fs.writeFileSync("./session/lnusers.ttd", newData, "utf8");
-				/*make a session file - this should only exist for the duration of the session.
-					when the session ends, rename and copy the file to an archive: ./session/archive
-				*/
-				fs.writeFile(sesFileName, "", function(err){
-					if(err)
+				fs.writeFile("./session/lnusers.ttd", newData, function(err){
+					if(err){
 						callback("fe");
-						//ret.error(res, "fe", "/session/index.html", "linkloading-trainer: making session file");
-					else
-						callback(null, "start");
-						//ret.start_session_trainer(res, body);//source, id, pw, lid, tryN 
+						return;
+					}
+					/*make a session file - this should only exist for the duration of the session.
+						when the session ends, rename and copy the file to an archive: ./session/archive
+					*/
+					fs.writeFile(sesFileName, "", function(err){
+						if(err)
+							callback("fe");
+							//ret.error(res, "fe", "/session/index.html", "linkloading-trainer: making session file");
+						else
+							callback(null, "start");
+							//ret.start_session_trainer(res, body);//source, id, pw, lid, tryN 
+					});
 				});
 			}
 		}
@@ -994,7 +996,7 @@ function startsession_rater_req(body, callback){
 				else
 					callback("fe");
 			}
-			else{//file exists
+			else{ //file exists
 				var sEntry = "NewTics subject|?|"+body.stype;
 				sEntry += "\nsession started|" + aux.time();
 				if(body.stype == "NCR"){
@@ -1002,7 +1004,7 @@ function startsession_rater_req(body, callback){
 					if(typeof(body.rew_times) == "undefined"){
 						body.rew_times = [];
 					}
-					else if(typeof(body.rew_times.length) == "undefined"){
+					else if(typeof(body.rew_times) == "string"){
 						body.rew_times = [ body.rew_times ];
 					}
 					for(const t of body.rew_times){

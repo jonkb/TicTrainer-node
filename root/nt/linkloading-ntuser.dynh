@@ -27,7 +27,8 @@
 			
 			window.onbeforeunload = leave;
 			window.onpagehide = leave;
-			document.addEventListener('visibilitychange', function(){if(document.hidden){leave();}}, false);
+			//With this line, the user can be deceived, thinking that he's waiting for a link, but with no entry in lnusers
+			//document.addEventListener('visibilitychange', function(){if(document.hidden){leave();}}, false);
 			
 			var tryN = 0;
 			
