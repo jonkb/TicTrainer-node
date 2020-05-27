@@ -18,7 +18,8 @@ module.exports.newU = newU;
 module.exports.newT = newT;
 module.exports.newA = newA;
 module.exports.sort2d = sort2d;
-module.exports.genReport = genReport;
+//module.exports.genReport = genReport;
+module.exports.archiveSession = archiveSession;
 module.exports.time = time;
 module.exports.debugShout = debugShout;
 module.exports.log_error = log_error;
@@ -493,7 +494,7 @@ function sort2d(inArray, sortColumn){
 
 /**Generates a report for the end of a session
 	Takes the text of the session file (data)
-	TO DO: switch to async. Is there a reason for it to be sync?
+	TO DO: switch to async? Does it take long enough to justify it?
 */
 function genReport(data){
 	var tics = 0, tenSIntervals = 0, longestInterval = 0;
@@ -578,6 +579,44 @@ function genReport(data){
 	report += "\nreport generated with TicTrainer version|"+settings.tt_version+"\n";
 	return report;
 }
+
+/**Archives the given session file
+	If it was an NT session, include the stype in the filename
+	callback(err)
+*/
+function archiveSession(sesFile, callback){
+	fs.readFile(sesFile, "utf8", function(err, data){
+		if(err){
+			callback("fe");
+			return;
+		}
+		var sesFile2 = sesFile.slice(sesFile.lastIndexOf("/")+1);
+		sesFile2 = sesFile2.slice(0, sesFile2.indexOf(".ttsd"));
+		sesFile2 += "_" + time("forfile");
+		var ntsi = data.indexOf("NewTics subject|");
+		if(ntsi != -1){
+			var stype = data.slice(ntsi);
+			stype = stype.slice(indexNOf(stype, "|", 2)+1, stype.indexOf("\n"));
+			sesFile2 += "_"+stype;
+		}
+		sesFile2 += ".ttsd";
+		sesFile2 = "./session/archive/" + sesFile2;
+		fs.rename(sesFile, sesFile2, function(err){
+			if(err){
+				callback("fe");
+				return;
+			}
+			fs.appendFile(sesFile2, genReport(data), function(err){
+				if(err){
+					callback("fe");
+					return;
+				}
+				callback();
+			});
+		});
+	});
+}
+
 function pad2(num){
 	if(num < 10){
 		return "0" + num.toString();
@@ -587,7 +626,7 @@ function pad2(num){
 	
 /**Returns the current time in the requested format type
 	type:
-		"forfile": YYYY-MM-DD-hh-mm-ss (Local time)
+		"forfile": YYYYMMDD-hhmmss (Local time)
 		"millis": (e.g.)1494298134109
 		"ISO": YYYY-MM-DDThh:mm:ss.sssZ (GMT)
 */
