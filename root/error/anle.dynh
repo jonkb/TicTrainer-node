@@ -9,15 +9,15 @@
 		<section class='page-header'>
 			<div class='header-navbar'>
 				<a href='/' class='logo'></a>
-				<h1>Error: Accounts Not Linked</h1>
+				<h1>Accounts Not Linked</h1>
 			<div style='clear: both;'></div>
 			</div>
 		</section>
 		<section class='main-content' id='mainC'>
-			Please enter a different account<br>
-			<a href='**[retry]**' class='bigBtn'>Try Again</a>
-			<br>or link the account to yours at Account Management<br>
-			<a href='/account/index.html' class='bigBtn'>Manage Account</a>
+			<p>Please <strong>enter a different account</strong></p>
+			<p><a href='**[retry]**' class='bigBtn'>Try Again</a></p>
+			<p>or <strong>link the account to yours</strong> at Account Management</p>
+			<p><a href='/account/index.html' class='bigBtn'>Manage Account</a></p>
 		</section>
 	</body>
 </html>

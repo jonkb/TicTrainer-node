@@ -14,7 +14,7 @@
 			</div>
 		</section>
 		<section class='main-content'>
-			<p>
+			<p><!--It says *our because fn is optional. If there's no fn, it's "Y"-->
 				**[fn]**our report has been saved, and we will get working on it as soon as possible.
 				Thank you for your feedback.
 			</p>
