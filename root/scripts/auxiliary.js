@@ -35,6 +35,7 @@ const close_char = ">";
 const close_char_description = "[G.T. chevron]";
 const division_char = ";"; // For .ttd
 const division_char_description = "[semicolon]";
+const subdirs = ["account", "leaderboard", "store", "admin", "nt", "register", "session"];
 
 module.exports.open_char = open_char;
 module.exports.open_char_description = open_char_description;
@@ -42,6 +43,7 @@ module.exports.close_char = close_char;
 module.exports.close_char_description = close_char_description;
 module.exports.division_char = division_char;
 module.exports.division_char_description = division_char_description;
+module.exports.subdirs = subdirs;
 
 /**
 	load and fill in a dynamic html file (.dynh is my extension for it)

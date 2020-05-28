@@ -16,14 +16,18 @@ const TESTING_PORT = 8888;
 function handleRequest(req, res){
 	// Parse the request file name
 	var pathname = url.parse(req.url).pathname;
+	aux.debugShout(req.method + " request for " + pathname + " received.");
 	var filename = pathname.substr(pathname.lastIndexOf("/"));
 	if(filename == "/"){
 		pathname += "index.html";
 	}
-	else if(filename.indexOf(".") == -1){
-		pathname += "/index.html";
+	else if(aux.subdirs.includes(filename.slice(1))){
+		/*This part makes it so typing the name of the subdirectory (eg. account, nt)
+			Redirects to the correct place
+		*/
+		ret.redirect(res, pathname+"/index.html");
+		return;
 	}
-	aux.debugShout(req.method + " request for " + pathname + " received.");
 	//Handle POST requests
 	if(req.method == "POST"){
 		var body = [];
