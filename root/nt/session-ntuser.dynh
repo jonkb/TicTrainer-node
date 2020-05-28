@@ -14,14 +14,14 @@
 			</div>
     </section>
     <section class="main-content">
-			<p id="top_lbl" class="med_lbl" style="text-align: center;"></p>
-			<div id="tokens_lbl" class="med_lbl"></div>
-			<div id="tokens" style="font-size: 2em;"></div>
+			<div id="top_lbl" class="big_lbl" style="text-align: center;"></div>
+			<div id="tokens_lbl" class="big_lbl"></div>
+			<div id="tokens" style="font-size: 2em; line-height: 0;"></div>
 			
     </section>
 		<script src="/scripts/req_settings.js"></script>
 		<script>
-			var token_HTML = "<img src='/media/coin.svg' alt='\u2B50 ' height='40px' style='margin:0.3rem'>"
+			var token_HTML = "<img src='/media/coin.svg' alt='\u2B50 ' height='72px' style='margin:0.3rem'>"
 			var bell_audio = new Audio('/media/bike-bell.mp3');
 			bell_audio.volume = .25;
 			var token_box = document.getElementById('tokens');
