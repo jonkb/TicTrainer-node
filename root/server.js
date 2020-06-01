@@ -14,7 +14,7 @@ const TESTING_PORT = 8888;
 
 
 function handleRequest(req, res){
-	// Parse the request file name
+	//Parse the request file name
 	var pathname = url.parse(req.url).pathname;
 	aux.debugShout(req.method + " request for " + pathname + " received.");
 	var filename = pathname.substr(pathname.lastIndexOf("/"));
@@ -28,7 +28,14 @@ function handleRequest(req, res){
 		ret.redirect(res, pathname+"/index.html");
 		return;
 	}
-	//Handle POST requests
+	//Used twice below
+	function reg_acc_cb(err, data){
+		if(err){
+			ret.error(res, err, pathname);
+			return;
+		}
+		ret.created(res, data);
+	}
 	if(req.method == "POST"){
 		var body = [];
 		req.on('data', function(chunk) {
@@ -36,216 +43,22 @@ function handleRequest(req, res){
 		}).on('end', function(){
 			body = qs.parse(Buffer.concat(body).toString());
 			aux.debugShout("request body:"+ JSON.stringify(body));
-			
 			//Decide what to do with the request based on its source
 			switch(pathname){
 				case "/register/trainer.html":
-					var bD = body.birth;
-					var pass = body.pw;
-					var passC = body.pwConf;
-					
-					//Double check validation
-					if(!bD || !pass || !passC){
-						ret.error(res, "ife", pathname);
-						break;
-					}
-					if(isNaN(bD) || bD.length != 4){
-						ret.error(res, "dfe", pathname);
-						break;
-					}
-					if(pass != passC){
-						ret.error(res, "pce", pathname);
-						break;
-					}
-					//Make sure the plain text fields don't include < or >
-					if(/[<>]/.test(pass+bD)){
-						ret.error(res, "ice", pathname);//Invalid Character Error
-						break;
-					}
-					//Get the next available iD number
-					aux.getNextID("t", function(err, ID){
-						if(err){
-							ret.error(res, err);
-							return;
-						}
-						var newTFile = "./account/trainer_data/"+ID+".ttad";
-						var tData = aux.newT(ID,pass,bD);
-						fs.writeFile(newTFile, tData, function(err){
-							if(err)
-								ret.error(res, "fe", pathname, "register-trainer: write newTFile");
-							else
-								ret.created(res, tData);
-						});
-					});
+					reg_acc_req("t", body, reg_acc_cb);
 				break;
 				case "/register/user.html":
-					var sex = body.sex;
-					var bD = body.birth;
-					var pass = body.pw;
-					var passC = body.pwConf;
-					
-					//Double check validation
-					if(sex != "M" && sex != "F"){
-						ret.error(res, "ife", pathname);
-						break;
-					}
-					if(isNaN(bD)){//catches undefined 
-						ret.error(res, "dfe", pathname);
-						//I could check and do it anyway if they submitted month and year, but why be that courteous
-						break;
-					}
-					if(pass != passC){
-						ret.error(res, "pce", pathname);
-						break;
-					}
-					//Make sure these don't include < or >
-					if(/[<>]/.test(pass+bD)){
-						ret.error(res, "ice", pathname);//Invalid Character Error
-						break;
-					}
-					
-					aux.getNextID("u", function(err, ID){
-						if(err){
-							ret.error(res, "fe", pathname, "register-user: getNextID");
-							return;
-						}
-						var newUFile = "./account/user_data/"+ID+".ttad";
-						var uData = aux.newU(ID,pass,bD,sex);
-						fs.writeFile(newUFile, uData, function(err){
-							if(err)
-								ret.error(res, "fe", pathname, "register-user: write newUFile");
-							else
-								ret.created(res, uData);
-						});
-					});
+					reg_acc_req("u", body, reg_acc_cb);
 				break;
 				case "/account/index.html":
-					function acc_ret(data){
-						switch(data){
-							case "fe":
-							case "ide":
-							case "ice":
-							case "pce":
-							case "anfe":
-								ret.error(res, data, pathname);
-							break;
-							
-							default:
-								ret.manage_account(res, data);
-							break;
+					acc_req(body, function(err, data){
+						if(err){
+							ret.error(res, err, pathname);
+							return;
 						}
-					}
-					switch(body.source){
-						case "manageAccount"://Log on page
-						aux.debugShout("141", 2);
-						//loadAcc tests for ide
-						aux.loadAcc(body.id, function(err,user){
-							aux.debugShout("143", 2);
-							if(err){
-								acc_ret(err);
-								return;
-							}
-							if(user[1] == body.pw)
-								acc_ret(user);
-							else{
-								acc_ret("pce");
-								aux.debugShout("147", 2);
-							}
-						});
-						break;
-						case "editP"://Source: editP, id, oldPass, pass
-							var iD = body.id;
-							var opw = body.oldPass;
-							var pw = body.pass;
-							if(/[<>]/.test(pw)){
-								acc_ret("ice");
-								break;
-							}
-							
-							aux.debugShout("Editing "+iD, 1);
-							aux.editAcc(iD, 1, function(dEntry){
-								if(dEntry[1] !== opw){
-									aux.debugShout("163|" + dEntry[1] + "|" + opw + "|" + pw);
-									acc_ret("pce");
-									return "<cancel>";
-								}
-								return pw;
-							}, function(err, dEntry){
-								if(err){
-									if(err != "canceled"){
-										if(dEntry)
-											aux.debugShout(dEntry);
-										acc_ret(err);
-									}
-									return;
-								}
-								acc_ret(dEntry);
-							});
-						break;
-						case "addL"://Add Account Link
-							var iD = body.id;// body = {source, id, lid, pw}
-							var lID = body.lid;
-							var lFile = "./account/";
-							
-							iD = aux.isID(iD);
-							lID = aux.isID(lID);
-							if(iD === false || lID === false){
-								acc_ret("ide");
-								break;
-							}
-							if(iD[0] == "t")
-								lFile += "user_data/";
-							else if(iD[0] == "u")
-								lFile += "trainer_data/";
-							lFile += lID+".ttad";
-							
-							aux.debugShout("Linking " + lID + " to " + iD, 1);
-							//Check that the other account exists
-							fs.stat(lFile, function(err, stat){
-								if(err == null) {
-									//Link to the account
-									aux.editAcc(iD, 3, function(dEntry){
-										if(dEntry[1] !== body.pw){
-											acc_ret("pce");
-											return "<cancel>";
-										}
-										var dLinks = dEntry[3];
-										var newLData = lID;//e.g. "t2"
-										if(dLinks != ""){
-											//verify that the account is not already linked
-											var linkedAccs = dLinks.split(",");//split
-											for(var i=0; i < linkedAccs.length; i++){
-												if(linkedAccs[i] == lID){
-													acc_ret(dEntry);//do nothing
-													return "<cancel>";//already linked
-												}
-											}
-											newLData += "," + dLinks; //e.g. "t2"+","+"t1,t0"
-										}
-										return newLData;
-									}, function(err, dEntry){
-										if(err){
-											if(err !== "canceled"){
-												if(dEntry)
-													aux.debugShout(dEntry);
-												acc_ret(err);
-											}
-											return;//canceled - page has already been returned
-										}
-										acc_ret(dEntry);
-									});
-								}
-								else if(err.code == 'ENOENT') {
-									//File does not exist
-									acc_ret("anfe");
-								} 
-								else {
-									//Other error
-									acc_ret("fe");
-								}
-							});
-						break;
-					}//Switch (body.source) (Within /account/index.html)
+						ret.manage_account(res, data);
+					});
 				break;
 				//Start of session-related URLs
 				case "/session/index.html":
@@ -722,6 +535,177 @@ function handleRequest(req, res){
 	}//POST
 	else{
 		ret.requested_file(res, pathname);
+	}
+}
+
+function reg_acc_req(type, body, callback){
+	var bD = body.birth;
+	var pass = body.pw;
+	var passC = body.pwConf;
+	if(isNaN(bD)){//also catches undefined 
+		callback("dfe");
+		return;
+	}
+	if(pass != passC){
+		callback("pce");
+		return;
+	}
+	//Make sure these don't include < or >
+	if(/[<>]/.test(pass+bD)){
+		callback("ice");
+		return;
+	}
+	if(type == "t"){
+		var newFile = "./account/trainer_data/";
+		if(bD.length != 4){
+			callback("dfe");
+			return;
+		}
+	}
+	else if(type == "u"){
+		var newFile = "./account/user_data/";
+		var sex = body.sex;
+		if(sex != "M" && sex != "F"){
+			callback("ife");
+			return;
+		}
+	}
+	else{
+		callback("se");
+		return;
+	}
+	aux.getNextID(type, function(err, ID){
+		if(err){
+			callback("fe");
+			return;
+		}
+		newFile += ID+".ttad";
+		if(type == "u")
+			var newData = aux.newU(ID,pass,bD,sex);
+		else if(type == "t")
+			var newData = aux.newT(ID,pass,bD);
+			
+		fs.writeFile(newFile, newData, function(err){
+			if(err){
+				callback("fe");
+				return;
+			}
+			callback(null, newData);
+		});
+	});
+}
+
+function acc_req(body, callback){
+	switch(body.source){
+		case "manageAccount"://Log on page
+		aux.debugShout("612", 2);
+		//loadAcc tests for ide
+		aux.loadAcc(body.id, function(err,user){
+			aux.debugShout("615", 2);
+			if(err){
+				callback(err);
+				return;
+			}
+			if(user[1] == body.pw)
+				callback(null, user);
+			else{
+				callback("pce");
+				aux.debugShout("624", 2);
+			}
+		});
+		break;
+		case "editP"://Source: editP, id, oldPass, pass
+			var iD = body.id;
+			var opw = body.oldPass;
+			var pw = body.pass;
+			if(/[<>]/.test(pw)){
+				callback("ice");
+				break;
+			}
+			
+			aux.debugShout("Editing "+iD, 1);
+			aux.editAcc(iD, 1, function(dEntry){
+				if(dEntry[1] !== opw){
+					aux.debugShout("640|" + dEntry[1] + "|" + opw + "|" + pw);
+					callback("pce");
+					return "<cancel>";
+				}
+				return pw;
+			}, function(err, dEntry){
+				if(err){
+					if(err != "canceled"){
+						if(dEntry)
+							aux.debugShout(dEntry);
+						callback(err);
+					}
+					return;
+				}
+				callback(null, dEntry);
+			});
+		break;
+		case "addL"://Add Account Link
+			var iD = body.id;// body = {source, id, lid, pw}
+			var lID = body.lid;
+			var lFile = "./account/";
+			
+			iD = aux.isID(iD);
+			lID = aux.isID(lID);
+			if(iD === false || lID === false){
+				callback("ide");
+				break;
+			}
+			if(iD[0] == "t")
+				lFile += "user_data/";
+			else if(iD[0] == "u")
+				lFile += "trainer_data/";
+			lFile += lID+".ttad";
+			
+			aux.debugShout("Linking " + lID + " to " + iD, 1);
+			//Check that the other account exists
+			fs.stat(lFile, function(err, stat){
+				if(err == null) {
+					//Link to the account
+					aux.editAcc(iD, 3, function(dEntry){
+						if(dEntry[1] !== body.pw){
+							callback("pce");
+							return "<cancel>";
+						}
+						var dLinks = dEntry[3];
+						var newLData = lID;//e.g. "t2"
+						if(dLinks != ""){
+							//verify that the account is not already linked
+							var linkedAccs = dLinks.split(",");//split
+							for(var i=0; i < linkedAccs.length; i++){
+								if(linkedAccs[i] == lID){
+									callback(null, dEntry);//do nothing
+									return "<cancel>";//already linked
+								}
+							}
+							newLData += "," + dLinks; //e.g. "t2"+","+"t1,t0"
+						}
+						return newLData;
+					}, function(err, dEntry){
+						if(err){
+							if(err !== "canceled"){
+								if(dEntry)
+									aux.debugShout(dEntry);
+								callback(err);
+							}
+							return;//canceled - page has already been returned
+						}
+						callback(err, dEntry);
+					});
+				}
+				else if(err.code == 'ENOENT') {
+					//File does not exist
+					callback("anfe");
+				}
+				else {
+					//Other error
+					callback("fe");
+				}
+			});
+		break;
 	}
 }
 
