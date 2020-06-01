@@ -21,7 +21,7 @@
 			//Change the URL bar
 			window.history.pushState("", "Start Session: User", "/session/startsession-user.dynh");
 			
-			var salido = false;//salido -sp- left
+			var already_left = false;
 			window.onbeforeunload = leave;
 			window.onpagehide = leave;
 			//document.addEventListener('visibilitychange', function(){if(document.hidden){leave();}}, false);
@@ -69,13 +69,13 @@
 				}
 			}
 			function leave(){
-				if(!salido){
+				if(!already_left){
 					var xhr = new XMLHttpRequest();
 					var url = '/session/startsession-user.dynh';
 					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=leave';
 					xhr.open('POST', url, true);
 					xhr.send(reqBody);
-					salido = true;
+					already_left = true;
 				}
 			}
 		</script>

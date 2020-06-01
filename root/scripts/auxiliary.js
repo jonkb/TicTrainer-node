@@ -203,15 +203,24 @@ function isID(testID){
 }
 /**Take a string, parse it to base 36, convert it to a decimal int
 	This is used for creating the user and trainer IDs
+	Now deals with negatives
 */
 function parse36ToDec(str36){
+	var neg = false;
+	if(str36[0] == "-"){
+		neg = true;
+		str36 = str36.slice(1);
+	}
 	var n=0;
 	var power=0;
 	for(var i = str36.length-1; i>= 0; i--){
 		n+= c_36d.indexOf(str36[i]) * Math.pow(36, power);
 		power++;
 	}
-	return n;
+	if(neg)
+		return -n;
+	else
+		return n;
 }
 /**Take a base 10 number and convert it to a base 36 (0-z) string
 	Used for creating the user and trainer IDs
@@ -393,45 +402,59 @@ function loadAllUsers(callback){
 	});
 }
 /**Gets the next available ID
-	type: "u" or "t" (or "a")
+	type: "u" or "t" or "a"
 	function callback(err, ID)
 */
 function getNextID(type, callback){
-	var file = "./account/next_IDs.ttd";
-	fs.readFile(file, "utf8", function(err,data){
+	var dirstem = "./account/";
+	if(type == "u")
+		dirstem += "user_data/";
+	else if(type == "t")
+		dirstem += "trainer_data/";
+	else if(type == "a")
+		dirstem += "admin_data/";
+	else{
+		callback("se");
+		return;
+	}
+	
+	fs.readdir(dirstem, function(err, files){
 		if(err){
-			callback("fe");
+			callback(err);
 			return;
 		}
-		
-		var ids = dataToEntries(data);
-		var nextID = "-";
-		for(var i=0; i<ids.length; i++){
-			debugShout(i+": "+ids[i], 3);
-			if(ids[i][0] == type){ //Compare first char
-				nextID = ids[i];
+		var idNums = files.map(function(e){
+			var idot = e.lastIndexOf(".");
+			if(e.slice(idot) == ".ttad"){
+				return parse36ToDec(e.slice(1, idot));
+			}
+			else{
+				return -1;
+			}
+		});
+		/*
+		//This part looks for the lowest unused id.
+		//Alternatively, just take max. But this method fills in any gaps.
+		//Hm, but there shouldn't be gaps in normal practice.
+		idNums.sort(function(a,b){ return a-b; });
+		var lowest_unused = 0;
+		for(n of idNums){
+			if(n == lowest_unused){
+				lowest_unused++;
+			}
+			else if(n > lowest_unused){
 				break;
 			}
 		}
-		if(nextID == "-"){
-			callback("ide");
-			return;
+		var nextID = type + decTo36(lowest_unused);
+		*/
+		var maxID = 0;
+		for(n of idNums){
+			if(n > maxID)
+				maxID = n;
 		}
-		
-		//update next_IDs before returning
-		var newNextN = parse36ToDec(nextID.slice(1))+1;
-		var newNextID = type + decTo36(newNextN);
-		var cutIndex = data.indexOf(open_char+type)+1;
-		var after = data.slice(cutIndex);
-			after = after.slice(after.indexOf(close_char))
-		var newText = data.slice(0, cutIndex) + newNextID + after;
-		fs.writeFile(file, newText, function(err){
-			if(err){
-				callback("fe");
-				return;
-			}
-			callback(null, nextID);
-		});
+		var nextID = type + decTo36(maxID+1);
+		callback(null, nextID);
 	});
 }
 /**Generates the content for a new user file
@@ -625,7 +648,7 @@ function pad2(num){
 	}
 	return num
 }
-	
+
 /**Returns the current time in the requested format type
 	type:
 		"forfile": YYYYMMDD-hhmmss (Local time)

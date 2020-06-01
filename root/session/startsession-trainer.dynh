@@ -26,7 +26,7 @@
 			//Change the URL bar
 			window.history.pushState("", "Start Session: Trainer", "/session/startsession-trainer.dynh");
 			
-			var salido = false;//salido -sp- left
+			var already_left = false;
 			var submitted = false;
 			
 			window.onbeforeunload = leave;
@@ -35,13 +35,13 @@
 			document.getElementById('startButton').addEventListener('click', function(){submitted = true;});
 			
 			function leave(){
-				if(!(submitted || salido)){
+				if(!(submitted || already_left)){
 					var xhr = new XMLHttpRequest();
 					var url = '/session/startsession-trainer.dynh';
 					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=leave';
 					xhr.open('POST', url, true);
 					xhr.send(reqBody);
-					salido = true;
+					already_left = true;
 				}
 			}
 		</script>

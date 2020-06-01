@@ -52,7 +52,8 @@
 							}
 							else{
 								cleanup();
-								//This line is necessary to patch a dumb bug in Microsoft Edge. https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/13171974/
+								//This line is necessary to patch a dumb bug in Microsoft Edge. 
+								//https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/13171974/
 								var response = xhr.responseText;
 								document.open();
 								document.write(response);

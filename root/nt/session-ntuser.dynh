@@ -46,7 +46,7 @@
 				"ncr_timers" : [],
 				"lag_adjust" : 0,
 				"lbl_bgc" : null
-			}
+			};
 			
 			function init(){
 				req_settings(function(code, res){
