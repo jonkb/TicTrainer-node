@@ -1,7 +1,7 @@
 //Sends a GET request for settings.json
 function req_settings(callback){
 	var xhr = new XMLHttpRequest();
-	xhr.open('GET', "/scripts/settings.json", true);
+	xhr.open('GET', "/settings.json", true);
 	xhr.setRequestHeader('Content-type', 'text/plain');
 	xhr.onreadystatechange = function(){
 		if(xhr.readyState == 4){

@@ -1,5 +1,5 @@
 var fs = require("fs");
-const settings = JSON.parse(fs.readFileSync("./scripts/settings.json"));
+const settings = JSON.parse(fs.readFileSync("./settings.json"));
 
 /**Exported Functions
 */

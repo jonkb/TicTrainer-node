@@ -40,18 +40,15 @@
 				//stype is one of: "baseline", "verbal", "DRZ", "NCR"
 				"reward_scheme" : "**[stype]**",
 				"ms_per_reward" : 10*1000,
-				"session_length" : 5*60*1000,
-				"timed_check" : null,
-				"end_timer" : null,
 				"ncr_timers" : [],
-				"lag_adjust" : 0,
-				"lbl_bgc" : null
+				"lag_adjust" : 0
 			};
 			
 			function init(){
 				req_settings(function(code, res){
 					if(code == 200){
 						ses_vars.lbl_bgc = res.nts_lbl_bgc;
+						ses_vars.session_length = res.nts_len*60*1000;
 						start();
 					}
 					else{

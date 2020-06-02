@@ -1,0 +1,10 @@
+"tt_version" : TicTrainer version, appears in the log files
+"debugging" : Used by debugShout in auxiliary.js - Represents how many log messages to show.
+	0 - Almost no log messages
+	1 - Just a few log messages
+	2 - More log messages
+	3 - Way too many log messages
+"testing" : Run on testing server 8888 or run normal HTTP and HTTPS servers (true/false)
+"points_to_first_level" : How many points a user needs to level up. (int)
+"nts_lbl_bgc" : NewTics session label background color (true/false)
+"nts_len" : NewTics session default length (min)

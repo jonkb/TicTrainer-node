@@ -32,6 +32,7 @@
 			</div>
 			
     </section>
+		<script src="/scripts/req_settings.js"></script>
 		<script>
 			var already_left = false;
 			//Change the URL bar
@@ -49,17 +50,28 @@
 			var clock = document.getElementById('clock');
 			var tic_log = document.getElementById('tic_log');
 			
-			//Encapsulating some data better
 			var ses_vars = {
-				//Half a second later because the user's timer is more accurate.
-				//We hope to rely on that one.
-				"session_length" : 5*60*1000,
 				"session_time" : 0//in seconds
+			};
+			
+			req_settings(function(code, res){
+				if(code == 200){
+					ses_vars.session_length = res.nts_len*60*1000;
+					start();
+				}
+				else{
+					cleanup();
+					document.open();
+					document.write(res);
+					document.close();
+				}
+			});
+			
+			function start(){
+				ses_vars.clock_timer = setInterval(advance_clock, 1000);
+				//+500ms is so that we rely first on the user's timer, which is more accurate.
+				ses_vars.end_timer = setTimeout(endS, ses_vars.session_length + 500);
 			}
-			ses_vars.clock_timer = setInterval(advance_clock, 1000);
-			ses_vars.end_timer = setTimeout(endS, ses_vars.session_length + 500);
-			
-			
 			function cleanup(){
 				//alert(JSON.stringify(ses_vars));
 				clearInterval(ses_vars.clock_timer);

@@ -3,5 +3,6 @@
 	"debugging" : 2,
 	"testing" : true,
 	"points_to_first_level" : 300,
-	"nts_lbl_bgc" : true
+	"nts_lbl_bgc" : true,
+	"nts_len" : 5
 }

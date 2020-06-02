@@ -15,6 +15,7 @@
 			</div>
     </section>
     <section class="main-content">
+			Waiting for Trainer
 			<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>
     </section>
 		<script>
