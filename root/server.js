@@ -311,7 +311,7 @@ function handleRequest(req, res){
 						switch(next){
 							case "check":
 							case "start":
-								aux.debugShout("479: "+aux.time()+":"+retMessage);
+								aux.debugShout("479: "+aux.time()+":"+retMessage, 3);
 								res.writeHead(200, {"Content-Type": "text/plain"});
 								res.write(retMessage, function(err){res.end();});
 							break;
@@ -1045,50 +1045,51 @@ function startsession_u_req(body, callback){
 			}
 			if(sfdata.indexOf("session started|") == -1){
 				callback(null, "wait");
-				//return 'wait'
-				//res.writeHead(200, {"Content-Type": "text/plain"});
-				//res.write("wait", function(err){res.end();});
 				return;
 			}
 			//load level and points and start session
 			aux.loadAcc(body.id, function(err, uData){
 				if(err){
-					callback(err);
-					//ret.error(res, err);//anfe or ide
+					callback(err);//anfe or ide
 					return;
 				}
-				if(body.lid != 'a'){
+				if(body.lid == 'a'){
+					body.ntid = uData[8];
+					callback(null, "session", body);
+				}
+				else{
 					if(body.pw != uData[1]){
 						callback("pce");
 						return;
 					}
+					var lpc = uData[5].split(",");
+					body.level = lpc[0];
+					body.points = lpc[1];
+					body.coins = lpc[2];
+					body.heap = uData[6];
+					var ru_settings = uData[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
+					body.RS = ru_settings[0];
+					body.aiti = ru_settings[1];
+					body.smpr = ru_settings[2];
+					body.ptir = ru_settings[3];
+					if(ru_settings[4] == "YES")
+						body.flash = true;
+					else//This could be a moment to check if it says NO or if there's an error
+						body.flash = false;
+					var startLPEntry = "\nstarting user l,p,c|"+ lpc[0]+","+lpc[1]+","+lpc[2];
+					fs.appendFile(searchFile, startLPEntry, function(err){
+						if(err){
+							callback("fe");
+							//ret.error(res, "fe", "/session/index.html", "start_session-user: append to sesFile");
+							return;
+						}
+						//current session file length (just two/three lines)
+						//TO DO: fix so it won't continue an immediately terminated session.
+						body.sesL = sfdata.length + startLPEntry.length;
+						callback(null, "session", body);
+						//ret.session_user(res, body);
+					});
 				}
-				var lpc = uData[5].split(",");
-				body.level = lpc[0];
-				body.points = lpc[1];
-				body.coins = lpc[2];
-				body.heap = uData[6];
-				var ru_settings = uData[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
-				body.RS = ru_settings[0];
-				body.aiti = ru_settings[1];
-				body.smpr = ru_settings[2];
-				body.ptir = ru_settings[3];
-				if(ru_settings[4] == "YES")
-					body.flash = true;
-				else//This could be a moment to check if it says NO or if there's an error
-					body.flash = false;
-				body.ntid = uData[8];
-				var startLPEntry = "\nstarting user l,p,c|"+ lpc[0]+","+lpc[1]+","+lpc[2];
-				fs.appendFile(searchFile, startLPEntry, function(err){
-					if(err){
-						callback("fe");
-						//ret.error(res, "fe", "/session/index.html", "start_session-user: append to sesFile");
-						return;
-					}
-					body.sesL = sfdata.length + startLPEntry.length;//current session file length (just two/three lines)
-					callback(null, "session", body);
-					//ret.session_user(res, body);
-				});
 			});
 		});
 	}
@@ -1306,15 +1307,19 @@ function session_ntu_req(body, callback){
 					return;
 				}
 				var sliced_d = data.slice(data.indexOf("session started|"));
-				var stime = sliced_d.slice(sliced_d.indexOf("|")+1, sliced_d.indexOf("\n"));
+				var end_s_i = sliced_d.indexOf("\n");
+				if (end_s_i == -1)
+					end_s_i = sliced_d.length;
+				var stime = sliced_d.slice(sliced_d.indexOf("|")+1, end_s_i);
 				sdate = new Date(stime);
-				var timesince = Date.now() - sdate;
+				var timesince = Date.now() - sdate.getTime();
 				let res = timesince.toString();
 				if(data.indexOf("ncr reward times|") != -1){
 					let sliced_d = data.slice(data.indexOf("ncr reward times|"));
 					let rtimes = sliced_d.slice(sliced_d.indexOf("|")+1, sliced_d.indexOf("\n"));
 					res += "&" + rtimes;
 				}
+				aux.debugShout("1319: "+res, 3);
 				callback(null, "start", res);
 			});
 		break;
