@@ -1316,7 +1316,10 @@ function session_ntu_req(body, callback){
 				let res = timesince.toString();
 				if(data.indexOf("ncr reward times|") != -1){
 					let sliced_d = data.slice(data.indexOf("ncr reward times|"));
-					let rtimes = sliced_d.slice(sliced_d.indexOf("|")+1, sliced_d.indexOf("\n"));
+					let end_ncr_i = sliced_d.indexOf("\n");
+					if (end_ncr_i == -1)
+						end_ncr_i = sliced_d.length;
+					let rtimes = sliced_d.slice(sliced_d.indexOf("|")+1, end_ncr_i);
 					res += "&" + rtimes;
 				}
 				aux.debugShout("1319: "+res, 3);

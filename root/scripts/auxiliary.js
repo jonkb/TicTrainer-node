@@ -524,7 +524,7 @@ function sort2d(inArray, sortColumn){
 function genReport(data){
 	var tics = 0, tenSIntervals = 0, longestInterval = 0;
 	var initL = 0, initP = 0, initT;
-	var endL, endP, endT;
+	var endL = 0, endP = 0, endT;
 	var lastTic, ticFree;
 	var is_nt = false;
 	var rewards = 0;
@@ -594,8 +594,10 @@ function genReport(data){
 	debugShout("start: "+initT+". end: "+endT);
 	var report = "\n****************\nReport:";
 	report += "\nsession length|"+ (endT - initT)/1000;
-	report += "\nlevels gained|"+ (endL - initL);
-	report += "\npoints earned|"+ (endP - initP);
+	if(!is_nt){
+		report += "\nlevels gained|"+ (endL - initL);
+		report += "\npoints earned|"+ (endP - initP);
+	}
 	report += "\nnumber of tics|"+ tics;
 	report += "\nlongest tic free interval|"+ longestInterval/1000;
 	report += "\nnumber of 10s tic free intervals|"+ tenSIntervals;
