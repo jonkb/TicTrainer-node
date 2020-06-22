@@ -23,7 +23,7 @@
 			//Change the URL bar
 			var url = '/nt/linkloading-ntuser.dynh';
 			if(window.history.pushState)
-				window.history.pushState("", "Link Loading: NewTics User", url);
+				window.history.pushState("", "Link Loading: Research User", url);
 			
 			window.onbeforeunload = leave;
 			window.onpagehide = leave;

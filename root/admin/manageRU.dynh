@@ -41,7 +41,7 @@
 							<td>--</td>
 						</tr>
 						<tr>
-							<td>NewTics ID: </td>
+							<td>Research ID: </td>
 							<td id="display_user_NTID"></td>
 							<td><input type="text" name="ntid" placeholder="NT###" size="6"></td>
 						</tr>
@@ -157,7 +157,7 @@
 					return false;
 				}
 				if(NTID.slice(0,2) != 'NT'){
-					alert("The NewTics id should start with 'NT'");
+					alert("The Research ID should start with 'NT'");
 					return false;
 				}
 				

@@ -21,7 +21,7 @@
 			var already_left = false;
 			//Change the URL bar
 			var url = '/nt/startsession-ntuser.dynh';
-			window.history.pushState("", "Start Session: NewTics User", url);
+			window.history.pushState("", "Start Session: Research User", url);
 			
 			window.onbeforeunload = leave;
 			window.onpagehide = leave;

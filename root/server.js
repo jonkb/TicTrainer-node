@@ -76,8 +76,8 @@ function handleRequest(req, res){
 						}
 					});
 				break;
-				case "/nt/index.html": //new NewTics session (user)
-				case "/nt/rater.html": //new NewTics session (rater)
+				case "/nt/index.html": //new TicTimer session (user)
+				case "/nt/rater.html": //new TicTimer session (rater)
 					new_session_req(body, function(err, body){
 						if(err){
 							ret.error(res, err, pathname);
@@ -985,7 +985,7 @@ function startsession_rater_req(body, callback){
 					callback("fe");
 			}
 			else{ //file exists
-				var sEntry = "NewTics subject|?|"+body.stype;
+				var sEntry = "Research ID|?|"+body.stype;
 				sEntry += "\nsession started|" + aux.time();
 				if(body.stype == "NCR"){
 					sEntry += "\nncr reward times|";

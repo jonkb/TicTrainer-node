@@ -4,7 +4,7 @@
 	1 - Just a few log messages
 	2 - More log messages
 	3 - Way too many log messages
-"testing" : Run on testing server 8888 or run normal HTTP and HTTPS servers (true/false)
+"testing" : Run server on PORT 8888 for testing or run normal HTTP and HTTPS servers (true/false)
 "points_to_first_level" : How many points a user needs to level up. (int)
-"nts_lbl_bgc" : NewTics session label background color (true/false)
-"nts_len" : NewTics session default length (min)
+"nts_lbl_bgc" : TicTimer session label background color (true/false)
+"nts_len" : TicTimer session default length (min)

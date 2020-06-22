@@ -468,7 +468,7 @@ function newU(id, pass, bd, sex){
 		s += 	"LEVEL,POINTS,COINS:" +	open_char +"0,0,0"+ close_char + "\n";
 		s += 	"BOUGHT ITEMS:" +				open_char 		+			close_char + "\n";
 		s +=	"RESEARCH SETTINGS (RS,AITI,SMPR,PTIR,FLASH):" + open_char + "REG,10,3000,5,NO" + close_char + "\n";
-		s += 	"NEWTICS ID:" +					open_char + "-"		+	close_char + "\n";
+		s += 	"RESEARCH ID:" +					open_char + "-"		+	close_char + "\n";
 		
 	return s;
 }
@@ -569,7 +569,7 @@ function genReport(data){
 				endL = entryParts[1].split(",")[0];
 				endP = entryParts[1].split(",")[1];
 			break;
-			case "NewTics subject":
+			case "Research ID":
 				is_nt = true;
 			break;
 			case "reward dispensed":
@@ -620,7 +620,7 @@ function archiveSession(sesFile, callback){
 		var sesFile2 = sesFile.slice(sesFile.lastIndexOf("/")+1);
 		sesFile2 = sesFile2.slice(0, sesFile2.indexOf(".ttsd"));
 		sesFile2 += "_" + time("forfile");
-		var ntsi = data.indexOf("NewTics subject|");
+		var ntsi = data.indexOf("Research ID|");
 		if(ntsi != -1){
 			var stype = data.slice(ntsi);
 			stype = stype.slice(indexNOf(stype, "|", 2)+1, stype.indexOf("\n"));

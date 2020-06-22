@@ -35,7 +35,7 @@
 			var submitted = false;
 			//Change the URL bar
 			var url = '/nt/startsession-rater.dynh';
-			window.history.pushState("", "Start Session: Trainer", url);
+			window.history.pushState("", "Start Session: Rater", url);
 			
 			window.onbeforeunload = leave;
 			window.onpagehide = leave;

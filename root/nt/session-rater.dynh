@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en-us">
 	<head>
-		<title>NewTics Session: Rater</title>
+		<title>TicTimer Session: Rater</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
 	</head>
@@ -9,7 +9,7 @@
     <section class="page-header">
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
-				<h1>NewTics Session: Rater</h1>
+				<h1>TicTimer Session: Rater</h1>
 				<div style="clear: both;"></div>
 			</div>
     </section>
@@ -38,7 +38,7 @@
 			//Change the URL bar
 			var url = '/nt/session-rater.dynh';
 			if(window.history.pushState)
-				window.history.pushState("", "NewTics Session: Rater", url);
+				window.history.pushState("", "TicTimer Session: Rater", url);
 			
 			window.onbeforeunload = endS;
 			window.onpagehide = endS;

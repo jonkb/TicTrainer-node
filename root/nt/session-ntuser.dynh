@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en-us">
 	<head>
-		<title>NewTics Session: User</title>
+		<title>TicTimer Session: User</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
 	</head>
@@ -9,7 +9,7 @@
     <section class="page-header">
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
-				<h1>NewTics Session: User</h1>
+				<h1>TicTimer Session: User</h1>
 				<div style="clear: both;"></div>
 			</div>
     </section>
@@ -30,7 +30,7 @@
 			//Change the URL bar
 			var url = "/nt/session-ntuser.dynh";
 			if(window.history.pushState)
-				window.history.pushState("", "NewTics Session: User", url);
+				window.history.pushState("", "TicTimer Session: User", url);
 			
 			window.onload = init;
 			window.onbeforeunload = endS;
