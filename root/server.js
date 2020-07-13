@@ -252,7 +252,7 @@ function handleRequest(req, res){
 				case "/session/session-trainer.dynh":
 					session_t_req(body, function(err, next){
 						if(err){
-							ret_error(res, err, "/session/index.html");
+							ret.error(res, err, "/session/index.html");
 							return;
 						}
 						if(next == "ended"){
@@ -269,7 +269,7 @@ function handleRequest(req, res){
 				case "/nt/session-rater.dynh":
 					session_t_req(body, function(err, next){
 						if(err){
-							ret_error(res, err, "/session/index.html");
+							ret.error(res, err, "/session/index.html");
 							return;
 						}
 						if(next == "ended"){
@@ -286,7 +286,7 @@ function handleRequest(req, res){
 				case "/session/session-user.dynh":
 					session_u_req(body, function(err, next, retMessage){
 						if(err){
-							ret_error(res, err, "/session/index.html");
+							ret.error(res, err, "/session/index.html");
 							return;
 						}
 						if(next == "check"){
@@ -353,7 +353,7 @@ function handleRequest(req, res){
 				case "/error/ghses.html":
 					ghses_req(body, function(err){
 						if(err){
-							ret_error(res, err, pathname);
+							ret.error(res, err, pathname);
 							return;
 						}
 						ret.redirect(res, "/session/index.html");
