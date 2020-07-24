@@ -735,7 +735,6 @@ function new_session_req(body, callback){
 	aux.loadAcc(body.id, function(err, aData){
 		if(err){
 			callback(err, body);//make the default case an error
-			//ret.error(res, err);
 			return;
 		}
 		if(aData[1] != body.pw){
@@ -744,7 +743,8 @@ function new_session_req(body, callback){
 			return;
 		}
 		if(body.lid[0] == 'a'){
-			body.lid = 'a';//From now on, it doesn't matter which rater it is.
+			//From now on, it doesn't matter which rater it is.
+			body.lid = 'a';
 		}
 		else if(body.id[0] != 'a'){
 			//Check if accounts are linked only if neither one is a rater (non-nt session)
@@ -752,7 +752,6 @@ function new_session_req(body, callback){
 			if(lnAcc.indexOf(body.lid) < 0){
 				//Account not linked error
 				callback("anle");
-				//ret.error(res, "anle", "/session/index.html");
 				return;
 			}
 		}
@@ -762,7 +761,9 @@ function new_session_req(body, callback){
 		*/
 		if("at".indexOf(body.id[0]) != -1){
 			//This section should hopefully never need to be used, but it handles ghost sessions. Logs a ghost session error.
-			var oldSFile = "./session/ongoing/a" + body.lid + ".ttsd";
+			var oldSFile = "./session/ongoing/" + body.id + body.lid + ".ttsd";
+			if(body.id[0] == 'a')
+				oldSFile = "./session/ongoing/a" + body.lid + ".ttsd";
 			fs.stat(oldSFile, function(err){
 				if(err){
 					if(err.code == "ENOENT"){//Does not exist. Good.
@@ -770,11 +771,9 @@ function new_session_req(body, callback){
 					}
 					else
 						callback("fe");
-						//ret.error(res, "fe", "/session/index.html", "new-session: checking if oldSFile exists"); //Some other bizarre error
 				}
 				else{//Bad, it's an old ghost session. Or it's concurrent.
 					callback("conses");
-					//ret.error(res, "conses", "/session/index.html");
 				}
 			});
 		}
@@ -1132,7 +1131,8 @@ function session_t_req(body, callback){
 		fs.stat(sesFile, function(err, stats){
 			if(err == null){//File exists
 				aux.debugShout("586", 3);
-				fs.appendFile(sesFile, eEntry, function(err){//should I also archive it? No, the user needs to save their new points and level
+				//should I also archive it? No, the user needs to save their new points and level
+				fs.appendFile(sesFile, eEntry, function(err){
 					if(err)
 						callback("fe");
 						//ret.error(res, "fe", "/session/index.html", "session_end-trainer: append to sesFile");
@@ -1146,11 +1146,9 @@ function session_t_req(body, callback){
 			//This happens if the user has ended the session already
 			else if(err.code == "ENOENT"){
 				callback(null, "ended");
-				//ret.redirect(res, "/session/session-ended.html");
 			}
 			else{//Some other error
 				callback("fe");
-				//ret.error(res, "fe", "/session/index.html", "session_end-trainer: stat sesFile");
 			}
 		});
 	}
@@ -1166,7 +1164,6 @@ function session_u_req(body, callback){
 			fs.readFile(sesFile, "utf8", function(err, data){
 				if(err){
 					callback("fe");
-					//ret.error(res, "fe", "/session/index.html", "session-user: read sesFile");
 					return;
 				}
 				var newL = data.length;
@@ -1200,21 +1197,13 @@ function session_u_req(body, callback){
 			var sesFile = "./session/ongoing/" + body.lid + body.id + ".ttsd";
 			var newlpc = body.level +","+ body.points +","+ body.coins;
 			//save user lpc
-			aux.editAcc(body.id, 5, function(uData){
-				if(body.pw != uData[1]){
-					aux.debugShout("body.pw= "+body.pw+"; pass= "+uData[1]);
-					//This would be weird because the user entered his own password at the beginning.
-					callback("pce");
-					//ret.error(res, "pce");
-					return "<cancel>";
-				}
-				return newlpc;
-			}, function(err, uData){
+			aux.editAcc(body.id, 5, newlpc, function(err, uData){
+				/* (newlpc) used to be a function that checked the password again and cancelled
+				 * if there was a password error, but I decided that I'd rather not leave
+				 * behind ghost sessions for every pce. Not that it's likely to happen.
+				*/
 				if(err){
-					if(err !== "canceled"){
-						callback(err);
-						//ret.error(res, err, "/session/index.html", uData);
-					}
+					callback(err);
 					return;
 				}
 				//End and archive session
@@ -1230,7 +1219,6 @@ function session_u_req(body, callback){
 						fs.appendFile(sesFile, eEntry, function(err){
 							if(err){
 								callback("fe");
-								//ret.error(res, "fe", "/session/index.html", "session_end-user: append to sesFile");
 								return;
 							}
 							aux.archiveSession(sesFile, function(err){
@@ -1274,6 +1262,7 @@ function session_u_req(body, callback){
 					}
 					aux.editAcc(body.id, 5, function(userData){
 						if(body.pw != userData[1]){
+							aux.debugShout("1277: "+body.pw+", "+userData[1]);
 							callback("pce");
 							//ret.error(res, "pce");
 							return "<cancel>";

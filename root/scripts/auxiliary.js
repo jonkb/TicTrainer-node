@@ -1,7 +1,8 @@
 var fs = require("fs");
 const settings = JSON.parse(fs.readFileSync("./settings.json"));
 
-/**Exported Functions
+/**
+ * Exported Functions
 */
 module.exports.settings = settings;
 module.exports.dynamic = dynamic;
@@ -18,7 +19,7 @@ module.exports.newU = newU;
 module.exports.newT = newT;
 module.exports.newA = newA;
 module.exports.sort2d = sort2d;
-//module.exports.genReport = genReport;
+//module.exports.genReport = genReport; //Not used externally anymore
 module.exports.archiveSession = archiveSession;
 module.exports.time = time;
 module.exports.debugShout = debugShout;
@@ -46,13 +47,13 @@ module.exports.division_char_description = division_char_description;
 module.exports.subdirs = subdirs;
 
 /**
-	load and fill in a dynamic html file (.dynh is my extension for it)
-	data is an object with all the needed fields.
-		data.del is reserved for a "delete codes" object (container for booleans)
-		if data.del.abc is true, the text inside of a 
-		**[del:abc]**  ~~~  **[end_del:abc]*** tag set will be deleted
-	callback is the callback function. returned with edited_page
-	throws "se", "fe" to callback
+ * load and fill in a dynamic html file (.dynh is my extension for it)
+ * data is an object with all the needed fields.
+ * 	data.del is reserved for a "delete codes" object (container for booleans)
+ * 	if data.del.abc is true, the text inside of a 
+ * 	**[del:abc]**  ~~~  **[end_del:abc]*** tag set will be deleted
+ * callback is the callback function. returned with edited_page
+ * throws "se", "fe" to callback
 */
 function dynamic(template_path, data, callback){
 	if(template_path.slice(0,2) != "./"){
@@ -138,11 +139,12 @@ function dynamic(template_path, data, callback){
 	});
 }
 
-/**Find the nth occurence of a substring
-	Like indexOf, but broader
-	The argument "nth" is 1-indexed (1,2,3,...), not 0-indexed (0,1,2,...)
-	This makes it more like english.
-		"Find the second comma" translates to nth=2 search=","
+/**
+ * Find the nth occurence of a substring
+ * Like indexOf, but broader
+ * The argument "nth" is 1-indexed (1,2,3,...), not 0-indexed (0,1,2,...)
+ * This makes it more like english.
+ * 	"Find the second comma" translates to nth=2 search=","
 */
 function indexNOf(string, search, nth){
 	if(nth == 0){
@@ -176,12 +178,13 @@ function indexNOf(string, search, nth){
 	return lenBefore + cutS.indexOf(search);
 	*/
 }
-/**Checks if an ID string looks like an ID
-	Returns false or testID.toLowerCase()
-	Requirements for an ID string:
-	1. longer than 1 char (t0 is the shortest)
-	2. Starts with "t" or "u" (or "a")
-	3. Each character after the first is one of the 36 used by c_36d
+/**
+ * Checks if an ID string looks like an ID
+ * Returns false or testID.toLowerCase()
+ * Requirements for an ID string:
+ * 1. longer than 1 char (t0 is the shortest)
+ * 2. Starts with "t", "u", or "a"
+ * 3. Each character after the first is one of the 36 used by c_36d
 */
 function isID(testID){
 	if(testID === undefined)
@@ -201,9 +204,10 @@ function isID(testID){
 	}
 	return testID;
 }
-/**Take a string, parse it to base 36, convert it to a decimal int
-	This is used for creating the user and trainer IDs
-	Now deals with negatives
+/**
+ * Take a string, parse it to base 36, convert it to a decimal int
+ * This is used for creating the user and trainer IDs
+ * Now deals with negatives
 */
 function parse36ToDec(str36){
 	var neg = false;
@@ -222,8 +226,9 @@ function parse36ToDec(str36){
 	else
 		return n;
 }
-/**Take a base 10 number and convert it to a base 36 (0-z) string
-	Used for creating the user and trainer IDs
+/**
+ * Take a base 10 number and convert it to a base 36 (0-z) string
+ * Used for creating the user and trainer IDs
 */
 function decTo36(dec){
 	var rem = 0;//remainder
@@ -235,8 +240,9 @@ function decTo36(dec){
 	}
 	return b36;
 }
-/**Takes the string text of a data file and returns an array of entries
-	"<0> blah <1> <2> blah blah <3> blah" --> [0,1,2,3]
+/**
+ * Takes the string text of a data file and returns an array of entries
+ * "<0> blah <1> <2> blah blah <3> blah" --> [0,1,2,3]
 */
 function dataToEntries(data){
 	var entries = [];
@@ -265,13 +271,13 @@ function dataToEntries(data){
 	}
 	return entries;
 }
-/**Loads the specified account's data into an array
-	id - user or trainer id
-	fldInd - which field index to edit <0>~<1>~<2>~<3>~
-	newVal - either the new value which will replace the indicated field 
-		or a function which is passed the old values and returns the new value (or "<cancel>")
-	callback = function(err, [accData]).
-}
+/**
+ * Loads the specified account's data into an array
+ * id - user or trainer id
+ * fldInd - which field index to edit <0>~<1>~<2>~<3>~
+ * newVal - either the new value which will replace the indicated field 
+ * 	or a function which is passed the old values and returns the new value (or "<cancel>")
+ * callback = function(err, [accData]).
 */
 function editAcc(id, fldInd, newVal, callback){
 	//Check that it's a proper id
@@ -287,13 +293,16 @@ function editAcc(id, fldInd, newVal, callback){
 		file += "user_data/"+iD+".ttad";
 	else if(iD[0] == "a")
 		file += "admin_data/"+iD+".ttad";
+	debugShout("290: "+iD+"; "+file, 3);
 	
 	fs.readFile(file, "utf8", function(err,data){
 		if(err){
 			callback("anfe");//assuming it's file not found
 			return;
 		}
+		debugShout("297: "+data, 3);
 		accData = dataToEntries(data);
+		debugShout("299: "+accData, 3);
 		var nv = null;
 		if(typeof(newVal) === "function"){
 			nv = newVal(accData);
@@ -316,7 +325,7 @@ function editAcc(id, fldInd, newVal, callback){
 			*/
 			var fldrx = new RegExp(open_char+'[^'+close_char+']*'+close_char, 'g')
 			var num_flds = data.match(fldrx).length;
-			debugShout("297: "+num_flds);
+			debugShout("322: "+num_flds, 2);
 			while(fldInd+1 > num_flds){
 				data += open_char+close_char+"\n";
 				num_flds++;
@@ -336,9 +345,10 @@ function editAcc(id, fldInd, newVal, callback){
 		});
 	});
 }
-/**Loads the specified account's data into an array
-	callback = function(err,user)
-	user: [id,pw,bd,"links",sex,"lpc",heap,research_state,aiti]
+/**
+ * Loads the specified account's data into an array
+ * callback = function(err,user)
+ * user: [id,pw,bd,"links",sex,"lpc",heap,research_state,aiti]
 }
 */
 function loadAcc(id, callback){
@@ -364,8 +374,9 @@ function loadAcc(id, callback){
 		callback(null, dataToEntries(data));
 	});
 }
-/**Loads all users from /account/user_data
-	callback = function(err,users)
+/**
+ * Loads all users from /account/user_data
+ * callback = function(err,users)
 */
 function loadAllUsers(callback){
 	var dirstem = "./account/user_data/";
@@ -401,9 +412,10 @@ function loadAllUsers(callback){
 		}
 	});
 }
-/**Gets the next available ID
-	type: "u" or "t" or "a"
-	function callback(err, ID)
+/**
+ * Gets the next available ID
+ * type: "u" or "t" or "a"
+ * function callback(err, ID)
 */
 function getNextID(type, callback){
 	var dirstem = "./account/";
@@ -457,7 +469,8 @@ function getNextID(type, callback){
 		callback(null, nextID);
 	});
 }
-/**Generates the content for a new user file
+/**
+ * Generates the content for a new user file
 */
 function newU(id, pass, bd, sex){
 	var s = "ID:" + 								open_char +	id		+ close_char + "\n";
@@ -472,7 +485,8 @@ function newU(id, pass, bd, sex){
 		
 	return s;
 }
-/**Generates the content for a new trainer file
+/**
+ * Generates the content for a new trainer file
 */
 function newT(id, pass, bd){
 	var s = "ID:" + 					open_char +	id		+ close_char + "\n";
@@ -481,7 +495,8 @@ function newT(id, pass, bd){
 		s += 	"LINKED USERS:" + open_char			+			close_char + "\n";//links
 	return s;
 }
-/**Generates the content for a new admin file
+/**
+ * Generates the content for a new admin file
 */
 function newA(id, pass){
 	if(id[0] != "a")
@@ -490,9 +505,10 @@ function newA(id, pass){
 		s += 	"PASSWORD:" + open_char +	pass	+ close_char + "\n";
 	return s;
 }
-/**Returns a sorted copy of the given 2d array. 
-	The column it's sorted by is given by the integer value in sortColumn.
-	Used by the leaderboard. (/leaderboard/index.html)
+/**
+ * Returns a sorted copy of the given 2d array. 
+ * The column it's sorted by is given by the integer value in sortColumn.
+ * Used by the leaderboard. (/leaderboard/index.html)
 */
 function sort2d(inArray, sortColumn){
 	var aCopy = inArray.slice();
@@ -517,9 +533,10 @@ function sort2d(inArray, sortColumn){
 	return res_table;
 }
 
-/**Generates a report for the end of a session
-	Takes the text of the session file (data)
-	TO DO: switch to async? Does it take long enough to justify it?
+/**
+ * Generates a report for the end of a session
+ * Takes the text of the session file (data)
+ * TO DO: switch to async? Does it take long enough to justify it?
 */
 function genReport(data){
 	var tics = 0, tenSIntervals = 0, longestInterval = 0;
@@ -527,6 +544,7 @@ function genReport(data){
 	var endL = 0, endP = 0, endT;
 	var lastTic, ticFree;
 	var is_nt = false;
+	var ended = false;
 	var rewards = 0;
 	var entries = data.split("\n");
 	for(var i = 0; i<entries.length; i++){
@@ -538,12 +556,13 @@ function genReport(data){
 		switch(entryParts[0]){
 			case "session started":
 				initT = new Date(entryParts[1]);
+				endT = initT;
 				lastTic = initT;
 			break;
 			case "starting user l,p,c":
-				initL = entryParts[1].split(",")[0];
+				initL = parseInt(entryParts[1].split(",")[0]);
 				endL = initL;
-				initP = entryParts[1].split(",")[1];
+				initP = parseInt(entryParts[1].split(",")[1]);
 				endP = initP;
 			break;
 			case "tic detected":
@@ -551,6 +570,8 @@ function genReport(data){
 				var ticTime = new Date(entryParts[1]);
 				ticFree = ticTime - lastTic;
 				lastTic = ticTime;
+				if(!ended)
+					endT = ticTime;
 				if(ticFree > longestInterval)
 					longestInterval = ticFree;
 				/*Convert ticFree time to seconds. 
@@ -560,20 +581,25 @@ function genReport(data){
 			break;
 			case "session ended":
 				endT = new Date(entryParts[1]);
+				ended = true;
 				ticFree = endT - lastTic;
 				if(ticFree > longestInterval)
 					longestInterval = ticFree;
 				tenSIntervals += Math.floor(ticFree / 1e4);
 			break;
 			case "user l,p,c":
-				endL = entryParts[1].split(",")[0];
-				endP = entryParts[1].split(",")[1];
+				endL = parseInt(entryParts[1].split(",")[0]);
+				endP = parseInt(entryParts[1].split(",")[1]);
+				if(!ended)
+					endT = new Date(entryParts[2]);
 			break;
 			case "Research ID":
 				is_nt = true;
 			break;
 			case "reward dispensed":
 				rewards++;
+				if(!ended)
+					endT = new Date(entryParts[1]);
 			break;
 			case "ncr reward times":
 			break;
@@ -593,6 +619,8 @@ function genReport(data){
 	}
 	debugShout("start: "+initT+". end: "+endT);
 	var report = "\n****************\nReport:";
+	if(!ended)
+		report += "\nWARNING: no \"session ended\" entry found. Session length may be inaccurate.";
 	report += "\nsession length|"+ (endT - initT)/1000;
 	if(!is_nt){
 		report += "\nlevels gained|"+ (endL - initL);
@@ -607,9 +635,10 @@ function genReport(data){
 	return report;
 }
 
-/**Archives the given session file
-	If it was an NT session, include the stype in the filename
-	callback(err)
+/**
+ * Archives the given session file
+ * If it was an NT session, include the stype in the filename
+ * callback(err)
 */
 function archiveSession(sesFile, callback){
 	fs.readFile(sesFile, "utf8", function(err, data){
@@ -651,11 +680,12 @@ function pad2(num){
 	return num
 }
 
-/**Returns the current time in the requested format type
-	type:
-		"forfile": YYYYMMDD-hhmmss (Local time)
-		"millis": (e.g.)1494298134109
-		"ISO": YYYY-MM-DDThh:mm:ss.sssZ (GMT)
+/**
+ * Returns the current time in the requested format type
+ * type:
+ * 	"forfile": YYYYMMDD-hhmmss (Local time)
+ * 	"millis": (e.g.)1494298134109
+ * 	"ISO": YYYY-MM-DDThh:mm:ss.sssZ (GMT)
 */
 function time(type){
 	var d = new Date();
@@ -672,13 +702,14 @@ function time(type){
 		break;
 	}
 }
-/**A simple wrapper for console.log()
-	By setting the value of the debugging constant, the person running the server
-	can decide how many messages to see.
-	depth 0: always show the message, even with debugging 0
-	depth 1: print if debugging depth >= 1
-	depth 2(default): print if debugging depth >= 2
-	depth N: print if debugging depth >= N
+/**
+ * A simple wrapper for console.log()
+ * By setting the value of the debugging constant, the person running the server
+ * can decide how many messages to see.
+ * depth 0: always show the message, even with debugging 0
+ * depth 1: print if debugging depth >= 1
+ * depth 2(default): print if debugging depth >= 2
+ * depth N: print if debugging depth >= N
 */
 function debugShout(message, depth){
 	if(!depth)
@@ -686,7 +717,8 @@ function debugShout(message, depth){
 	if(settings.debugging >= depth)
 		console.log(message);
 }
-/**Writes an error to the error log (/error/log.ttd)
+/**
+ * Writes an error to the error log (/error/log.ttd)
 */
 function log_error(error_type, message){
 	message = message || "-";

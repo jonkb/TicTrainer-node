@@ -82,10 +82,7 @@
 					start();
 				}
 				else{
-					cleanup();
-					document.open();
-					document.write(res);
-					document.close();
+					endS(res);
 				}
 			});
 			
@@ -171,11 +168,9 @@
 							else{ endS(); }
 						}
 						else{//For an Error Page
-							cleanup();
 							var response = xhr.responseText;
-							document.open();
-							document.write(response);
-							document.close();
+							//console.log("172: "+response)
+							endS(response);
 						}//ERROR
 					}
 				};
@@ -187,7 +182,7 @@
 				ses_vars.frame_timer = setInterval(frame, ses_vars.mspf);
 				
 				ses_vars.framesSince = 0;
-			  ses_vars.rate = ses_vars.level*ses_vars.level;
+				ses_vars.rate = ses_vars.level*ses_vars.level;
 				ses_vars.rewards_since_increment = 0;
 				**[del:!reg]**
 				if(ses_vars.flash_red){
@@ -197,13 +192,14 @@
 			}
 			function flash_cp(color){
 				var c_p = document.getElementById('counter_panel');
-			  c_p.style.backgroundColor = color;
+				c_p.style.backgroundColor = color;
 				ses_vars.cp_timer = setTimeout(function(){
 					c_p.style.backgroundColor = "transparent";
 				}, 1000);
 			}
-			function endS(){
+			function endS(err_page){
 				if(!already_left){
+					already_left = true;
 					var xhr = new XMLHttpRequest();
 					var reqBody = 'reqType=end&id=**[id]**&pw=**[pw]**&lid=**[lid]**&level='
 					reqBody += ses_vars.level+'&points='+ses_vars.points+'&coins='+ses_vars.coins;
@@ -213,19 +209,19 @@
 						if(xhr.readyState == 4){
 							var response = xhr.responseText;
 							document.open();
-							document.write(response);
+							if(err_page){ document.write(err_page); }
+							else{ document.write(response); }
 							document.close();
 						}
 					}
 					xhr.send(reqBody);
-					already_left = true;
 				}
 			}
 			function levelUp(){
 				ses_vars.level++;
 				ses_vars.points -= ses_vars.nextLevel;
 				ses_vars.coins += ses_vars.nextLevel/ses_vars.points_to_first_level;
-				loglpc();
+				//loglpc(); //- Already logs immediately after
 				ses_vars.nextLevel = ses_vars.points_to_first_level*ses_vars.level*ses_vars.level;
 				ses_vars.cap = 10*ses_vars.level*ses_vars.level;
 				//Flash green (this green is 10% lighter than the green in the page header)
@@ -251,9 +247,7 @@
 					if(xhr.readyState == 4){
 						if(xhr.status != 200){//Display Error Page
 							var response = xhr.responseText;
-							document.open();
-							document.write(response);
-							document.close();
+							endS(response);
 						}
 					}
 				}
