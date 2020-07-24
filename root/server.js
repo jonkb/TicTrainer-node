@@ -360,6 +360,11 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/admin/index.html":
+					if(!body.id){
+						aux.debugShout("364: request without id", 1)
+						ret.error(res, "ide");
+						return;
+					}
 					if(body.id[0] != "a"){
 						//No need to be courteous with a return address for the hackers
 						ret.error(res, "ide");
@@ -378,6 +383,11 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/admin/interface.dynh":
+					if(!body.id){
+						aux.debugShout("387: request without id", 1)
+						ret.error(res, "ide");
+						return;
+					}
 					if(body.id[0] != "a"){
 						ret.error(res, "ide");
 						return;
