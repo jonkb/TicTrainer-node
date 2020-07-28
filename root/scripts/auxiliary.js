@@ -24,6 +24,7 @@ module.exports.archiveSession = archiveSession;
 module.exports.time = time;
 module.exports.debugShout = debugShout;
 module.exports.log_error = log_error;
+module.exports.validate = validate;
 
 //Used to convert between b36 (a-z) and decimal
 const c_36d = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -252,7 +253,7 @@ function dataToEntries(data){
 	var lookingAtData = false; 
 	debugShout("converting "+data+ "to entries", 3);
 	for(var i = 0; i< data.length; i++){
-		debugShout(" "+data[i], 3);
+		debugShout(" "+data[i], 4);
 		switch(data[i]){
 			case open_char:
 				lookingAtData = true;
@@ -677,7 +678,7 @@ function pad2(num){
 	if(num < 10){
 		return "0" + num.toString();
 	}
-	return num
+	return num;
 }
 
 /**
@@ -702,6 +703,7 @@ function time(type){
 		break;
 	}
 }
+
 /**
  * A simple wrapper for console.log()
  * By setting the value of the debugging constant, the person running the server
@@ -717,6 +719,7 @@ function debugShout(message, depth){
 	if(settings.debugging >= depth)
 		console.log(message);
 }
+
 /**
  * Writes an error to the error log (/error/log.ttd)
 */
@@ -728,4 +731,63 @@ function log_error(error_type, message){
 	var eEntry = open_char+error_type+division_char+time()+
 		division_char+message+close_char+"\n";
 	fs.appendFile("./error/log.ttd", eEntry, function(err){});
+}
+
+/**
+ * Checks if the given data object has the required fields.
+ * "required" should be an object with the names of the required
+ * fields and what data type each should be. 
+ * Supported types: All js classes, "id"
+ * Example:
+ * 	required = {
+ * 		"id": "id",
+ * 		"lid": "id",
+ * 		"pw": "string",
+ * 		"N": "number"
+ * 	}
+ * 	The following "data" object would pass the test:
+ * 	data = {
+ * 		"id": "u0",
+ * 		"lid": "t0",
+ * 		"pw": "password",
+ * 		"N": 24,
+ * 		"unimportant": 3.14
+ * 	}
+ */
+function validate(data, required){
+	for(var field in required){
+		if(!(field in data))
+			return "ife";
+		req_type = required[field];
+		switch(req_type){
+			case "id":
+				//Remember, this may alter the given data object (makes lowercase)
+				data[field] = isID(data[field]);
+				if(data[field] === false)
+					return "ide";
+			break;
+			case "ice_check":
+				//Make sure it doesn't include < or >
+				if(/[<>]/.test(data[field]))
+					return "ice";
+			break;
+			case "date-year":
+				if(data[field].length != 4)
+					return "dfe";
+			case "date-ms":
+				if(isNaN(data[field]))
+					return "dfe";
+			break;
+			case "sex":
+				if(data[field] != "M" && data[field] != "F")
+					return "ife";
+			break;
+			default:
+				//The problem is that they're always strings, actually.
+				//So "number" for example will never work.
+				if(typeof(data[field]) != req_type)
+					return "ife";
+		}
+	}
+	return true;
 }

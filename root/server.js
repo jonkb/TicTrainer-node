@@ -62,34 +62,36 @@ function handleRequest(req, res){
 				break;
 				//Start of session-related URLs
 				case "/session/index.html":
-					new_session_req(body, function(err, body){
+					new_session_req(body, function(err, data){
 						if(err){
 							ret.error(res, err, "/session/index.html");
 							return;
 						}
-						body.tryN = 0;
+						data.tryN = 0; //Necessary?
 						//Go to Link Loading Page
-						if(body.id[0]=="t")
-							ret.link_loading_trainer(res, body);
-						else{ //body.id[0] is definitely "u" because the error would have already been caught otherwise. Except maybe 'a' somehow...
-							ret.link_loading_user(res, body);
+						if(data.id[0]=="t")
+							ret.link_loading_trainer(res, data);
+						else if(data.id[0]=="u"){ 
+							/* data.id[0] is definitely "u" because the error would have 
+							 * already been caught otherwise. Except maybe 'a' somehow...*/
+							ret.link_loading_user(res, data);
 						}
 					});
 				break;
 				case "/nt/index.html": //new TicTimer session (user)
 				case "/nt/rater.html": //new TicTimer session (rater)
-					new_session_req(body, function(err, body){
+					new_session_req(body, function(err, data){
 						if(err){
 							ret.error(res, err, pathname);
 							return;
 						}
-						//body.tryN = 0;
+						//data.tryN = 0;
 						//Go to Link Loading Page
-						aux.debugShout("271: "+body.id);
-						if(body.id[0] == "a")
-							ret.link_loading_rater(res, body);
+						aux.debugShout("271: "+data.id);
+						if(data.id[0] == "a")
+							ret.link_loading_rater(res, data);
 						else
-							ret.link_loading_ntuser(res, body);
+							ret.link_loading_ntuser(res, data);
 					});
 				break;
 				case "/session/linkloading-trainer.dynh":
@@ -360,9 +362,13 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/admin/index.html":
-					if(!body.id){
-						aux.debugShout("364: request without id", 1)
-						ret.error(res, "ide");
+					var req_flds = {
+						"id": "id",
+						"pw": "string"
+					};
+					var validation = aux.validate(body, req_flds);
+					if(validation !== true){
+						ret.error(res, validation);
 						return;
 					}
 					if(body.id[0] != "a"){
@@ -383,9 +389,14 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/admin/interface.dynh":
-					if(!body.id){
-						aux.debugShout("387: request without id", 1)
-						ret.error(res, "ide");
+					var req_flds = {
+						"id": "id",
+						"pw": "string",
+						"target": "string"
+					};
+					var validation = aux.validate(body, req_flds);
+					if(validation !== true){
+						ret.error(res, validation);
 						return;
 					}
 					if(body.id[0] != "a"){
@@ -461,85 +472,14 @@ function handleRequest(req, res){
 					});
 				break;
 				case "/account/store/index.html":
-					switch(body.source){
-						case "enterStore":
-							//verify form
-							body.id = aux.isID(body.id);
-							if(body.id === false || body.id[0] !== "u"){
-								ret.error(res, "ide", pathname);
-								break;
-							}
-							aux.loadAcc(body.id, function(err,user){
-								if(err){
-									ret.error(res, err, pathname);//anfe
-									return;
-								}
-								if(body.pw != user[1]){
-									ret.error(res, "pce", pathname);
-									return;
-								}
-								body.coins = user[5].split(",")[2];
-								body.heap = user[6];
-								aux.debugShout("1099 "+JSON.stringify(body), 3);
-								ret.store(res, body);
-							});
-						break;
-						case "buy":
-							body.id = aux.isID(body.id);
-							if(body.id === false || body.id[0] !== "u"){
-								ret.error(res, "ide", pathname);
-								break;
-							}
-							if(isNaN(inventory[body.item])){
-								//Is not in inventory(may give a false positive)
-								//I'm ok with this because it would only be triggered by hackers, 
-								//who I feel no need to be courteous to
-								ret.error(res, "ife", pathname);
-								break;
-							}
-							//Subtract the needed coins
-							aux.editAcc(body.id, 5, function(uData){
-								//Again, these really should have been caught earlier
-								if(uData[1] !== body.pw){
-									ret.error(res, "pce", pathname);
-									return "<cancel>";
-								}
-								var lpc = uData[5].split(",");
-								if(lpc[2] < inventory[body.item]){
-									ret.error(res, "ife", pathname);//Not really the right error code
-									return "<cancel>";
-								}
-								var newlpc = lpc[0]+ "," +lpc[1]+ "," +(lpc[2]-inventory[body.item]);
-								return newlpc;
-							}, function(err, uData){
-								if(err){
-									if(err !== "canceled"){
-										if(uData)
-											aux.debugShout("1217 "+uData);
-										ret.error(res, err, pathname);
-									}
-									return;//already returned - ret.error
-								}
-								//add the item to their loot pile
-								newHeap = body.item + uData[6];
-								aux.editAcc(body.id, 6, newHeap, function(err, uData){
-									if(err){
-										if(uData)
-											aux.debugShout("1204 "+uData);
-										ret.error(res, err, pathname);
-										return;//already returned - ret.error
-									}
-									//Fix the body object to send back to the store page
-									var lpc = uData[5].split(",");
-									body.coins = lpc[2];
-									body.heap = uData[6];
-									aux.debugShout("1153 "+JSON.stringify(body), 3);
-									ret.store(res, body);
-								});
-							});
-						break;
-					}
-				break;//store
+					store_req(body, function(err, data){
+						if(err){
+							ret.error(res, err, pathname);
+							return;
+						}
+						ret.store(res, data);
+					});
+				break;
 			}//pathname switch
 		});
 	}//POST
@@ -549,41 +489,35 @@ function handleRequest(req, res){
 }
 
 function reg_acc_req(type, body, callback){
-	var bD = body.birth;
-	var pass = body.pw;
-	var passC = body.pwConf;
-	if(isNaN(bD)){//also catches undefined 
-		callback("dfe");
-		return;
-	}
-	if(pass != passC){
-		callback("pce");
-		return;
-	}
-	//Make sure these don't include < or >
-	if(/[<>]/.test(pass+bD)){
-		callback("ice");
-		return;
-	}
+	var req_flds = {
+		"pw": "ice_check",
+		"pwConf": "ice_check"
+	};
+	var newFile = "./account/";
 	if(type == "t"){
-		var newFile = "./account/trainer_data/";
-		if(bD.length != 4){
-			callback("dfe");
-			return;
-		}
+		req_flds.birth = "date-year";
+		newFile += "trainer_data/";
 	}
 	else if(type == "u"){
-		var newFile = "./account/user_data/";
-		var sex = body.sex;
-		if(sex != "M" && sex != "F"){
-			callback("ife");
-			return;
-		}
+		req_flds.birth = "date-ms";
+		req_flds.sex = "sex";
+		newFile += "user_data/";
 	}
 	else{
 		callback("se");
 		return;
 	}
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
+		return;
+	}
+	var pass = body.pw;
+	if(pass != body.pwConf){
+		callback("pce");
+		return;
+	}
+	var bD = body.birth;
 	aux.getNextID(type, function(err, ID){
 		if(err){
 			callback("fe");
@@ -591,10 +525,10 @@ function reg_acc_req(type, body, callback){
 		}
 		newFile += ID+".ttad";
 		if(type == "u")
-			var newData = aux.newU(ID,pass,bD,sex);
+			var newData = aux.newU(ID,pass,bD,body.sex);
 		else if(type == "t")
 			var newData = aux.newT(ID,pass,bD);
-			
+		
 		fs.writeFile(newFile, newData, function(err){
 			if(err){
 				callback("fe");
@@ -608,33 +542,47 @@ function reg_acc_req(type, body, callback){
 function acc_req(body, callback){
 	switch(body.source){
 		case "manageAccount"://Log on page
-		aux.debugShout("612", 2);
-		//loadAcc tests for ide
-		aux.loadAcc(body.id, function(err,user){
-			aux.debugShout("615", 2);
-			if(err){
-				callback(err);
+			aux.debugShout("612", 3);
+			var req_flds = {
+				"id": "id",
+				"pw": "string"
+			};
+			var validation = aux.validate(body, req_flds);
+			if(validation !== true){
+				callback(validation);
 				return;
 			}
-			if(user[1] == body.pw)
-				callback(null, user);
-			else{
-				callback("pce");
-				aux.debugShout("624", 2);
-			}
-		});
+			//loadAcc tests for ide too
+			aux.loadAcc(body.id, function(err,user){
+				aux.debugShout("615", 3);
+				if(err){
+					callback(err);
+					return;
+				}
+				if(user[1] == body.pw)
+					callback(null, user);
+				else{
+					callback("pce");
+					aux.debugShout("624", 3);
+				}
+			});
 		break;
 		case "editP"://Source: editP, id, oldPass, pass
-			var iD = body.id;
+			var req_flds = {
+				"id": "id",
+				"oldPass": "string",
+				"pass": "ice_check"//Checks for [<>]
+			};
+			var validation = aux.validate(body, req_flds);
+			if(validation !== true){
+				callback(validation);
+				return;
+			}
 			var opw = body.oldPass;
 			var pw = body.pass;
-			if(/[<>]/.test(pw)){
-				callback("ice");
-				break;
-			}
 			
-			aux.debugShout("Editing "+iD, 1);
-			aux.editAcc(iD, 1, function(dEntry){
+			aux.debugShout("Editing "+body.id, 1);
+			aux.editAcc(body.id, 1, function(dEntry){
 				if(dEntry[1] !== opw){
 					aux.debugShout("640|" + dEntry[1] + "|" + opw + "|" + pw);
 					callback("pce");
@@ -654,26 +602,34 @@ function acc_req(body, callback){
 			});
 		break;
 		case "addL"://Add Account Link
+			var req_flds = {
+				"id": "id",
+				"lid": "id",
+				"pw": "string"
+			};
+			var validation = aux.validate(body, req_flds);
+			if(validation !== true){
+				callback(validation);
+				return;
+			}
 			var iD = body.id;// body = {source, id, lid, pw}
 			var lID = body.lid;
 			var lFile = "./account/";
 			
-			iD = aux.isID(iD);
-			lID = aux.isID(lID);
-			if(iD === false || lID === false){
-				callback("ide");
-				break;
-			}
 			if(iD[0] == "t")
 				lFile += "user_data/";
 			else if(iD[0] == "u")
 				lFile += "trainer_data/";
+			else if(iD[0] == "a"){ //We don't link admin accouts
+				callback("ide");
+				return;
+			}
 			lFile += lID+".ttad";
 			
 			aux.debugShout("Linking " + lID + " to " + iD, 1);
-			//Check that the other account exists
+			//Check that the other (lID) account exists
 			fs.stat(lFile, function(err, stat){
-				if(err == null) {
+				if(err == null){
 					//Link to the account
 					aux.editAcc(iD, 3, function(dEntry){
 						if(dEntry[1] !== body.pw){
@@ -729,14 +685,16 @@ function new_session_req(body, callback){
 
 	(if trainer) [loading page]set timer to look for other account (in lnusers) every 2s for 1m --> 
 		[start page]create session data file, show Start button --> 
-			[session control page]Append "session started at"+, show Tic Detected & Stop Session butttons
+			[session control page]Append "session started at"+, show Tic Detected & End Session butttons
 	 */
-	
-	body.id = aux.isID(body.id);
-	body.lid = aux.isID(body.lid);
-	if(body.id === false || body.lid === false){
-		callback("ide");
-		//ret.error(res, "ide", "/session/index.html");
+	var req_flds = {
+		"id": "id",
+		"lid": "string",
+		"pw": "string"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
 		return;
 	}
 	/*Check that the accounts are linked and confirm pw.
@@ -770,7 +728,8 @@ function new_session_req(body, callback){
 			If so, it's called a concurrent or ghost session.
 		*/
 		if("at".indexOf(body.id[0]) != -1){
-			//This section should hopefully never need to be used, but it handles ghost sessions. Logs a ghost session error.
+			/* This section should hopefully never need to be used, but it 
+			 * handles ghost sessions. Logs a ghost session error.*/
 			var oldSFile = "./session/ongoing/" + body.id + body.lid + ".ttsd";
 			if(body.id[0] == 'a')
 				oldSFile = "./session/ongoing/a" + body.lid + ".ttsd";
@@ -806,7 +765,6 @@ function new_session_req(body, callback){
 								fs.appendFile("./session/lnusers.ttd", linkData, function(err){
 									if(err){
 										callback("fe");
-										//ret.error(res, "fe", "/session/index.html", "new-session: appending to lnusers.ttd");
 									}
 									else{
 										//Go to user loading page
@@ -819,11 +777,9 @@ function new_session_req(body, callback){
 					}
 					else//why? weird error.
 						callback("fe");
-						//ret.error(res, "fe", "/session/index.html", "new-session: checking if oldSFile exists");
 				}
 				else{//There is a concurrent (or 'ghost') session
 					callback("conses");
-					//ret.error(res, "conses", "/session/index.html", "new-session: concurrent/ghost session");
 				}
 			});
 		}
@@ -836,7 +792,15 @@ function linkloading_t_req(body, callback){
 		//ret.error(res, "toe", "/session/index.html");
 		return;
 	}
-	//All the errors for id format have been caught already
+	var req_flds = {
+		"id": "id",
+		"lid": "id"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
+		return;
+	}
 	fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
 		if(err){
 			callback("fe");
@@ -869,10 +833,8 @@ function linkloading_t_req(body, callback){
 					fs.writeFile(sesFileName, "", function(err){
 						if(err)
 							callback("fe");
-							//ret.error(res, "fe", "/session/index.html", "linkloading-trainer: making session file");
 						else
 							callback(null, "start");
-							//ret.start_session_trainer(res, body);//source, id, pw, lid, tryN 
 					});
 				});
 			}
@@ -882,6 +844,16 @@ function linkloading_t_req(body, callback){
 
 function linkloading_u_req(body, callback){
 	//(if user) [loading page]set timer to look for session file every 2s for 1m -->
+	var req_flds = {
+		"reqType": "string",
+		"id": "id",
+		"lid": "string"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
+		return;
+	}
 	if(body.reqType == 'leave' || body.reqType == 'timeout'){
 		//remove entry in lnusers
 		fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
@@ -903,7 +875,6 @@ function linkloading_u_req(body, callback){
 				}
 				else{
 					callback("fe");
-					//ret.error(res, "fe", "/session/index.html", "linkloading-user: where did the lnusers entry go?");
 				}
 			}
 		});
@@ -928,7 +899,17 @@ function linkloading_u_req(body, callback){
 }
 
 function startsession_t_req(body, callback){
-	//If aborting, delete the session file - don't bother with archive because it hasn't even started yet
+	var req_flds = {
+		"id": "id",
+		"lid": "id"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
+		return;
+	}
+	//If aborting, delete the session file.
+	//don't bother with archive because it hasn't even started yet
 	if(body.reqType == 'leave'){
 		var sesFile = "./session/ongoing/" + body.id + body.lid + ".ttsd";
 		aux.debugShout("1270", 3);
@@ -951,7 +932,6 @@ function startsession_t_req(body, callback){
 				}
 				else
 					callback("fe");
-					//ret.error(res, "fe","/session/index.html", "start_session-trainer: stat session file");
 			}
 			else{//file exists
 				//TO DO: add here a line similar to in TicTimer with the ids (NTID) and the session type.
@@ -960,7 +940,6 @@ function startsession_t_req(body, callback){
 				fs.appendFile(sesFile, sEntry, function(err){
 					if(err)
 						callback("fe");
-						//ret.error(res, "fe", "/session/index.html", "start_session-trainer: append to sesFile");
 					else{
 						callback(null, "session");
 						//ret.session_trainer(res, body);
@@ -972,7 +951,18 @@ function startsession_t_req(body, callback){
 }
 
 function startsession_rater_req(body, callback){
-	//If aborting, delete the session file - don't bother with archive because it hasn't even started yet
+	var req_flds = {
+		"id": "id",
+		"lid": "id",
+		"reqType": "string"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
+		return;
+	}
+	//If aborting, delete the session file.
+	//don't bother with archive because it hasn't even started yet
 	var sesFile = "./session/ongoing/a" + body.lid + ".ttsd";
 	if(body.reqType == 'leave'){
 		aux.debugShout("1270", 3);
@@ -1025,6 +1015,16 @@ function startsession_rater_req(body, callback){
 }
 
 function startsession_u_req(body, callback){
+	var req_flds = {
+		"id": "id",
+		"lid": "string", //nt lid is 'a'
+		"reqType": "string"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
+		return;
+	}
 	if(body.reqType == 'leave' || body.reqType == 'timeout'){
 		//end session - it has not started yet, so just delete it
 		var sesFile = "./session/ongoing/" + body.lid + body.id + ".ttsd";
@@ -1089,7 +1089,6 @@ function startsession_u_req(body, callback){
 					fs.appendFile(searchFile, startLPEntry, function(err){
 						if(err){
 							callback("fe");
-							//ret.error(res, "fe", "/session/index.html", "start_session-user: append to sesFile");
 							return;
 						}
 						//current session file length (just two/three lines)
@@ -1105,6 +1104,16 @@ function startsession_u_req(body, callback){
 }
 
 function session_t_req(body, callback){
+	var req_flds = {
+		"id": "id",
+		"lid": "id",
+		"reqType": "string"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
+		return;
+	}
 	var sesFile = "./session/ongoing/"+ body.id + body.lid + ".ttsd";
 	if(body.id[0] == 'a'){
 		sesFile = "./session/ongoing/a" + body.lid + ".ttsd";
@@ -1166,6 +1175,16 @@ function session_t_req(body, callback){
 
 function session_u_req(body, callback){
 	//Requests made from the ongoing user session
+	var req_flds = {
+		"id": "id",
+		"lid": "id",
+		"reqType": "string"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
+		return;
+	}
 	switch(body.reqType){
 		case "check":
 			//Check the session file here for tic detected or session ended
@@ -1210,7 +1229,7 @@ function session_u_req(body, callback){
 			aux.editAcc(body.id, 5, newlpc, function(err, uData){
 				/* (newlpc) used to be a function that checked the password again and cancelled
 				 * if there was a password error, but I decided that I'd rather not leave
-				 * behind ghost sessions for every pce. Not that it's likely to happen.
+				 * behind ghost sessions for every pce. Not that it's likely to happen much.
 				*/
 				if(err){
 					callback(err);
@@ -1297,6 +1316,15 @@ function session_u_req(body, callback){
 }
 
 function session_ntu_req(body, callback){
+	var req_flds = {
+		"id": "id",
+		"reqType": "string"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
+		return;
+	}
 	var sesFile = "./session/ongoing/a" + body.id + ".ttsd";
 	switch(body.reqType){
 		case "start":
@@ -1439,8 +1467,17 @@ function ff_nt_ses(body, callback){
 	/*Here, we skip password verification and everything,
 		fast-forwarding to the linkloading pages.
 	*/
+	var req_flds = {
+		"id": "id",
+		"lid": "string" //string, not id, since ntu sends lid of 'a'
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
+		return;
+	}
 	if(body.id[0] == 'u'){
-		var oldSFile = "./session/ongoing/"+ body.lid + body.id + ".ttsd";
+		var oldSFile = "./session/ongoing/a" + body.id + ".ttsd";
 		fs.stat(oldSFile, function(err){
 			if(err){
 				if(err.code == "ENOENT"){//Good.
@@ -1458,7 +1495,6 @@ function ff_nt_ses(body, callback){
 							fs.appendFile("./session/lnusers.ttd", linkData, function(err){
 								if(err){
 									callback("fe");
-									//ret.error(res, "fe", "/session/index.html", "new-session: appending to lnusers.ttd");
 								}
 								else{
 									//Go to user loading page
@@ -1501,11 +1537,14 @@ function ff_nt_ses(body, callback){
 }
 
 function ghses_req(body, callback){
-	body.tid = aux.isID(body.tid);
-	body.uid = aux.isID(body.uid);
-	if(body.tid === false || body.uid === false){
-		callback("ide");
-		//ret.error(res, "ide", pathname);
+	var req_flds = {
+		"tid": "id",
+		"uid": "id",
+		"pw": "string"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
 		return;
 	}
 	
@@ -1529,11 +1568,9 @@ function ghses_req(body, callback){
 			if(err){
 				if(err.code == "ENOENT"){//already deleted
 					callback();
-					//ret.redirect(res, "/session/index.html");
 				}
 				else{
 					callback("fe");
-					//ret.error(res, "fe", pathname, "ghost session: looking at ghost session file");
 				}
 			}
 			else{//legit ghost file
@@ -1551,185 +1588,177 @@ function ghses_req(body, callback){
 }
 
 function MRU_req(body, callback){
-	if(body.admin_id[0] != "a" || body.id[0] != "u"){
-		callback("ide");
-		//ret.error(res, "ide");
+	var req_flds = {
+		"admin_id": "id",
+		"admin_pw": "string",
+		"source": "string",
+		"id": "id"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
 		return;
 	}
-	switch(body.source){
-		case "load_user_data":
-			/*1. check admin pass 
-				2. check user pass
-				3. return user data
-			*/
-			aux.loadAcc(body.admin_id, function(err, admin_acc){
-				if(err){
-					debugShout("854", 2);
-					callback(err);
-					//ret.error(res, err, "/admin/index.html");
+	if(body.admin_id[0] != "a" || body.id[0] != "u"){
+		callback("ide");
+		return;
+	}
+	
+	aux.loadAcc(body.admin_id, function(err, admin_acc){
+		if(err){
+			debugShout("1674", 2);
+			callback(err);
+			return;
+		}
+		if(body.admin_pw != admin_acc[1]){
+			callback("pce");
+			return;
+		}
+		aux.loadAcc(body.id, function(err, user_acc){
+			if(err){
+				callback(null, "error="+err);
+				//res.writeHead(200, {"Content-Type": "text/plain"});
+				//res.write("error="+err, function(err){res.end();});
+				return;
+			}
+			if(body.source == "load_user_data"){
+				var ntid = user_acc[8];
+				var research_settings = user_acc[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
+				var res_str = "research_state="+research_settings[0]+
+					"&aiti="+research_settings[1]+"&smpr="+research_settings[2]+
+					"&ptir="+research_settings[3]+"&flash="+research_settings[4]+
+					"&ntid="+ntid;
+				callback(null, res_str);
+				//res.writeHead(200, {"Content-Type": "text/plain"});
+				//res.write(res_str, function(err){res.end();});
+			}
+			else if(body.source = "edit_acc"){
+				//(RS,AITI,SMPR,PTIR,FLASH, NTID) Though all are optional except RS and FLASH
+				req_flds.RS = "string";
+				req_flds.FLASH = "string";
+				validation = aux.validate(body, req_flds);
+				if(validation !== true){
+					callback(validation);
 					return;
 				}
-				if(body.admin_pw != admin_acc[1]){
-					callback("pce");
-					//ret.error(res, "pce", "/admin/index.html");
-					return;
-				}
-				aux.loadAcc(body.id, function(err, acc){
-					if(err){
-						callback(null, "error="+err);
-						//res.writeHead(200, {"Content-Type": "text/plain"});
-						//res.write("error="+err, function(err){res.end();});
-						return;
-					}
-					var ntid = acc[8];
-					var research_settings = acc[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
-					var res_str = "research_state="+research_settings[0]+
-						"&aiti="+research_settings[1]+"&smpr="+research_settings[2]+
-						"&ptir="+research_settings[3]+"&flash="+research_settings[4]+
-						"&ntid="+ntid;
-					callback(null, res_str);
-					//res.writeHead(200, {"Content-Type": "text/plain"});
-					//res.write(res_str, function(err){res.end();});
-				});
-			});
-		break;
-		case "edit_acc":
-			aux.loadAcc(body.admin_id, function(err, admin_acc){
-				if(err){
-					callback(err);
-					//ret.error(res, err, "/admin/index.html");
-					return;
-				}
-				if(body.admin_pw != admin_acc[1]){
-					callback("pce");
-					//ret.error(res, "pce", "/admin/index.html");
-					return;
-				}
-				aux.loadAcc(body.id, function(err, user_acc){
-					if(err){
-						callback(err);
-						//ret.error(res, err, "/admin/index.html");
-						return;
-					}
-					var old_settings = user_acc[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
-					var new_settings = user_acc[7].split(",");
-					new_settings[0] = body.RS;
-					new_settings[4] = body.FLASH;
-					if(body.AITI)
-						new_settings[1] = body.AITI;
-					if(body.SMPR)
-						new_settings[2] = body.SMPR;
-					if(body.PTIR)
-						new_settings[3] = body.PTIR;
-					aux.debugShout(new_settings, 3);
-					if(new_settings != old_settings){
-						aux.editAcc(body.id, 7, new_settings.join(), function(err, uData){
-							if(err){
-								if(uData)
-									aux.debugShout("899 "+uData);
-								callback(err);
-								//ret.error(res, err, "/admin/index.html");
-								return;
-							}
-							edit_ntid(body);
-						});
-					}
-					else{
-						edit_ntid(body);
-					}
-				});
-			});
-			function edit_ntid(body){
-				if(body.NTID){
-					aux.editAcc(body.id, 8, body.NTID, function(err, uData){
+				var old_settings = user_acc[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
+				var new_settings = user_acc[7].split(",");
+				new_settings[0] = body.RS;
+				new_settings[4] = body.FLASH;
+				if(body.AITI)
+					new_settings[1] = body.AITI;
+				if(body.SMPR)
+					new_settings[2] = body.SMPR;
+				if(body.PTIR)
+					new_settings[3] = body.PTIR;
+				aux.debugShout(new_settings, 3);
+				if(new_settings != old_settings){
+					aux.editAcc(body.id, 7, new_settings.join(), function(err, uData){
 						if(err){
 							if(uData)
 								aux.debugShout("899 "+uData);
 							callback(err);
+							//ret.error(res, err, "/admin/index.html");
 							return;
 						}
-						callback(null, "good");
+						edit_ntid(body);
 					});
 				}
 				else{
-					callback(null, "good");
+					edit_ntid(body);
 				}
 			}
-		break;
+		});
+	});
+	function edit_ntid(body){
+		if(body.NTID){
+			aux.editAcc(body.id, 8, body.NTID, function(err, uData){
+				if(err){
+					if(uData)
+						aux.debugShout("899 "+uData);
+					callback(err);
+					return;
+				}
+				callback(null, "good");
+			});
+		}
+		else{
+			callback(null, "good");
+		}
 	}
 }
 
 function MAA_req(body, callback){
-	switch(body.source){
-		case "load_user_data":
-			if(body.admin_id[0] != "a" || body.id[0] != "a"){
-				callback("ide");
-				//ret.error(res, "ide");
-				return;
-			}
-			/*1. check admin pass 
-				2. check aa pass
-				3. return aa pass
-			*/
-			aux.loadAcc(body.admin_id, function(err, admin_acc){
-				if(err){
-					debugShout("901", 2);
-					callback(err);
-					//ret.error(res, err, "/admin/index.html");
+	var req_flds = {
+		"admin_id": "id",
+		"admin_pw": "string",
+		"source": "string"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
+		return;
+	}
+	if(body.admin_id[0] != "a"){
+		callback("ide");
+		return;
+	}
+	
+	//Authenticate Admin
+	aux.loadAcc(body.admin_id, function(err, admin_acc){
+		if(err){
+			debugShout("1775", 2);
+			callback(err);
+			return;
+		}
+		if(body.admin_pw != admin_acc[1]){
+			callback("pce");
+			return;
+		}
+		switch(body.source){
+			case "load_user_data":
+				req_flds.id = "id";
+				req_flds.pw = "ice_check";
+				validation = aux.validate(body, req_flds);
+				if(validation !== true){
+					callback(validation);
 					return;
 				}
-				if(body.admin_pw != admin_acc[1]){
-					callback("pce");
-					//ret.error(res, "pce", "/admin/index.html");
+				if(body.id[0] != "a"){
+					callback("ide");
 					return;
 				}
 				aux.loadAcc(body.id, function(err, acc){
 					if(err){
 						callback(null, "error="+err);
-						//res.writeHead(200, {"Content-Type": "text/plain"});
-						//res.write("error="+err, function(err){res.end();});
 						return;
 					}
 					if(body.pw != acc[1]){
 						callback(null, "error=pce");
-						//res.writeHead(200, {"Content-Type": "text/plain"});
-						//res.write("error=pce", function(err){res.end();});
 						return;
 					}
+					/* Not really necessary. Though logically, it's like a placeholder 
+					 * for if there were more account info to load and send back.
+					 */
 					callback(null, "aa_pass="+acc[1]);
-					//res.writeHead(200, {"Content-Type": "text/plain"});
-					//res.write("aa_pass="+acc[1], function(err){res.end();});
 				});
-			});
-		break;
-		case "change_pw":
-			if(body.admin_id[0] != "a" || body.id[0] != "a"){
-				callback("ide");
-				//ret.error(res, "ide");
-				return;
-			}
-			//Make sure pw doesn't include < or >
-			if(/[<>]/.test(body.pw)){
-				callback("ice");
-				//ret.error(res, "ice", "/admin/index.html");//Invalid Character Error
-				break;
-			}
-			aux.loadAcc(body.admin_id, function(err, admin_acc){
-				if(err){
-					callback(err);
-					//ret.error(res, err, "/admin/index.html");
+			break;
+			case "change_pw":
+				req_flds.id = "id";
+				req_flds.pw = "ice_check";
+				req_flds.new_pw = "ice_check";
+				validation = aux.validate(body, req_flds);
+				if(validation !== true){
+					callback(validation);
 					return;
 				}
-				if(body.admin_pw != admin_acc[1]){
-					callback("pce");
-					//ret.error(res, "pce", "/admin/index.html");
+				if(body.id[0] != "a"){
+					callback("ide");
 					return;
 				}
 				aux.editAcc(body.id, 1, function(uData){
 					if(body.pw != uData[1]){
 						callback(null, "error=pce");
-						//res.writeHead(200, {"Content-Type": "text/plain"});
-						//res.write("error=pce", function(err){res.end();});
 						return "<cancel>";
 					}
 					return body.new_pw;
@@ -1739,51 +1768,28 @@ function MAA_req(body, callback){
 							if(uData)
 								aux.debugShout("946 "+uData);
 							callback(err);
-							//ret.error(res, err, "/admin/index.html");
 						}
-						return;//already sent res
+						return;//already sent res (pce)
 					}
 					callback(null, "good");
-					//res.writeHead(200, {"Content-Type": "text/plain"});
-					//res.write("good", function(err){res.end();});
 				});
-			});
-		break;
-		case "register":
-			if(body.admin_id[0] != "a"){
-				callback("ide");
-				//ret.error(res, "ide");
-				return;
-			}
-			//Make sure pw doesn't include < or >
-			if(/[<>]/.test(body.pw)){
-				callback("ice");
-				//ret.error(res, "ice", "/admin/index.html");//Invalid Character Error
-				break;
-			}
-			if(body.pw != body.pwc){
-				callback("pce");
-				//ret.error(res, "pce", "/admin/index.html");
-				break;
-			}
-			//Authenticate admin
-			aux.loadAcc(body.admin_id, function(err, admin_acc){
-				if(err){
-					callback(err);
-					//ret.error(res, err, "/admin/index.html");
+			break;
+			case "register":
+				req_flds.pw = "ice_check";
+				req_flds.pwc = "ice_check";
+				validation = aux.validate(body, req_flds);
+				if(validation !== true){
+					callback(validation);
 					return;
 				}
-				aux.debugShout("981");
-				if(body.admin_pw != admin_acc[1]){
+				if(body.pw != body.pwc){
 					callback("pce");
-					//ret.error(res, "pce", "/admin/index.html");
 					return;
 				}
 				//Get the next available iD number
 				aux.getNextID("a", function(err, ID){
 					if(err){
 						callback(err);
-						//ret.error(res, err);
 						return;
 					}
 					var newAFile = "./account/admin_data/"+ID+".ttad";
@@ -1791,107 +1797,182 @@ function MAA_req(body, callback){
 					fs.writeFile(newAFile, aData, function(err){
 						if(err)
 							callback("fe");
-							//ret.error(res, "fe", "/admin/index.html", "register-admin: write newAFile");
 						else
 							callback(null, null, aData);
-							//ret.created(res, aData);
 					});
 				});
-			});
-		break;
-	}
+			break;
+		}
+	});
 }
 
 function VL_req(body, callback){
-	if(body.admin_id[0] != "a"){
-		callback("ide");
-		//ret.error(res, "ide");
+	var req_flds = {
+		"admin_id": "id",
+		"admin_pw": "string",
+		"source": "string"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
 		return;
 	}
-	switch(body.source){
-		case "reqlist":
-			/*Authenticate
-				Return list
-			*/
-			aux.loadAcc(body.admin_id, function(err, admin_acc){
+	if(body.admin_id[0] != "a"){
+		callback("ide");
+		return;
+	}
+	aux.loadAcc(body.admin_id, function(err, admin_acc){
+		if(err){
+			aux.debugShout("1891", 2);
+			callback(err);
+			return;
+		}
+		if(body.admin_pw != admin_acc[1]){
+			callback("pce");
+			return;
+		}
+		if(body.source == "reqlist"){
+			req_flds.uid = "string";
+			var validation = aux.validate(body, req_flds);
+			if(validation !== true){
+				callback(validation);
+				return;
+			}
+			fs.readdir("./session/archive", function(err,items){
 				if(err){
-					aux.debugShout("896", 2);
-					callback(err);
-					//ret.error(res, err, "/admin/index.html");
+					callback("fe");
 					return;
 				}
-				if(body.admin_pw != admin_acc[1]){
-					callback("pce");
-					//ret.error(res, "pce", "/admin/index.html");
-					return;
+				var loglist = [];
+				for(var i=0; i<items.length; i++){
+					var item = items[i];
+					//indexOf(): Only return those log files involving uid
+					if(item[0] != "." && item.indexOf(body.uid+'_') != -1)
+						loglist.push(item);
 				}
-				fs.readdir("./session/archive", function(err,items){
-					if(err){
-						callback("fe");
-						//ret.error(res, "fe", "/admin/index.html", "admin/viewLogs - reqlist");
-						return;
-					}
-					var loglist = [];
-					for(var i=0; i<items.length; i++){
-						var item = items[i];
-						if(item[0] != "." && item.indexOf(body.uid) != -1)//Only return those log files involving uid
-							loglist.push(item);
-					}
-					callback(null, 200, JSON.stringify(loglist));
-					//res.writeHead(200, {"Content-Type": "text/plain"});
-					//res.write(JSON.stringify(loglist), function(err){res.end();});
-				});
+				callback(null, 200, JSON.stringify(loglist));
 			});
-		break;
-		case "reqlog":
-			/*Authenticate
-				Load Log file
-				Parse it to HTML and respond
-			*/
-			aux.loadAcc(body.admin_id, function(err, admin_acc){
+		}
+		else if(body.source == "reqlog"){
+			req_flds.file = "string";
+			var validation = aux.validate(body, req_flds);
+			if(validation !== true){
+				callback(validation);
+				return;
+			}
+			var ext = body.file.slice(body.file.lastIndexOf("."));
+			if([".ttd", ".ttsd", ".txt"].indexOf(ext) < 0){
+				//Requested the wrong type of file somehow
+				aux.debugShout("1931", 2);
+				callback(null, 403);
+			}
+			fs.readFile(body.file, "utf8", function(err, data){
 				if(err){
-					aux.debugShout("927", 2);
-					callback(err);
-					//ret.error(res, err, "/admin/index.html");
+					ret.error("fe", "/admin/index.html", "admin/viewLogs - reqlog");
 					return;
 				}
-				if(body.admin_pw != admin_acc[1]){
-					callback("pce");
-					//ret.error(res, "pce", "/admin/index.html");
-					return;
-				}
-				var ext = body.file.slice(body.file.lastIndexOf("."));
-				if([".ttd", ".ttsd", ".txt"].indexOf(ext) < 0){
-					//Requested the wrong type of file somehow
-					aux.debugShout("1618", 2);
-					callback(null, 403);
-					//res.writeHead(403, {"Content-Type": "text/html; charset=UTF-8"});
-					//res.end();
-				}
-				fs.readFile(body.file, "utf8", function(err, data){
-					if(err){
-						ret.error("fe", "/admin/index.html", "admin/viewLogs - reqlog");
-						return;
-					}
-					callback(null, 200, data);
-					/*res.writeHead(200, {"Content-Type": "text/plain"});
-					if(data.length > 0)
-						res.write(data, function(err){res.end();});
-					else
-						res.end();*/
-				});
+				callback(null, 200, data);
 			});
-		break;
+		}
+	});
+}
+
+function store_req(body, callback){
+	var req_flds = {
+		"id": "id",
+		"pw": "string",
+		"source": "string"
+	};
+	var validation = aux.validate(body, req_flds);
+	if(validation !== true){
+		callback(validation);
+		return;
+	}
+	if(body.id[0] !== "u"){
+		callback("ide");
+		return;
+	}
+	if(body.source == "enterStore"){
+		aux.loadAcc(body.id, function(err,user){
+			if(err){
+				callback(err);
+				return;
+			}
+			if(body.pw != user[1]){
+				callback("pce");
+				return;
+			}
+			body.coins = user[5].split(",")[2];
+			body.heap = user[6];
+			aux.debugShout("1910: "+JSON.stringify(body), 3);
+			callback(null, body);
+		});
+	}
+	else if(body.source == "buy"){
+		var item_price = inventory[body.item];
+		if(isNaN(item_price)){
+			/* Is not in inventory(may give a false positive)
+			 * I'm ok with this because it would only be triggered by hackers, 
+			 * who I feel no need to be courteous to. */
+			callback("ife");
+			return;
+		}
+		//Subtract the needed coins
+		aux.editAcc(body.id, 5, function(uData){
+			/* These really should have been caught earlier, 
+			 * but it's good to be safe. */
+			if(uData[1] !== body.pw){
+				callback("pce");
+				return "<cancel>";
+			}
+			var lpc = uData[5].split(",");
+			if(lpc[2] < item_price){
+				/* Not really the right error code, but again, this should 
+				 * never happen to someone using the normal interface. */
+				callback("ife");
+				return "<cancel>";
+			}
+			var newlpc = lpc[0]+ "," +lpc[1]+ "," +(lpc[2]-item_price);
+			return newlpc;
+		}, function(err, uData){
+			if(err){
+				if(err !== "canceled"){
+					if(uData)
+						aux.debugShout("1944 "+uData);
+					callback(err);
+				}
+				return;//already returned - ret.error
+			}
+			//add the item to their loot pile
+			newHeap = body.item + uData[6];
+			aux.editAcc(body.id, 6, newHeap, function(err, uData){
+				if(err){
+					if(uData)
+						aux.debugShout("1954 "+uData);
+					callback(err);
+					return;
+				}
+				//Fix the body object to send back to the store page
+				var lpc = uData[5].split(",");
+				body.coins = lpc[2];
+				body.heap = uData[6];
+				aux.debugShout("1962 "+JSON.stringify(body), 3);
+				callback(null, body);
+			});
+		});
 	}
 }
 
 
 if(aux.settings.testing){
 	var server = http.createServer(handleRequest);
-	server.listen(TESTING_PORT);
+	server.listen(TESTING_PORT, function(){
+		console.log("Started at "+aux.time());
+		console.log("Server listening on: http://localhost:" + TESTING_PORT);
+	});
 }
 else{
-	//Set up redirect server to run on port 80
+	//Set up server to run on port 80 that just redirects to the https server.
 	var server_80 = http.createServer(function(req, res){
 		res.writeHead(301, {"Location": "https://tictrainer.com:" + HTTPS_PORT});
 		res.end();
@@ -1909,5 +1990,4 @@ else{
 		console.log("Started at "+aux.time());
 		console.log("Server listening on: https://localhost:" + HTTPS_PORT);
 	});
-
 }

@@ -71,7 +71,7 @@
 			}
 		  function tic(){
 				here();
-		    var xhr = new XMLHttpRequest();
+				var xhr = new XMLHttpRequest();
 				var url = '/session/session-trainer.dynh';
 				var reqBody = '&id=**[id]**&lid=**[lid]**&reqType=tic';
 				xhr.onreadystatechange = function(){
