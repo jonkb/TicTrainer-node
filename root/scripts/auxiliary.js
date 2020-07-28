@@ -1,4 +1,5 @@
 var fs = require("fs");
+//Note that this function looks in the working directory of the main script (server.js)
 const settings = JSON.parse(fs.readFileSync("./settings.json"));
 
 /**
