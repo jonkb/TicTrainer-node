@@ -931,7 +931,6 @@ function startsession_t_req(body, callback){
 					callback("fe");
 			}
 			else{//file exists
-				//TO DO: add here a line similar to in TicTimer with the ids (NTID) and the session type.
 				//Append "session started at"+time, show Tic Detected, Stop Session butttons
 				var sEntry = "session started|" + aux.time();
 				fs.appendFile(sesFile, sEntry, function(err){
