@@ -679,7 +679,7 @@ function pad2(num){
 	if(num < 10){
 		return "0" + num.toString();
 	}
-	return num;
+	return num.toString();
 }
 
 /**
