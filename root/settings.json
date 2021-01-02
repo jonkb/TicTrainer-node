@@ -1,7 +1,7 @@
 {
-	"tt_version" : "2020.07.28",
-	"debugging" : 2,
-	"testing" : true,
+	"tt_version" : "2020.11.11",
+	"debugging" : 1,
+	"testing" : false,
 	"points_to_first_level" : 300,
 	"nts_lbl_bgc" : true,
 	"nts_len" : 5
