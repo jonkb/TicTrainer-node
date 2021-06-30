@@ -60,7 +60,7 @@ function ret_error(res, error_type, retry, message){
 			res.writeHead(400, {"Content-Type": "text/html; charset=UTF-8"});
 		break;
 	}
-	aux.dynamic("./error/"+error_type+".dynh", dynd, finish_up);
+	aux.dynamic("/error/"+error_type+".dynh", dynd, finish_up);
 	function finish_up(page){
 		res.write(page, function(err){res.end();});
 		if(message)
@@ -74,7 +74,7 @@ function ret_manageAA(res, data){
 		"admin_id": data.id,
 		"admin_pw": data.pw
 	}
-	aux.dynamic("./admin/manageAA.dynh", dynd, function(page){
+	aux.dynamic("/admin/manageAA.dynh", dynd, function(page){
 		if(page == "fe" || page == "se")
 			ret_error(res, page);
 		else{
@@ -90,7 +90,7 @@ function ret_manageRU(res, data){
 		"admin_id": data.id,
 		"admin_pw": data.pw
 	}
-	aux.dynamic("./admin/manageRU.dynh", dynd, function(page){
+	aux.dynamic("/admin/manageRU.dynh", dynd, function(page){
 		if(page == "fe" || page == "se")
 			ret_error(res, page);
 		else{
@@ -106,7 +106,7 @@ function ret_viewLogs(res, data){
 		"admin_id": data.id,
 		"admin_pw": data.pw
 	}
-	aux.dynamic("./admin/viewLogs.dynh", dynd, function(page){
+	aux.dynamic("/admin/viewLogs.dynh", dynd, function(page){
 		if(page == "fe" || page == "se")
 			ret_error(res, page);
 		else{
@@ -139,7 +139,7 @@ function ret_created(res, data){
 		"bd": birthD,
 		"del": del_obj
 	};
-	aux.dynamic("./register/created.dynh", dynd, function(page){
+	aux.dynamic("/register/created.dynh", dynd, function(page){
 		if(page == "fe" || page == "se")
 			ret_error(res, page);
 		else{
@@ -166,7 +166,7 @@ function ret_manage_account(res, data){
 			"birth": data[2],
 			"linked_accounts": lnacc
 		};
-		aux.dynamic("./account/manageT.dynh", dynd, function(page){
+		aux.dynamic("/account/manageT.dynh", dynd, function(page){
 			res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 			res.write(page, function(err){res.end();});
 		});
@@ -193,7 +193,7 @@ function ret_manage_account(res, data){
 			"coins": coins, //from data[5]
 			"heap": data[6]
 		};
-		aux.dynamic("./account/manageU.dynh", dynd, function(page){
+		aux.dynamic("/account/manageU.dynh", dynd, function(page){
 			res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 			res.write(page, function(err){res.end();});
 		});
@@ -207,7 +207,7 @@ function ret_link_loading_trainer(res, data){
 		"pw": data.pw,
 		"tryN": parseInt(data.tryN)+1
 	};
-	aux.dynamic("./session/linkloading-trainer.dynh", dynd, function(page){
+	aux.dynamic("/session/linkloading-trainer.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -218,7 +218,7 @@ function ret_link_loading_user(res, data){
 		"pw": data.pw,
 		"lid": data.lid
 	};
-	aux.dynamic("./session/linkloading-user.dynh", dynd, function(page){
+	aux.dynamic("/session/linkloading-user.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -230,7 +230,7 @@ function ret_link_loading_rater(res, data){
 		"pw": data.pw,
 		"lid": data.lid
 	};
-	aux.dynamic("./nt/linkloading-rater.dynh", dynd, function(page){
+	aux.dynamic("/nt/linkloading-rater.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -240,7 +240,7 @@ function ret_link_loading_ntuser(res, data){
 		"id": data.id,
 		//"pw": data.pw
 	};
-	aux.dynamic("./nt/linkloading-ntuser.dynh", dynd, function(page){
+	aux.dynamic("/nt/linkloading-ntuser.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -252,7 +252,7 @@ function ret_start_session_trainer(res, data){
 		"pw": data.pw,
 		"lid": data.lid
 	};
-	aux.dynamic("./session/startsession-trainer.dynh", dynd, function(page){
+	aux.dynamic("/session/startsession-trainer.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -263,7 +263,7 @@ function ret_start_session_user(res, data){
 		"pw": data.pw,
 		"lid": data.lid
 	};
-	aux.dynamic("./session/startsession-user.dynh", dynd, function(page){
+	aux.dynamic("/session/startsession-user.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -275,7 +275,7 @@ function ret_start_session_rater(res, data){
 		"pw": data.pw, //needed for req_logs
 		"lid": data.lid
 	};
-	aux.dynamic("./nt/startsession-rater.dynh", dynd, function(page){
+	aux.dynamic("/nt/startsession-rater.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -285,7 +285,7 @@ function ret_start_session_ntuser(res, data){
 		"id": data.id,
 		//"pw": data.pw
 	};
-	aux.dynamic("./nt/startsession-ntuser.dynh", dynd, function(page){
+	aux.dynamic("/nt/startsession-ntuser.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -296,7 +296,7 @@ function ret_session_trainer(res, data){
 		"id": data.id,
 		"lid": data.lid
 	};
-	aux.dynamic("./session/session-trainer.dynh", dynd, function(page){
+	aux.dynamic("/session/session-trainer.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -307,7 +307,7 @@ function ret_session_rater(res, data){
 		"pw": data.pw,
 		"lid": data.lid
 	};
-	aux.dynamic("./nt/session-rater.dynh", dynd, function(page){
+	aux.dynamic("/nt/session-rater.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -343,7 +343,7 @@ function ret_session_user(res, data){
 		"flash": data.flash,
 		"del": del_obj
 	};
-	aux.dynamic("./session/session-user.dynh", dynd, function(page){
+	aux.dynamic("/session/session-user.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -358,7 +358,7 @@ function ret_session_ntuser(res, data){
 		//"sesL": data.sesL,
 		"stype": data.stype
 	};
-	aux.dynamic("./nt/session-ntuser.dynh", dynd, function(page){
+	aux.dynamic("/nt/session-ntuser.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -369,7 +369,7 @@ function ret_nt_session_ended(res, data){
 		"pw": data.pw,
 		"lid": data.lid
 	};
-	aux.dynamic("./nt/nt-session-ended.dynh", dynd, function(page){
+	aux.dynamic("/nt/nt-session-ended.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -384,7 +384,7 @@ function ret_report_sent(res, data){
 	var dynd = {
 		"fn": data.fName
 	};
-	aux.dynamic("./error/report-sent.dynh", dynd, function(page){
+	aux.dynamic("/error/report-sent.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -395,14 +395,14 @@ function ret_admin(res, data){
 		"id": data.id,
 		"pw": data.pw,
 	}
-	aux.dynamic("./admin/interface.dynh", dynd, function(page){
+	aux.dynamic("/admin/interface.dynh", dynd, function(page){
 		res.writeHead(200, {"Content-Type": "text/html"});
 		res.write(page, function(err){res.end();});
 	});
 }
 //Return the TT Store. Requires id, pw, coins
 function ret_store(res, data){
-	aux.dynamic("./account/store/store.dynh", data, function(page){
+	aux.dynamic("/account/store/store.dynh", data, function(page){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
@@ -492,11 +492,33 @@ function ret_requested_file(res, pathN){
 					res.write(resFinal, function(err){res.end();});
 				});
 			break;
+			case "./settings.gj":
+				// Return the settings json file that's outside of the webroot
+				fs.readFile("./settings.json", function (err, data) {
+					if (err) {
+						// HTTP Status: 404 : NOT FOUND
+						res.writeHead(404, {"Content-Type": 'text/html; charset=UTF-8'});
+						fs.readFile("./error/404.html", function(err, data2){
+							if(err){
+								res.end();
+								return;
+							}
+							res.write(data2, function(err){res.end();});
+						});
+						return;
+					}
+					// HTTP Status: 200 : OK
+					res.writeHead(200, {"Content-Type": cType});	
+					// Write the content of the file to response body
+					res.write(data, function(err){res.end();});
+				});
+			break;
 			//Add a spot here for the error log for admin
 		}
 	}
 	else{
 		// Read the requested file content and send it
+		pathN = aux.webroot + pathN.slice(2);
 		aux.debugShout("returning "+pathN+" which is of type "+cType, 3);
 		fs.readFile(pathN, function (err, data) {
 			if (err) {

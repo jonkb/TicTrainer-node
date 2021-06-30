@@ -1,0 +1,19 @@
+{
+  "name": "tictrainer-node",
+  "version": "4.0.2",
+  "description": "The server for TicTrainer",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonkb/TicTrainer-node.git"
+  },
+  "author": "Jonathan K. Black",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jonkb/TicTrainer-node/issues"
+  },
+  "homepage": "https://github.com/jonkb/TicTrainer-node#readme"
+}

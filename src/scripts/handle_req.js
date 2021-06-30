@@ -5,7 +5,7 @@ var qs = require("querystring");
 var aux = require("./auxiliary.js");
 //Functions that return dynamic webpages. Always pass with res as first arg.
 var ret = require("./ret_dynamic.js");
-var inventory = require("./store.js").inv;
+var inventory = require("../webroot/scripts/store.js").inv;
 
 module.exports.hrq = handleRequest;
 
@@ -224,7 +224,7 @@ function handleRequest(req, res){
 						}
 						if(next == "session"){
 							//Now go in and figure out what kind of session it is. Also insert the NTID.
-							var sesFile = "./session/ongoing/" + body.lid + body.id + ".ttsd";
+							var sesFile = aux.dbroot + "session/ongoing/" + body.lid + body.id + ".ttsd";
 							fs.readFile(sesFile, "utf8", function(err,data){
 								if(err){
 									ret.error(res, err, "/nt/index.html");
@@ -490,7 +490,7 @@ function reg_acc_req(type, body, callback){
 		"pw": "ice_check",
 		"pwConf": "ice_check"
 	};
-	var newFile = "./account/";
+	var newFile = aux.dbroot + "account/";
 	if(type == "t"){
 		req_flds.birth = "date-year";
 		newFile += "trainer_data/";
@@ -611,7 +611,7 @@ function acc_req(body, callback){
 			}
 			var iD = body.id;// body = {source, id, lid, pw}
 			var lID = body.lid;
-			var lFile = "./account/";
+			var lFile = aux.dbroot + "account/";
 			
 			if(iD[0] == "t")
 				lFile += "user_data/";
@@ -727,9 +727,9 @@ function new_session_req(body, callback){
 		if("at".indexOf(body.id[0]) != -1){
 			/* This section should hopefully never need to be used, but it 
 			 * handles ghost sessions. Logs a ghost session error.*/
-			var oldSFile = "./session/ongoing/" + body.id + body.lid + ".ttsd";
+			var oldSFile = aux.dbroot + "session/ongoing/" + body.id + body.lid + ".ttsd";
 			if(body.id[0] == 'a')
-				oldSFile = "./session/ongoing/a" + body.lid + ".ttsd";
+				oldSFile = aux.dbroot + "session/ongoing/a" + body.lid + ".ttsd";
 			fs.stat(oldSFile, function(err){
 				if(err){
 					if(err.code == "ENOENT"){//Does not exist. Good.
@@ -744,7 +744,7 @@ function new_session_req(body, callback){
 			});
 		}
 		else{//user
-			var oldSFile = "./session/ongoing/"+ body.lid + body.id + ".ttsd";
+			var oldSFile = aux.dbroot + "session/ongoing/"+ body.lid + body.id + ".ttsd";
 			fs.stat(oldSFile, function(err){
 				if(err){
 					if(err.code == "ENOENT"){//Good.
@@ -752,14 +752,14 @@ function new_session_req(body, callback){
 							Format: <uN,tM> [no \n]
 						*/
 						var linkData = aux.open_char +body.id+ aux.division_char +body.lid+ aux.close_char;
-						fs.readFile("./session/lnusers.ttd", "utf8", function(err,data){
+						fs.readFile(aux.dbroot + "session/lnusers.ttd", "utf8", function(err,data){
 							if(err){
 								callback("fe");
 								ret.error(res, "fe", "/session/index.html", "new-session: reading lnusers.ttd");
 								return;
 							}
 							if(data.indexOf(linkData) == -1)
-								fs.appendFile("./session/lnusers.ttd", linkData, function(err){
+								fs.appendFile(aux.dbroot + "session/lnusers.ttd", linkData, function(err){
 									if(err){
 										callback("fe");
 									}
@@ -798,7 +798,7 @@ function linkloading_t_req(body, callback){
 		callback(validation);
 		return;
 	}
-	fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
+	fs.readFile(aux.dbroot + "session/lnusers.ttd", "utf8", function(err, data){
 		if(err){
 			callback("fe");
 			//ret.error(res, "fe", "/session/index.html", "linkloading-trainer: reading lnusers.ttd");
@@ -806,10 +806,10 @@ function linkloading_t_req(body, callback){
 		else{
 			//look for other account
 			var searchEntry = aux.open_char +body.lid+ aux.division_char +body.id+ aux.close_char;
-			var sesFileName = "./session/ongoing/"+ body.id + body.lid + ".ttsd";
+			var sesFileName = aux.dbroot + "session/ongoing/"+ body.id + body.lid + ".ttsd";
 			if(body.id[0] == "a"){
 				searchEntry = aux.open_char +body.lid+ aux.division_char +"a"+ aux.close_char;
-				sesFileName = "./session/ongoing/a"+ body.lid + ".ttsd";
+				sesFileName = aux.dbroot + "session/ongoing/a"+ body.lid + ".ttsd";
 			}
 			var iSE = data.indexOf(searchEntry);
 			if(iSE == -1){
@@ -819,13 +819,13 @@ function linkloading_t_req(body, callback){
 			else{
 				var iSEEnd = iSE + searchEntry.length;
 				var newData = data.slice(0, iSE) + data.slice(iSEEnd, data.length);
-				fs.writeFile("./session/lnusers.ttd", newData, function(err){
+				fs.writeFile(aux.dbroot + "session/lnusers.ttd", newData, function(err){
 					if(err){
 						callback("fe");
 						return;
 					}
 					/*make a session file - this should only exist for the duration of the session.
-						when the session ends, rename and copy the file to an archive: ./session/archive
+						when the session ends, rename and copy the file to an archive: db/session/archive
 					*/
 					fs.writeFile(sesFileName, "", function(err){
 						if(err)
@@ -853,7 +853,7 @@ function linkloading_u_req(body, callback){
 	}
 	if(body.reqType == 'leave' || body.reqType == 'timeout'){
 		//remove entry in lnusers
-		fs.readFile("./session/lnusers.ttd", "utf8", function(err, data){
+		fs.readFile(aux.dbroot + "session/lnusers.ttd", "utf8", function(err, data){
 			if(err){
 				callback("fe");
 				//ret.error(res, "fe", "/", "linkloading-user: leave/timeout - read lnusers");
@@ -865,7 +865,7 @@ function linkloading_u_req(body, callback){
 				if(iSE != -1){
 					var iSEEnd = iSE + searchEntry.length;
 					var newData = data.slice(0, iSE) + data.slice(iSEEnd);
-					fs.writeFileSync("./session/lnusers.ttd", newData, "utf8");//Cut out entry
+					fs.writeFileSync(aux.dbroot + "session/lnusers.ttd", newData, "utf8");//Cut out entry
 					if(body.reqType == 'timeout')
 						callback("toe");
 						//ret.error(res, "toe", "/session/index.html");
@@ -877,7 +877,7 @@ function linkloading_u_req(body, callback){
 		});
 	}
 	else if(body.reqType == 'exists'){
-		var searchFile = "./session/ongoing/"+ body.lid + body.id + ".ttsd";
+		var searchFile = aux.dbroot + "session/ongoing/"+ body.lid + body.id + ".ttsd";
 		fs.stat(searchFile, function(err, stats){
 			if(err == null){//File exists
 				callback(null, "start");
@@ -908,7 +908,7 @@ function startsession_t_req(body, callback){
 	//If aborting, delete the session file.
 	//don't bother with archive because it hasn't even started yet
 	if(body.reqType == 'leave'){
-		var sesFile = "./session/ongoing/" + body.id + body.lid + ".ttsd";
+		var sesFile = aux.dbroot + "session/ongoing/" + body.id + body.lid + ".ttsd";
 		aux.debugShout("1270", 3);
 		fs.unlink(sesFile, function(err){
 			if(err)
@@ -917,7 +917,7 @@ function startsession_t_req(body, callback){
 		});
 	}
 	else{ //START pressed
-		var sesFile = "./session/ongoing/"+ body.id + body.lid + ".ttsd";
+		var sesFile = aux.dbroot + "session/ongoing/"+ body.id + body.lid + ".ttsd";
 		//If file does not exist, the user must have left early
 		fs.stat(sesFile, function(err){
 			if(err){
@@ -959,7 +959,7 @@ function startsession_rater_req(body, callback){
 	}
 	//If aborting, delete the session file.
 	//don't bother with archive because it hasn't even started yet
-	var sesFile = "./session/ongoing/a" + body.lid + ".ttsd";
+	var sesFile = aux.dbroot + "session/ongoing/a" + body.lid + ".ttsd";
 	if(body.reqType == 'leave'){
 		aux.debugShout("1270", 3);
 		fs.unlink(sesFile, function(err){
@@ -1023,7 +1023,7 @@ function startsession_u_req(body, callback){
 	}
 	if(body.reqType == 'leave' || body.reqType == 'timeout'){
 		//end session - it has not started yet, so just delete it
-		var sesFile = "./session/ongoing/" + body.lid + body.id + ".ttsd";
+		var sesFile = aux.dbroot + "session/ongoing/" + body.lid + body.id + ".ttsd";
 		fs.unlink(sesFile, function(err){
 			if(err){
 				callback("fe");
@@ -1037,7 +1037,7 @@ function startsession_u_req(body, callback){
 	}
 	else if(body.reqType == 'started'){
 		//has the session started
-		var searchFile = "./session/ongoing/"+ body.lid + body.id + ".ttsd";
+		var searchFile = aux.dbroot + "session/ongoing/"+ body.lid + body.id + ".ttsd";
 		fs.readFile(searchFile, "utf8", function(err, sfdata){
 			if(err){
 				if(err.code == "ENOENT")//trainer left
@@ -1110,9 +1110,9 @@ function session_t_req(body, callback){
 		callback(validation);
 		return;
 	}
-	var sesFile = "./session/ongoing/"+ body.id + body.lid + ".ttsd";
+	var sesFile = aux.dbroot + "session/ongoing/"+ body.id + body.lid + ".ttsd";
 	if(body.id[0] == 'a'){
-		sesFile = "./session/ongoing/a" + body.lid + ".ttsd";
+		sesFile = aux.dbroot + "session/ongoing/a" + body.lid + ".ttsd";
 	}
 	if(body.reqType == "tic"){
 		var tEntry = "\ntic detected|" +aux.time();
@@ -1185,7 +1185,7 @@ function session_u_req(body, callback){
 		case "check":
 			//Check the session file here for tic detected or session ended
 			var oldL = body.sesL;
-			var sesFile = "./session/ongoing/"+ body.lid + body.id + ".ttsd";
+			var sesFile = aux.dbroot + "session/ongoing/"+ body.lid + body.id + ".ttsd";
 			fs.readFile(sesFile, "utf8", function(err, data){
 				if(err){
 					callback("fe");
@@ -1219,7 +1219,7 @@ function session_u_req(body, callback){
 		break;
 		case "end":
 			aux.debugShout("SE-U");
-			var sesFile = "./session/ongoing/" + body.lid + body.id + ".ttsd";
+			var sesFile = aux.dbroot + "session/ongoing/" + body.lid + body.id + ".ttsd";
 			var newlpc = body.level +","+ body.points +","+ body.coins;
 			//save user lpc
 			aux.editAcc(body.id, 5, newlpc, function(err, uData){
@@ -1268,7 +1268,7 @@ function session_u_req(body, callback){
 			});
 		break;
 		case "loglpc"://id, pass, l,p,c
-			var sesFile = "./session/ongoing/"+ body.lid + body.id + ".ttsd";
+			var sesFile = aux.dbroot + "session/ongoing/"+ body.lid + body.id + ".ttsd";
 			var newlpc = body.level +","+ body.points +","+ body.coins;
 			var lpcEntry = "\nuser l,p,c|" +newlpc+ "|" +aux.time();
 			//Append to session file and edit user file.
@@ -1321,7 +1321,7 @@ function session_ntu_req(body, callback){
 		callback(validation);
 		return;
 	}
-	var sesFile = "./session/ongoing/a" + body.id + ".ttsd";
+	var sesFile = aux.dbroot + "session/ongoing/a" + body.id + ".ttsd";
 	switch(body.reqType){
 		case "start":
 			fs.readFile(sesFile, "utf8", function(err, data){
@@ -1473,7 +1473,7 @@ function ff_nt_ses(body, callback){
 		return;
 	}
 	if(body.id[0] == 'u'){
-		var oldSFile = "./session/ongoing/a" + body.id + ".ttsd";
+		var oldSFile = aux.dbroot + "session/ongoing/a" + body.id + ".ttsd";
 		fs.stat(oldSFile, function(err){
 			if(err){
 				if(err.code == "ENOENT"){//Good.
@@ -1481,14 +1481,14 @@ function ff_nt_ses(body, callback){
 						Format: <uN,tM> [with no \n]
 					*/
 					var linkData = aux.open_char +body.id+ aux.division_char +body.lid+ aux.close_char;
-					fs.readFile("./session/lnusers.ttd", "utf8", function(err,data){
+					fs.readFile(aux.dbroot + "session/lnusers.ttd", "utf8", function(err,data){
 						if(err){
 							callback("fe");
 							ret.error(res, "fe", "/session/index.html", "new-session: reading lnusers.ttd");
 							return;
 						}
 						if(data.indexOf(linkData) == -1)
-							fs.appendFile("./session/lnusers.ttd", linkData, function(err){
+							fs.appendFile(aux.dbroot + "session/lnusers.ttd", linkData, function(err){
 								if(err){
 									callback("fe");
 								}
@@ -1510,7 +1510,7 @@ function ff_nt_ses(body, callback){
 		});
 	}
 	else if(body.id[0] == "a"){
-		var oldSFile = "./session/ongoing/a" + body.lid + ".ttsd";
+		var oldSFile = aux.dbroot + "session/ongoing/a" + body.lid + ".ttsd";
 		/*Concurrent session check.
 			This could happen if the rater doesn't wait for the user's session to end.
 		*/
@@ -1559,7 +1559,7 @@ function ghses_req(body, callback){
 		if(body.tid[0] == 'a'){
 			body.tid = 'a';
 		}
-		var sesFile = "./session/ongoing/"+ body.tid + body.uid + ".ttsd";
+		var sesFile = aux.dbroot + "session/ongoing/"+ body.tid + body.uid + ".ttsd";
 		fs.stat(sesFile, function(err){
 			if(err){
 				if(err.code == "ENOENT"){//already deleted
@@ -1788,7 +1788,7 @@ function MAA_req(body, callback){
 						callback(err);
 						return;
 					}
-					var newAFile = "./account/admin_data/"+ID+".ttad";
+					var newAFile = aux.dbroot + "account/admin_data/"+ID+".ttad";
 					var aData = aux.newA(ID, body.pw);
 					fs.writeFile(newAFile, aData, function(err){
 						if(err)
@@ -1834,7 +1834,7 @@ function VL_req(body, callback){
 				callback(validation);
 				return;
 			}
-			fs.readdir("./session/archive", function(err,items){
+			fs.readdir(aux.dbroot + "session/archive", function(err,items){
 				if(err){
 					callback("fe");
 					return;

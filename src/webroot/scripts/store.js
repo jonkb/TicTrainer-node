@@ -3,6 +3,7 @@ const inventory = {"b":5,
 	"g":100};
 
 //This script is used by the server and by the client, so it needs this.
+//That's kind of ugly... Maybe move inventory to db
 if(typeof module != "undefined")
 	module.exports = {"inv": inventory};
 

@@ -39,6 +39,8 @@ const close_char_description = "[G.T. chevron]";
 const division_char = ";"; // For .ttd
 const division_char_description = "[semicolon]";
 const subdirs = ["account", "leaderboard", "store", "admin", "nt", "register", "session"];
+const webroot = "./webroot/";
+const dbroot = "./db/";
 
 module.exports.open_char = open_char;
 module.exports.open_char_description = open_char_description;
@@ -47,6 +49,8 @@ module.exports.close_char_description = close_char_description;
 module.exports.division_char = division_char;
 module.exports.division_char_description = division_char_description;
 module.exports.subdirs = subdirs;
+module.exports.webroot = webroot;
+module.exports.dbroot = dbroot;
 
 /**
  * load and fill in a dynamic html file (.dynh is my extension for it)
@@ -72,6 +76,7 @@ function dynamic(template_path, data, callback){
 		callback(null);
 		return;
 	}
+	template_path = webroot + template_path.slice(2);
 	fs.readFile(template_path, "utf8", function(err, file_text){
 		if(err){
 			callback("fe");
@@ -288,7 +293,7 @@ function editAcc(id, fldInd, newVal, callback){
 		callback("ide");
 		return;
 	}
-	var file = "./account/";
+	var file = dbroot + "account/";
 	if(iD[0] == "t")
 		file += "trainer_data/"+iD+".ttad";
 	else if(iD[0] == "u")
@@ -359,7 +364,7 @@ function loadAcc(id, callback){
 		callback("ide");
 		return;
 	}
-	var file = "./account/";
+	var file = dbroot + "account/";
 	if(iD[0] == "t")
 		file += "trainer_data/"+iD+".ttad";
 	else if(iD[0] == "u")
@@ -377,11 +382,11 @@ function loadAcc(id, callback){
 	});
 }
 /**
- * Loads all users from /account/user_data
+ * Loads all users from db/account/user_data
  * callback = function(err,users)
 */
 function loadAllUsers(callback){
-	var dirstem = "./account/user_data/";
+	var dirstem = dbroot + "account/user_data/";
 	fs.readdir(dirstem, function(err, files){
 		if(err){
 			callback(err, null);
@@ -420,7 +425,7 @@ function loadAllUsers(callback){
  * function callback(err, ID)
 */
 function getNextID(type, callback){
-	var dirstem = "./account/";
+	var dirstem = dbroot + "account/";
 	if(type == "u")
 		dirstem += "user_data/";
 	else if(type == "t")
@@ -658,7 +663,7 @@ function archiveSession(sesFile, callback){
 			sesFile2 += "_"+stype;
 		}
 		sesFile2 += ".ttsd";
-		sesFile2 = "./session/archive/" + sesFile2;
+		sesFile2 = dbroot + "session/archive/" + sesFile2;
 		fs.rename(sesFile, sesFile2, function(err){
 			if(err){
 				callback("fe");
@@ -722,7 +727,7 @@ function debugShout(message, depth){
 }
 
 /**
- * Writes an error to the error log (/error/log.ttd)
+ * Writes an error to the error log (./db/err_log.ttd)
 */
 function log_error(error_type, message){
 	message = message || "-";
@@ -731,7 +736,7 @@ function log_error(error_type, message){
 	message = message.replace(division_char, division_char_description);
 	var eEntry = open_char+error_type+division_char+time()+
 		division_char+message+close_char+"\n";
-	fs.appendFile("./error/log.ttd", eEntry, function(err){});
+	fs.appendFile("./db/err_log.ttd", eEntry, function(err){});
 }
 
 /**

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Manage Trainer Account</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+	</head>
+	<body>
+		<section class='page-header'>
+			<div class='header-navbar'>
+				<a href='/' class='logo'></a>
+				<h1>Manage Trainer Account</h1>
+				<h2>**[id]**</h2>
+				<div style='clear: both;'></div>
+			</div>
+		</section>
+		<section class='main-content' id='mainC'>
+			<table>
+				<tr>
+					<td>ID: </td>
+					<td>**[id]**</td>
+				</tr>
+				<tr>
+					<td>Linked Users:</td>
+					<td>**[linked_accounts]**</td>
+				</tr>
+			</table>
+			<form method='POST' name="addL" onsubmit="return validate_addl();">
+				<input type='hidden' name='source' value='addL'>
+				<input type='hidden' name='id' value='**[id]**'>
+				<input type='hidden' name='pw' value='**[pw]**'>
+				<fieldset>
+					<legend>Add User</legend>
+					User Account ID:<br>
+					<input type='text' name='lid' placeholder='u0000' required> <br>
+					<input type='submit' value='Link' class="btn">
+				</fieldset>
+			</form>
+			<form method='POST' name="editP" onsubmit="return validate_editp();">
+				<input type='hidden' name='source' value='editP'>
+				<input type='hidden' name='id' value='**[id]**'>
+				<input type='hidden' name='oldPass' value='**[pw]**'>
+				<fieldset>
+					<legend>Change Password</legend>	
+					Old Password:<br>
+					**[pw]**<br>
+					New Password:<br>
+					<input type='password' name='pass' required> <br>
+					<input type='submit' value='Change Password' class="btn">
+				</fieldset>
+			</form>
+			<a href='/index.html' class='btn'>Return to Home</a>
+		</section>
+		<script>
+			function validate_addl(){
+				var lid = document.forms["addL"]["lid"].value.toLowerCase();
+				if(lid[0] != "u" || lid.length < 2){
+					alert("Invalid ID. Use a user account ID.");
+					return false;
+				}
+				return true;
+			}
+			function validate_editp(){
+				var pass = document.forms["editP"]["pass"].value;
+				if(/[<>]/.test(pass)){
+					alert("Please do not include \"<\" or \">\" in a password");
+					return false;
+				}
+				return true;
+			}
+		</script>
+	</body>
+</html>

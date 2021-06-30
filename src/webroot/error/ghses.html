@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Ghost Session Termination</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+		<link rel='stylesheet' type='text/css' href='/stylesheets/bgStyle.css'>
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+	</head>
+	<body>
+		<section class='page-header'>
+			<div class='header-navbar'>
+				<a href='/' class='logo'></a>
+				<h1>Ghost Session Termination</h1>
+				<div style='clear: both;'></div>
+			</div>
+		</section>
+		<section class='main-content' id='mainC'>
+			<form method="POST" name="ghSession" onsubmit="return checkForm();">
+				<fieldset>
+					<legend>Terminate Ghost Session</legend>
+					Trainer ID:<br>
+					<input type="text" name="tid" placeholder="t0000" required><br>
+					Trainer Password:<br>
+					<input type="password" name="pw" required><br>
+					User ID:<br>
+					<input type="text" name="uid" placeholder="u0000" required><br>
+					<input type="submit" value="Terminate" class="btn">
+				</fieldset>
+			</form>
+		</section>
+		<script>
+			function checkForm(){
+				var tid = document.forms["ghSession"]["tid"].value.toLowerCase();
+				var uid = document.forms["ghSession"]["uid"].value.toLowerCase();
+				if("ta".indexOf(tid[0]) == -1 || tid.length < 2){
+					alert("Invalid trainer ID");
+					return false;
+				}
+				if(uid[0] != "u" || uid.length < 2){
+					alert("Invalid user ID");
+					return false;
+				}
+			}
+		</script>
+	</body>
+</html>

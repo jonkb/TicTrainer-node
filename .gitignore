@@ -1,3 +1,5 @@
+#node.js files
+node_modules
 #Private user data
 *.ttad
 *.ttsd
