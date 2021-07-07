@@ -4,7 +4,10 @@
   "description": "The server for TicTrainer",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "upload": "localazy upload",
+    "download": "localazy download",
+    "list": "localazy list"
   },
   "repository": {
     "type": "git",
@@ -15,5 +18,11 @@
   "bugs": {
     "url": "https://github.com/jonkb/TicTrainer-node/issues"
   },
-  "homepage": "https://github.com/jonkb/TicTrainer-node#readme"
+  "homepage": "https://github.com/jonkb/TicTrainer-node#readme",
+  "dependencies": {
+    "@localazy/cli": "^1.4.7",
+    "handlebars": "^4.7.7",
+    "i18n": "^0.13.3",
+    "wordwrap": "^1.0.0"
+  }
 }

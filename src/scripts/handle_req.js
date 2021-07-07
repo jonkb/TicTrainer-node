@@ -481,7 +481,8 @@ function handleRequest(req, res){
 		});
 	}//POST
 	else{
-		ret.requested_file(res, pathname);
+		lang = req.headers["accept-language"].split(',')[0].split(";")[0];
+		ret.requested_file(res, pathname, lang);
 	}
 }
 

@@ -1,4 +1,5 @@
-var fs = require("fs");
+const fs = require("fs");
+const hbs = require("handlebars");
 //Note that this function looks in the working directory of the main script (server.js)
 const settings = JSON.parse(fs.readFileSync("./settings.json"));
 
@@ -7,6 +8,8 @@ const settings = JSON.parse(fs.readFileSync("./settings.json"));
 */
 module.exports.settings = settings;
 module.exports.dynamic = dynamic;
+module.exports.render_hbs = render_hbs;
+module.exports.load_hbs = load_hbs;
 module.exports.indexNOf = indexNOf;
 module.exports.isID = isID;
 module.exports.parse36ToDec = parse36ToDec;
@@ -41,6 +44,8 @@ const division_char_description = "[semicolon]";
 const subdirs = ["account", "leaderboard", "store", "admin", "nt", "register", "session"];
 const webroot = "./webroot/";
 const dbroot = "./db/";
+const localeroot = "./locales/";
+const languages = ["en", "pt"];
 
 module.exports.open_char = open_char;
 module.exports.open_char_description = open_char_description;
@@ -143,6 +148,91 @@ function dynamic(template_path, data, callback){
 		}
 		edited_page += file_left;//for after the last dynamic field
 		callback(edited_page);
+	});
+}
+
+function get_locale_data(lang, callback){
+	/**
+	* Return an object with all text strings in the specified language
+	*/
+	if(languages.indexOf(lang) == -1){
+		//TODO: More robust handling of the language list
+		//e.g. pt-BR --> pt
+		lang2 = lang.split("-")[0]
+		if(languages.indexOf(lang2) == -1){
+			lang = "en";
+		}
+		else{
+			lang = lang2;
+		}
+	}
+	console.log("169, "+lang);
+	var locale_path = localeroot + lang + ".json";
+	fs.readFile(locale_path, (err, data) => {
+		if(err){
+			callback("se");
+			return;
+		}
+		callback(null, JSON.parse(data));
+	});
+}
+
+function render_hbs(page, data, lang, callback){
+	if(typeof(page) != "string"){
+		page = page.toString();
+	}
+	/**
+	* Given the string of a handlebar page template, inject the given data,
+	* including any translation data.
+	*/
+	var template = hbs.compile(page);
+	if(lang == null){
+		// No translation required on this page
+		callback(null, template(data));
+		return;
+	}
+	get_locale_data(lang, (err, locale_data) => {
+		if(err){
+			callback(err);
+			return;
+		}
+		// Combine all the data into one object for Handlebars
+		var all_data = {...data, ...locale_data};
+		// This is the step where handlebars injects the data
+		callback(null, template(all_data));
+	});
+}
+
+function load_hbs(template_path, data, lang, callback){
+	console.log("200, "+lang+", "+template_path);
+	/**
+	* Check to see if an html or hbs page exists for the given page name.
+	* Then load, render, translate, and return that page.
+	*/
+	var exti = template_path.lastIndexOf(".");
+	var ext = template_path.slice(exti);
+	if([".html", ".dbs"].indexOf(ext) == -1){
+		// Irrelevant call to hbs function
+		callback("se");
+		return;
+	}
+	// Assumes ./path/to format
+	var hbs_path = webroot + template_path.slice(2,exti) + ".hbs";
+	var html_path = webroot + template_path.slice(2,exti) + ".html";
+	
+	fs.readFile(hbs_path, (err, page) => {
+		if (err){
+			// See if the non-hbs html file exists
+			fs.readFile(html_path, (err, page) => {
+				if (err){
+					callback(404);
+					return;
+				}
+				callback(null, page);
+			});
+			return;
+		}
+		render_hbs(page, data, lang, callback);
 	});
 }
 

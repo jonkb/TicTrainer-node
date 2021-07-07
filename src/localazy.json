@@ -1,0 +1,8 @@
+{
+	"writeKey": "a8588137599826623544-e80c9a112e153afb7577b3b1668de4538f7622666fb869ac759f7dc0c427097f",
+	"readKey": "a8588137599826623544-2e4bd5a1cc61d89263b450c2cb7dea0b65583437e97716ae1bf8e45e19144f8d", 
+	"upload": { "type": "json",
+		"files": "locales/en.json" },
+	"download": {
+		"files": "locales/${lang}.json"}
+}

@@ -413,8 +413,9 @@ function ret_redirect(res, pathN){
 	res.writeHead(303, {"Location": pathN});
 	res.end();
 }
+
 // Returns the requested file.
-function ret_requested_file(res, pathN){
+function ret_requested_file(res, pathN, lang){
 	if(pathN.slice(0,2) != "./"){
 		if(pathN.slice(0,1) != "/")// "abc/def.ghi"
 			pathN = "./"+ pathN;
@@ -422,11 +423,12 @@ function ret_requested_file(res, pathN){
 			pathN = "."+ pathN;
 	}
 	//Choose the appropriate content type based on the file extension
-	var ext = pathN.slice(pathN.lastIndexOf("."));
+	var exti = pathN.lastIndexOf(".");
+	var ext = pathN.slice(exti);
 	var cType = "text/plain";//MIME type
 	switch(ext){
 		case ".html":
-			cType = "text/html";
+			cType = "text/html; charset=UTF-8";
 		break;
 		case ".dynh":
 			//Return the index of the current folder.
@@ -518,25 +520,53 @@ function ret_requested_file(res, pathN){
 	}
 	else{
 		// Read the requested file content and send it
-		pathN = aux.webroot + pathN.slice(2);
 		aux.debugShout("returning "+pathN+" which is of type "+cType, 3);
-		fs.readFile(pathN, function (err, data) {
-			if (err) {
-				// HTTP Status: 404 : NOT FOUND
-				res.writeHead(404, {"Content-Type": 'text/html; charset=UTF-8'});
-				fs.readFile("./error/404.html", function(err, data2){
-					if(err){
-						res.end();
-						return;
+		if(ext == ".html"){
+			// See if there's a handlebars file
+			aux.load_hbs(pathN, null, lang, (err, page) => {
+				if (err){
+					if(err == 404){
+						// HTTP Status: 404 : NOT FOUND
+						res.writeHead(404, {"Content-Type": 'text/html; charset=UTF-8'});
+						fs.readFile("./error/404.html", function(err, data2){
+							if(err){
+								res.end();
+								return;
+							}
+							res.write(data2, function(err){res.end();});
+						});
 					}
-					res.write(data2, function(err){res.end();});
-				});
-				return;
-			}
-			// HTTP Status: 200 : OK
-			res.writeHead(200, {"Content-Type": cType});	
-			// Write the content of the file to response body
-			res.write(data, function(err){res.end();});
-		});
+					else{
+						ret_error(res, err);
+					}
+					return;
+				}
+				// HTTP Status: 200 : OK
+				res.writeHead(200, {"Content-Type": cType});	
+				// Write the content of the file to response body
+				res.write(page, function(err){res.end();});
+			});
+		}
+		else{
+			pathN = aux.webroot + pathN.slice(2);
+			fs.readFile(pathN, (err, data) => {
+				if(err){
+					// HTTP Status: 404 : NOT FOUND
+					res.writeHead(404, {"Content-Type": 'text/html; charset=UTF-8'});
+					fs.readFile("./error/404.html", function(err, data2){
+						if(err){
+							res.end();
+							return;
+						}
+						res.write(data2, function(err){res.end();});
+					});
+					return;
+				}
+				// HTTP Status: 200 : OK
+				res.writeHead(200, {"Content-Type": cType});	
+				// Write the content of the file to response body
+				res.write(data, function(err){res.end();});
+			});
+		}
 	}
 }
