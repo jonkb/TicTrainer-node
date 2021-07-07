@@ -19,6 +19,7 @@ module.exports.session_trainer = ret_session_trainer;
 module.exports.session_user = ret_session_user;
 module.exports.session_ntuser = ret_session_ntuser;
 module.exports.session_rater = ret_session_rater;
+module.exports.tt_session_ended = ret_tt_session_ended;
 module.exports.nt_session_ended = ret_nt_session_ended;
 module.exports.report_sent = ret_report_sent;
 module.exports.admin = ret_admin;
@@ -363,6 +364,16 @@ function ret_session_ntuser(res, data){
 		res.write(page, function(err){res.end();});
 	});
 }
+function ret_tt_session_ended(res, data){
+	var dynd = {
+		"type": data.type, //"u" or "t"
+		"report": JSON.stringify(data.report)
+	};
+	aux.dynamic("/session/session-ended.dynh", dynd, function(page){
+		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
+		res.write(page, function(err){res.end();});
+	});
+}
 function ret_nt_session_ended(res, data){
 	var dynd = {
 		"id": data.id,
@@ -373,7 +384,6 @@ function ret_nt_session_ended(res, data){
 		res.writeHead(200, {"Content-Type": "text/html; charset=UTF-8"});
 		res.write(page, function(err){res.end();});
 	});
-	
 }
 // After error/report
 function ret_report_sent(res, data){

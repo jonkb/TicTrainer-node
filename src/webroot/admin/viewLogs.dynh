@@ -3,18 +3,18 @@
 	<head>
 		<title>View TicTrainer Logs</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
-    <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
 	</head>
 	<body>
-    <section class="page-header">
+		<section class="page-header">
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
 				<h1>View TicTrainer Logs: **[admin_id]**</h1>
 				<div style="clear: both;"></div>
 			</div>
-    </section>
-    <section class="main-content">
+		</section>
+		<section class="main-content">
 			<form method="POST" name="PickLog" onsubmit="return false;">
 				<fieldset>
 					<legend>Choose a Log File to Load</legend>
@@ -41,7 +41,7 @@
 			<div id="download_link">
 				<!--Filled in by script-->
 			</div>
-    </section>
+		</section>
 		<script src="/scripts/req_logs.js"></script>
 		<script>
 			function load_ses_files(){

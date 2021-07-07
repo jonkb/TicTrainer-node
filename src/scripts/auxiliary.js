@@ -22,6 +22,7 @@ module.exports.newA = newA;
 module.exports.sort2d = sort2d;
 //module.exports.genReport = genReport; //Not used externally anymore
 module.exports.archiveSession = archiveSession;
+module.exports.build_endses_report = build_endses_report;
 module.exports.time = time;
 module.exports.debugShout = debugShout;
 module.exports.log_error = log_error;
@@ -547,12 +548,13 @@ function sort2d(inArray, sortColumn){
 */
 function genReport(data){
 	var tics = 0, tenSIntervals = 0, longestInterval = 0;
-	var initL = 0, initP = 0, initT;
-	var endL = 0, endP = 0, endT;
+	var initL = 0, initP = 0, initC = 0, initT;
+	var endL = 0, endP = 0, endC = 0, endT;
 	var lastTic, ticFree;
 	var is_nt = false;
 	var ended = false;
 	var rewards = 0;
+	let lpc = "";
 	var entries = data.split("\n");
 	for(var i = 0; i<entries.length; i++){
 		if(entries[i].trim() == ""){
@@ -567,10 +569,13 @@ function genReport(data){
 				lastTic = initT;
 			break;
 			case "starting user l,p,c":
-				initL = parseInt(entryParts[1].split(",")[0]);
+				lpc = entryParts[1].split(",");
+				initL = parseInt(lpc[0]);
 				endL = initL;
-				initP = parseInt(entryParts[1].split(",")[1]);
+				initP = parseInt(lpc[1]);
 				endP = initP;
+				initC = parseInt(lpc[2]);
+				endC = initC;
 			break;
 			case "tic detected":
 				tics++;
@@ -595,8 +600,10 @@ function genReport(data){
 				tenSIntervals += Math.floor(ticFree / 1e4);
 			break;
 			case "user l,p,c":
-				endL = parseInt(entryParts[1].split(",")[0]);
-				endP = parseInt(entryParts[1].split(",")[1]);
+				lpc = entryParts[1].split(",");
+				endL = parseInt(lpc[0]);
+				endP = parseInt(lpc[1]);
+				endC = parseInt(lpc[2]);
 				if(!ended)
 					endT = new Date(entryParts[2]);
 			break;
@@ -630,8 +637,10 @@ function genReport(data){
 		report += "\nWARNING: no \"session ended\" entry found. Session length may be inaccurate.";
 	report += "\nsession length|"+ (endT - initT)/1000;
 	if(!is_nt){
+		report += "\nending l,p,c|"+endL+","+endP+","+endC;
 		report += "\nlevels gained|"+ (endL - initL);
 		report += "\npoints earned|"+ (endP - initP);
+		report += "\ncoins earned|"+ (endC - initC);
 	}
 	report += "\nnumber of tics|"+ tics;
 	report += "\nlongest tic free interval|"+ longestInterval/1000;
@@ -664,20 +673,148 @@ function archiveSession(sesFile, callback){
 		}
 		sesFile2 += ".ttsd";
 		sesFile2 = dbroot + "session/archive/" + sesFile2;
-		fs.rename(sesFile, sesFile2, function(err){
+		var report = genReport(data);
+		fs.appendFile(sesFile, report, function(err){
 			if(err){
 				callback("fe");
 				return;
 			}
-			fs.appendFile(sesFile2, genReport(data), function(err){
+			fs.rename(sesFile, sesFile2, function(err){
 				if(err){
 					callback("fe");
 					return;
 				}
-				callback();
+				callback(null, report);
 			});
 		});
 	});
+}
+
+function report_to_obj(report_text){
+	/**
+	*	Parse the report text into an object
+	*/
+	var lines = report_text.split("\n");
+	var obj = {};
+	for(const i in lines){
+		var line = lines[i]
+		var parts = line.split("|")
+		if(parts.length > 1){
+			// This is a line with data
+			switch(parts[0]){
+				case "session length":
+					obj.seslen = parseFloat(parts[1]);
+				break;
+				case "ending l,p,c":
+					let lpc = parts[1].split(",");
+					obj.endl = parseInt(lpc[0]);
+					obj.endp = parseInt(lpc[1]);
+					obj.endc = parseInt(lpc[2]);
+				break;
+				case "levels gained":
+					obj.lvls = parseInt(parts[1]);
+				break;
+				case "points earned":
+					obj.pts = parseInt(parts[1]);
+				break;
+				case "coins earned":
+					obj.coins = parseInt(parts[1]);
+				break;
+				case "number of tics":
+					obj.tics = parseInt(parts[1]);
+				break;
+				case "longest tic free interval":
+					obj.ltflen = parseFloat(parts[1]);
+				break;
+				case "number of 10s tic free intervals":
+					obj.tfis = parseInt(parts[1]);
+				break;
+				case "number of rewards dispensed":
+					obj.rewards = parseInt(parts[1]);
+				break;
+				case "report generated with TicTrainer version":
+					obj.ttv = parts[1];
+				break;
+			}
+		}
+	}
+	return obj
+}
+
+function build_endses_report(uid, tid, report, callback){
+	/**
+	*	Load the user's data to know the personal best and load the report if needed.
+	*		Then combine that info into a single report object.
+	*	uid: user id
+	*	tid: trainer id (Provide if report not provided)
+	*	report: The text of the session report. When the user ends, it has the report text,
+	*		but the trainer needs to load it from the archived file.
+	*/
+	//TODO: Personal best not yet implemented
+	if(report){
+		var obj = report_to_obj(report);
+		//TODO: Add personal best
+		callback(null, obj);
+		return;
+	}
+	console.log(760, uid, tid);
+	// Search for, load, and parse the archived session file
+	const archive_dname = dbroot + "session/archive";
+	// Poll repeatedly to see if the user has archived the session yet
+	const maxtries = 30;
+	const interval = 1000;
+	var tries = 0;
+	var timer = setInterval(check, interval);
+	function check(){
+		tries++;
+		if(tries > maxtries){
+			clearInterval(timer);
+			callback(null, {});
+			return;
+		}
+		var now = new Date();
+		fs.readdir(archive_dname, (err, files) => {
+			if(err){
+				clearInterval(timer);
+				callback("se");
+				return;
+			}
+			for(const i in files){
+				var file = files[i];
+				//This is terribly inefficient. Oh well.
+				//TODO: also check uid & tid
+				fileparts = file.split("_");
+				if(fileparts.length < 2)
+					continue;
+				if(fileparts[0] != tid+uid)
+					continue;
+				console.log(792, file);
+				var datetime = fileparts[1]; //YYYYMMDD-hhmmss
+				var dtparts = datetime.split("-");
+				var ISOdt = dtparts[0].slice(0,4) + "-" + dtparts[0].slice(4,6) + "-" 
+				ISOdt += dtparts[0].slice(6,8) + "T" + dtparts[1].slice(0,2) + ":" 
+				ISOdt += dtparts[1].slice(2,4) + ":" + dtparts[1].slice(4,6) + ".000Z";
+				var fdate = new Date(ISOdt);
+				if(Math.abs(fdate - now) < 30*1000){
+					//This file was archived within 30s of now
+					clearInterval(timer);
+					load_report(file);
+					return;
+				}
+			}
+		});
+	}
+	function load_report(file){
+		fs.readFile(archive_dname + "/" + file, "utf8", (err, data) => {
+			if(err){
+				callback("se");
+				return;
+			}
+			var report_text = data.split("Report:")[1];
+			console.log(791, file, report_text);
+			callback(null, report_to_obj(report_text));
+		});
+	}
 }
 
 function pad2(num){
@@ -698,8 +835,10 @@ function time(type){
 	var d = new Date();
 	switch(type){
 		case "forfile"://YYYYMMDD-hhmmss
-			return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+
-				"-"+pad2(d.getHours())+pad2(d.getMinutes())+pad2(d.getSeconds());
+			//return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+
+			//	"-"+pad2(d.getHours())+pad2(d.getMinutes())+pad2(d.getSeconds());
+			let ISOstr = d.toISOString();
+			return ISOstr.replace(/-/g, "").replace(/:/g,"").replace("T", "-").split(".")[0];
 		break;
 		case "millis":
 			return d.now();

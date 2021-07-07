@@ -22,11 +22,11 @@ function req_ses_list(aid, apw, uid, callback){
 	xhr.send(reqBody);
 }
 
-/*Parse plain text from a .ttd file to a table.
-	.ttd files are organized like this: <~;~>\n<~;~;~>
-	See the leaderboard scripts.
-*/
 function ttd_to_HTML(data){
+	/**Parse plain text from a .ttd file to a table.
+		.ttd files are organized like this: <~;~>\n<~;~;~>
+		See the leaderboard scripts.
+	*/
 	//Or I could say: if the first line is "Started at ..."
 	if(data.indexOf("<") < 0 && data.indexOf(">") < 0){
 		//This is probably .txt
@@ -54,16 +54,17 @@ function ttd_to_HTML(data){
 	return html;
 }
 
-/*Parse plain text from a .ttsd file to a table.
-	.ttsd files are organized like this: 
-		~|~
-		~|~|~
-		******
-		Report:
-		~|~
-		~|~
-*/
 function ttsd_to_HTML(data){
+	/**
+	Parse plain text from a .ttsd file to a table.
+		.ttsd files are organized like this: 
+			~|~
+			~|~|~
+			******
+			Report:
+			~|~
+			~|~
+	*/
 	var html = "\n<table style='table-layout: auto;'>\n";
 	var rows = data.split(/\s*\n\s*/);
 	for(var i=0; i<rows.length; i++){
@@ -80,6 +81,58 @@ function ttsd_to_HTML(data){
 			html += "<tr><td style='height:0;border-bottom:1pt solid black;'></td></tr>\n";
 		}
 	}
-	html += "</table>\n"
+	html += "</table>\n";
+	return html;
+}
+
+function report_to_HTML(type, report){
+	/**
+	*	Turn a report object into HTML to be injected
+	*		example report object: 
+	*		{
+	*		  seslen: 54.216,
+	*		  endl: 2,
+	*		  endp: 240,
+	*		  endc: 4,
+	*		  lvls: 0,
+	*		  pts: 40,
+	*		  coins: 0,
+	*		  tics: 3,
+	*		  ltflen: 43.558,
+	*		  tfis: 4,
+	*		  ttv: '2020.11.11'
+	*		}
+	*		
+	*		type: "u" or "t"
+	*
+	*		user report: {lpc: "l,p,c",
+	*			longest tic-free interval: #s
+	*			personal best tic-free interval: #s
+	*		}
+	*		trainer report: {
+	*			lpc: "l,p,c",
+	*			longest tic-free interval: #s
+	*			personal best tic-free interval: #s
+	*			???: ???
+	*		}
+	*/
+	//TODO:Personal best not yet implemented server-side, so it's not included yet
+	var html = "Level: " + report.endl + "<br>";
+	html += "Points: " + report.endp + "<br>";
+	html += "Coins: " + report.endc + "<br>";
+	if(type == "t"){
+		html += "\n<table style='table-layout: auto;'>\n";
+		
+		html += "<tr><td>Session Length:</td> <td>"+report.seslen+"</td></tr>\n";
+		html += "<tr><td>Levels Gained:</td> <td>"+report.lvls+"</td></tr>\n";
+		html += "<tr><td>Points Earned:</td> <td>"+report.pts+"</td></tr>\n";
+		html += "<tr><td>Coins Earned:</td> <td>"+report.coins+"</td></tr>\n";
+		html += "<tr><td>Number of Tics:</td> <td>"+report.tics+"</td></tr>\n";
+		html += "<tr><td>Longest Tic Free Interval:</td> <td>"+report.ltflen+"</td></tr>\n";
+		html += "<tr><td>Number of 10s Tic Free Intervals:</td> <td>"+report.tfis+"</td></tr>\n";
+		html += "<tr><td>TicTrainer Version:</td> <td>"+report.ttv+"</td></tr>\n";
+		
+		html += "</table>\n";
+	}
 	return html;
 }

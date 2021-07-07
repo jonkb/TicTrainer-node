@@ -255,7 +255,21 @@ function handleRequest(req, res){
 							return;
 						}
 						if(next == "ended"){
-							ret.redirect(res, "/session/session-ended.html");
+							console.log(258);
+							// TODO: EOS DISPLAY
+							aux.build_endses_report(body.lid, body.id, null, (err, report) => {
+								if(err){
+									ret.error(res, err, "/session/index.html");
+									return;
+								}
+								var data = {
+									type: "t",
+									report: report
+								};
+								console.log(268, data);
+								ret.tt_session_ended(res, data);
+							});
+							//ret.redirect(res, "/session/session-ended.html");
 							return;
 						}
 						if(next == "good"){
@@ -297,7 +311,21 @@ function handleRequest(req, res){
 							res.end();
 						}
 						else if(next == "ended"){
-							ret.redirect(res, "/session/session-ended.html");
+							console.log(314);
+							// TODO: EOS DISPLAY
+							aux.build_endses_report(body.id, null, retMessage, (err, report) => {
+								if(err){
+									ret.error(res, err, "/session/index.html");
+									return;
+								}
+								var data = {
+									type: "u",
+									report: report
+								};
+								console.log(323, data);
+								ret.tt_session_ended(res, data);
+							});
+							//ret.redirect(res, "/session/session-ended.html");
 						}
 					});
 				break;
@@ -1246,22 +1274,22 @@ function session_u_req(body, callback){
 								callback("fe");
 								return;
 							}
-							aux.archiveSession(sesFile, function(err){
+							aux.archiveSession(sesFile, function(err, report){
 								if(err){
 									callback(err);
 									return;
 								}
-								callback(null, "ended")
+								callback(null, "ended", report)
 							});
 						});
 					}
 					else{
-						aux.archiveSession(sesFile, function(err){
+						aux.archiveSession(sesFile, function(err, report){
 							if(err){
 								callback(err);
 								return;
 							}
-							callback(null, "ended")
+							callback(null, "ended", report)
 						});
 					}
 				});
@@ -1436,7 +1464,7 @@ function session_ntu_req(body, callback){
 							callback("fe");
 							return;
 						}
-						aux.archiveSession(sesFile, function(err){
+						aux.archiveSession(sesFile, function(err, report){
 							if(err){
 								callback(err);
 								return;
@@ -1446,7 +1474,7 @@ function session_ntu_req(body, callback){
 					});
 				}
 				else{
-					aux.archiveSession(sesFile, function(err){
+					aux.archiveSession(sesFile, function(err, report){
 						if(err){
 							callback(err);
 							return;
@@ -1570,7 +1598,7 @@ function ghses_req(body, callback){
 				}
 			}
 			else{//legit ghost file
-				aux.archiveSession(sesFile, function(err){
+				aux.archiveSession(sesFile, function(err, report){
 					if(err){
 						callback(err);
 						return;
