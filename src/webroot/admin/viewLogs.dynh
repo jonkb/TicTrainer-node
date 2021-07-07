@@ -21,9 +21,9 @@
 					System Logs: <select name="sys_file" id="sys_option">
 						<option value="-">Pick one</option>
 						<!--Note: If debugging is high, the console log has user passwords in plain text-->
-						<option value="../Project_Files/log.txt">Console Log</option>
-						<option value="./error/log.ttd">Tt Error Log</option>
-						<option value="./session/lnusers.ttd">Current Linking Users</option>
+						<option value="../../Project_Files/log.txt">Console Log</option>
+						<option value="err_log.ttd">Tt Error Log</option>
+						<option value="session/lnusers.ttd">Current Linking Users</option>
 					</select>
 					<button class="btn" style="float: right; margin-top: .25rem;" onclick="reqLog('sys');">Reload</button>
 					<br>

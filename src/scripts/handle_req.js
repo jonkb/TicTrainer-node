@@ -1862,9 +1862,9 @@ function VL_req(body, callback){
 				aux.debugShout("1931", 2);
 				callback(null, 403);
 			}
-			fs.readFile(body.file, "utf8", function(err, data){
+			fs.readFile(aux.dbroot + body.file, "utf8", function(err, data){
 				if(err){
-					ret.error("fe", "/admin/index.html", "admin/viewLogs - reqlog");
+					ret.error(res, "fe", "/admin/index.html", "admin/viewLogs - reqlog");
 					return;
 				}
 				callback(null, 200, data);
