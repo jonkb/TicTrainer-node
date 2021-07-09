@@ -117,11 +117,13 @@ function report_to_HTML(type, report){
 	*		}
 	*/
 	//TODO:Personal best not yet implemented server-side, so it's not included yet
-	var html = "Level: " + report.endl + "<br>";
-	html += "Points: " + report.endp + "<br>";
-	html += "Coins: " + report.endc + "<br>";
+	var html = "<b>User status after session:</b>\n<table style='table-layout: auto;'>\n";
+	html += "<tr><td>Level:</td> <td>"+report.endl+"</td></tr>\n";
+	html += "<tr><td>Points:</td> <td>"+report.endp+"</td></tr>\n";
+	html += "<tr><td>Coins:</td> <td>"+report.endc+"</td></tr>\n";
+	html += "</table>\n";
 	if(type == "t"){
-		html += "\n<table style='table-layout: auto;'>\n";
+		html += "<b>Session Details:</b>\n<table style='table-layout: auto;'>\n";
 		
 		html += "<tr><td>Session Length:</td> <td>"+report.seslen+"</td></tr>\n";
 		html += "<tr><td>Levels Gained:</td> <td>"+report.lvls+"</td></tr>\n";
