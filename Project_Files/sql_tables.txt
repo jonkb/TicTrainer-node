@@ -1,0 +1,94 @@
+# USERS
+
+CREATE TABLE users (
+ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+password_hash BINARY(32) NOT NULL,
+birth_date DATE NOT NULL,
+sex CHAR(1) NOT NULL,
+level INT NOT NULL DEFAULT 0,
+points INT NOT NULL DEFAULT 0,
+coins INT NOT NULL DEFAULT 0,
+best_tfi INT NOT NULL DEFAULT 0
+);
+
+# Note: best_tft = best tic-free time in milliseconds
+# Links are in their own table
+
+INSERT INTO accounts (password_hash, birth_date, sex)
+    -> VALUES (0x88B9584E81C84B5F11700F87F31CE71A463946A0741DFBFCB51B8221E97F8AA9, "2000-01-01", "M");
+
+# When converting from existing accounts, insert the ID as well.
+
+# TRAINERS
+
+CREATE TABLE trainers (
+ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+password_hash BINARY(32) NOT NULL,
+birth_date DATE NOT NULL
+);
+
+# ADMINS
+
+CREATE TABLE admins (
+ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+password_hash BINARY(32) NOT NULL
+);
+
+# LINKS
+# Note: these are separate because the links are one-directional.
+# Though I could combine them and just keep an "owner" field: T/U.
+
+CREATE TABLE trainer_links (
+ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+TID INT NOT NULL,
+UID INT NOT NULL,
+CONSTRAINT fk_tlTID
+FOREIGN KEY (TID)
+REFERENCES trainers(ID),
+CONSTRAINT fk_tlUID
+FOREIGN KEY (UID)
+REFERENCES users(ID)
+);
+
+CREATE TABLE user_links (
+ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+TID INT NOT NULL,
+UID INT NOT NULL,
+CONSTRAINT fk_ulTID
+FOREIGN KEY (TID)
+REFERENCES trainers(ID),
+CONSTRAINT fk_ulUID
+FOREIGN KEY (UID)
+REFERENCES users(ID)
+);
+
+
+# SESSIONS
+
+I think I want to stick with the current system of writing to and reading from a session file that then gets archived. Change: Add an archive_index table
+ - What about /nt/ and admin sessions?
+
+CREATE TABLE session_archive_index (
+ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+TID INT NOT NULL,
+UID INT NOT NULL,
+filename VARCHAR(255) NOT NULL,
+end_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+length INT NOT NULL,
+levels INT NOT NULL,
+points INT NOT NULL,
+coins INT NOT NULL,
+tics INT NOT NULL,
+longest_tfi INT NOT NULL,
+ten_s_tfis INT NOT NULL,
+CONSTRAINT fk_saTID
+FOREIGN KEY (TID)
+REFERENCES trainers(ID),
+CONSTRAINT fk_saUID
+FOREIGN KEY (UID)
+REFERENCES users(ID)
+);
+
+TABLE lnusers ? They're really ephemeral though
+ - What if lnusers were a global variable living in RAM, owned by the server program? I don't think it'll ever grow to be very big. And if it does, then we will have better resources.
+TABLE archive_refs -- keep an indexed reference to the archived session files to find them easily. Find all sessions completed between given user and trainer. Maybe store the basic facts of the session: UID,TID,session_time,session_length,levels_gained,points_earned,coins_earned,number_of_tics,longest_tic-free_interval,10s_tic-free_intervals

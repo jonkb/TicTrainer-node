@@ -1,0 +1,66 @@
+<section class="main-content">
+	<h2 style='margin-top:0;'>{{rindex_h2_welcome}}</h2>
+	<p>
+		{{rindex_p_welcome}}
+	</p>
+	<h2>{{rindex_h2_how}}</h2>
+	<p>
+		<i>{{rindex_p_how0}}</i> 
+	</p>
+	<p>
+		{{{rindex_p_how1}}}
+		[<a href=howto.html>{{_link}}</a>].
+	</p>
+
+	<h2>{{rindex_h2_rtnl}}</h2>
+	<p>
+		{{rindex_p_rtnl0_0}}
+		(<a href=https://sites.wustl.edu/tics/home/behavior-therapy-for-tics/>CBIT</a>)
+		{{rindex_p_rtnl0_1}}
+		[<a href=http://www.ncbi.nlm.nih.gov/pubmed/15033497>{{_source}}</a>].
+		{{rindex_p_rtnl0_2}} 
+		[<a href=http://www.ncbi.nlm.nih.gov/pubmed/25879205>{{_source}}</a>].
+	</p>
+	<p>
+		{{rindex_p_rtnl1}}
+	</p>
+	<p>
+		{{rindex_p_rtnl2}}
+	</p>
+	<h2>{{rindex_h2_privacy}}</h2>
+	<p>
+		{{rindex_p_privacy}}
+	</p>
+	
+	<footer>
+		{{rindex_f0}}
+		[<a href="https://github.com/jonkb/TicTrainer-node">{{_link}}</a>].<br>
+		{{rindex_f1}}
+		[<a href="error/report.html">{{_link}}</a>].<br>
+		&copy; 2016-2020 Jonathan K. Black and <a href="http://www.purl.org/net/kbmd">Kevin J. Black</a><br>
+		<br>
+		{{rindex_f2}}
+		[<a href="mailto:TicTrainer@theblacks.us?subject=TicTrainer(TM)%20donation%20question">{{_link}}</a>].
+		
+		<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+			<input type="hidden" name="cmd" value="_s-xclick">
+			<input type="hidden" name="hosted_button_id" value="U3LX67WEETU2W">
+			<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+			<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+		</form>
+		<p>
+			*{{rindex_f3}}: 1Km5GJhWQpezYgaPw3zhoqMUpHqttxAaUn
+		</p>
+	</footer>
+</section>
+<script>
+	$(document).ready(init);
+		
+	var user = {{{account_obj}}};
+	
+	function init(){
+		// logout() and account_init() are from account.js
+		$("#logoutbtn").click(logout);
+		account_init(user);
+	}
+</script>

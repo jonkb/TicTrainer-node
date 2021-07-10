@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="UTF-8">
+		<title>TicTrainer by KBMD</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+		<!--<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">-->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+		<script src="/scripts/account.js"></script>
+	</head>
+	<body>
+		<section class="page-header">
+			<h1>TicTrainer</h1>
+			<h2>{{rindex_subtitle}}</h2>
+			<!--More buttons - leaderboard, etc?-->
+			<a href="session/" class="btn">{{rindex_btn_ses}}</a>
+			<div id="account_btn" style="float: right;">
+				{{_Account}}<span id="actname"></span>
+				<div id="account_menu">
+					<!--Fix css here. Replace <br>-->
+					<a href="/account/login?redirect=/" id="loginbtn">{{ac_login}}</a><br>
+					<a href="/register/" id="registerbtn">{{ac_register}}</a>
+					<a href="#" id="logoutbtn">{{ac_logout}}</a>
+					<a href="/account/" id="actmng">{{ac_manage}}</a>
+				</div>
+			</div>
+		</section>
+		{{{body}}}
+	</body>
+</html>
