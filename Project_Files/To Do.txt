@@ -1,11 +1,13 @@
 To Do: (priority,difficulty) (0-5,0-5) 
 IN PROGRESS:
+- Manage account w/ session.acc_obj
+- New session dropdown using session.acc_obj
+- translation
 
 FUNCTIONAL:
 -(3,2) Fix the log file report so it counts 10s intervals correctly
 -(3,1) Maybe make the ghost session thing automatic.
 -(3,2) Maybe add a flag at the top of log files indicating the IDs of the user & trainer and the user's RS
--(3,3) Add the ability for an admin to download a log file.
 -(3,5) Password Encryption
   - Note: it's https now, so that's half the battle
   - Maybe sometime ask for Name, BD, and sex, and convert those into a hash string like NiMH does. Then store each individual's data in the same file, even if they make a new account. 

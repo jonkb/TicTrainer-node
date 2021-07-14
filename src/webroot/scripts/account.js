@@ -1,9 +1,9 @@
 
-function account_init(user){
-	if(user.id){
+function account_init(acc_obj){
+	if(acc_obj.id){
 		$("#loginbtn").hide();
 		$("#registerbtn").hide();
-		$("#actname").text(": "+user.id);
+		$("#actname").text(": "+acc_obj.id);
 	}
 	else{
 		$("#logoutbtn").hide();

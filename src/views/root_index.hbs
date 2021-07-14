@@ -56,11 +56,11 @@
 <script>
 	$(document).ready(init);
 		
-	var user = {{{account_obj}}};
+	var acc_obj = {{{acc_obj}}};
 	
 	function init(){
 		// logout() and account_init() are from account.js
 		$("#logoutbtn").click(logout);
-		account_init(user);
+		account_init(acc_obj);
 	}
 </script>

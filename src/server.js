@@ -41,6 +41,8 @@ app.get("/", hrq.root);
 
 app.post("/register/user.html", hrq.register_user);
 app.post("/register/trainer.html", hrq.register_trainer);
+app.get("/account/login", hrq.login_get);
+app.post("/account/login", hrq.login);
 app.get("/account/logout", hrq.logout);
 //TODO
 

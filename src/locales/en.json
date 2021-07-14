@@ -2,6 +2,7 @@
 	"_Account": "Account",
 	"_link": "link",
 	"_source": "source",
+	"_Password": "Password",
 	"ac_login": "Log in",
 	"ac_logout": "Log out",
 	"ac_register": "Register",
@@ -24,5 +25,6 @@
 	"rindex_f0": "The source code for this website and its server can be found on github",
 	"rindex_f1": "Please submit any suggestions or bug reports here",
 	"rindex_f2": "If you would like to donate, you can do so with a credit card or PayPal,* and the money will be used for further development of TicTrainer™. Feel free to contact us with any questions here",
-	"rindex_f3": "or send us Bitcoin"
+	"rindex_f3": "or send us Bitcoin",
+	"login_p_cookie": "By logging in, you consent to a session cookie."
 }

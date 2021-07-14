@@ -27,6 +27,7 @@ module.exports.db_log = db_log;
 module.exports.get_locale_data = get_locale_data;
 module.exports.register_user = register_user;
 module.exports.register_trainer = register_trainer;
+module.exports.login = login;
 
 function id_to_N(id){
 	var N36 = id.slice(1);
@@ -170,6 +171,91 @@ VALUES (UNHEX(SHA2("${pw}", 256)), ${birth})`;
 			console.log("Record inserted. ID: " + result.insertId);
 			body.id = N_to_id(result.insertId, "t");
 			callback(null, body);
+		});
+	});
+}
+
+function login(body, callback){
+	/**
+	*	Verify account
+	*		body.id = uid / tid / aid
+	*		body.pw = pw || body.pwh = pwh
+	*/
+	let pwh = null;
+	if(body.pw){
+		pwh = crypto.createHash("sha256");
+		pwh.update(sql.esc(body.pw));
+		pwh = pwh.digest();
+	}
+	else{
+		pwh = Buffer.from(body.pwh.data);
+	}
+	let table = null;
+	db_log(`id: ${body.id}; id[0]: ${body.id[0]}`);
+	switch(body.id[0]){
+		case "u":
+			table = "users";
+			break;
+		case "t":
+			table = "trainers";
+			break;
+		case "a":
+			table = "admins";
+			break;
+		default:
+			callback("ife");
+			return;
+	}
+	let idN = sql.esc(id_to_N(body.id));
+	db_log(`id_N: ${idN};`);
+	
+	sql.connect((err, con) => {
+		if(err){
+			callback(err);
+			return;
+		}
+		// See if the account already exists
+		var select_query = `SELECT *
+FROM ${table} WHERE ID=${idN}`;
+		con.query(select_query, (err, result, fields) => {
+			if(err){
+				callback(err);
+				return;
+			}
+			if(result.length > 0){
+				// Account exists with this username
+				// Verify password
+				existing_pwh = result[0].password_hash;
+				db_log(pwh);
+				db_log(existing_pwh);
+				if(Buffer.compare(pwh, existing_pwh) === 0){
+					// Password Verified
+					//body = {...body, ...result[0]]}
+					let acc_obj = {
+						id: body.id,
+						pwh: existing_pwh
+					};
+					if(table == "users"){
+						acc_obj.birth_date = result[0].birth_date;
+						acc_obj.sex = result[0].sex;
+						acc_obj.level = result[0].level;
+						acc_obj.points = result[0].points;
+						acc_obj.coins = result[0].coins;
+						acc_obj.best_tfi = result[0].best_tfi;
+					}
+					else if(table == "trainers"){
+						acc_obj.birth_year = result[0].birth_year;
+					}
+					callback(null, acc_obj, con);
+				}
+				else{
+					callback("pce");
+				}
+			}
+			else{
+				// Account does not exist
+				callback("anfe");
+			}
 		});
 	});
 }

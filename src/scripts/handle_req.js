@@ -29,7 +29,16 @@ function login_get(req, res){
 		title: "Log in",
 		redirect: redirect
 	};
-	res.render("login", hbs_data);
+	const lang = req.acceptsLanguages(...aux.languages);
+	aux.get_locale_data(lang, (err, locale_data) => {
+		if(err){
+			res.status(500).end(); //TODO
+			return;
+		}
+		// Combine all the data into one object for Handlebars
+		var all_data = {...hbs_data, ...locale_data};
+		res.render("login", all_data);
+	});
 }
 
 function login(req, res){
@@ -37,21 +46,14 @@ function login(req, res){
 	*	Handle POST requests for "/account/login"
 	*	Log the user in and redirect them to where they were trying to go.
 	*/
-	aux.login(req.body, (err, data, con) => {
+	aux.login(req.body, (err, acc_obj, con) => {
 		if(err){
 			ret_error(res, err, "/account/login");
 			return;
 		}
 		con.end(); // Close the sql connection, since we're done with it
-		var user_obj = {
-			id : data.id,
-			uname : data.uname,
-			isclient : data.isclient,
-			iscoder : data.iscoder,
-			pwh : data.pwh
-		};
 		// Save login id & hash in cookie
-		req.session.user_obj = user_obj;
+		req.session.acc_obj = acc_obj;
 		res.redirect(req.body.redirect);
 	});
 }
@@ -116,13 +118,13 @@ function root(req, res){
 	/**
 	*	Handle requests for "/"
 	*/
-	var account_obj = "{}";
-	if(req.session && req.session.account_obj){
-		account_obj = JSON.stringify(req.session.account_obj);
+	var acc_obj = "{}";
+	if(req.session && req.session.acc_obj){
+		acc_obj = JSON.stringify(req.session.acc_obj);
 	}
 	var hbs_data = {
 		layout: "home",
-		account_obj : account_obj
+		acc_obj : acc_obj
 	};
 	const lang = req.acceptsLanguages(...aux.languages);
 	aux.get_locale_data(lang, (err, locale_data) => {

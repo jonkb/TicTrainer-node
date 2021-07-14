@@ -4,17 +4,19 @@
 	<form method="POST" name="login" id="loginForm" action="/account/login">
 		<input type="hidden" name="redirect" value="{{redirect}}">
 		<fieldset>
-			<legend>Log in</legend>
+			<legend>{{ac_login}}</legend>
 			<div>
-				<label for="uname">Username:</label>
-				<input type="text" name="uname" id="uname" placeholder="username" maxlength="255" required>
+				<label for="id">ID:</label>
+				<input type="text" name="id" id="id" placeholder="uXXXX" maxlength="9" required>
 			</div>
 			<div>
-				<label for="pw">Password:</label>
+				<label for="pw">{{_Password}}:</label>
 				<input type="password" name="pw" id="pw" maxlength="255" required>
 			</div>
 			<input type="submit" value="Log in" class="btn">
 		</fieldset>
 	</form>
-	By logging in, you consent to a session cookie.
+	<p>
+		{{login_p_cookie}}
+	</p>
 </section>
