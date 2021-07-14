@@ -13,6 +13,7 @@ best_tfi INT NOT NULL DEFAULT 0
 
 # Note: best_tft = best tic-free time in milliseconds
 # Links are in their own table
+# Note: careful when migrating data over from existing accounts, with the autoincrement column
 
 INSERT INTO accounts (password_hash, birth_date, sex)
     -> VALUES (0x88B9584E81C84B5F11700F87F31CE71A463946A0741DFBFCB51B8221E97F8AA9, "2000-01-01", "M");
@@ -24,7 +25,7 @@ INSERT INTO accounts (password_hash, birth_date, sex)
 CREATE TABLE trainers (
 ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 password_hash BINARY(32) NOT NULL,
-birth_date DATE NOT NULL
+birth_year YEAR NOT NULL
 );
 
 # ADMINS

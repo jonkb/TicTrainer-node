@@ -4,34 +4,34 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>TicTrainer registration for trainers</title>
-    <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
-    <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
-  </head>
-  <body>
-  
-    <section class="page-header">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+	</head>
+	<body>
+	
+		<section class="page-header">
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
 				<h1>Trainer Account Registration</h1>
 				<div style="clear: both;"></div>
 			</div>
-    </section>
+		</section>
 	
-    <section class="main-content">
-      <!--FORM-->
-      <form method="POST" name="addTrainer" onsubmit="return checkForm();">
-        <fieldset>
-          <legend>New Account</legend>
-          Birth Year:<br>
-          <input type="text" name="birth" placeholder="yyyy" required> <br>
-          Password:<br>
-          <input type="password" name="pw" required> <br>
-          Confirm Password:<br>
-          <input type="password" name="pwConf" required> <br>
-          <input type="submit" value="Create Account" class="btn">
-        </fieldset>
-      </form>
-    </section>
+		<section class="main-content">
+			<!--FORM-->
+			<form method="POST" name="addTrainer" onsubmit="return checkForm();">
+				<fieldset>
+					<legend>New Account</legend>
+					Birth Year:<br>
+					<input type="number" name="birth" placeholder="yyyy" required> <br>
+					Password:<br>
+					<input type="password" name="pw" required> <br>
+					Confirm Password:<br>
+					<input type="password" name="pwConf" required> <br>
+					<input type="submit" value="Create Account" class="btn">
+				</fieldset>
+			</form>
+		</section>
 		<script>
 			function checkForm() {
 				var y = document.forms["addTrainer"]["birth"].value;
@@ -79,5 +79,5 @@
 				return true;
 			}
 		</script>
-  </body>
+	</body>
 </html>

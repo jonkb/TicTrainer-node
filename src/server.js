@@ -39,6 +39,8 @@ app.use(cookieSession(ckses_options));
 // Define responses for specific requests
 app.get("/", hrq.root);
 
+app.post("/register/user.html", hrq.register_user);
+app.post("/register/trainer.html", hrq.register_trainer);
 app.get("/account/logout", hrq.logout);
 //TODO
 

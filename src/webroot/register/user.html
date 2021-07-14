@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TicTrainer registration for users</title>
-    <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
-    <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
-  </head>
-  <body>
-  
-    <section class="page-header">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>TicTrainer registration for users</title>
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+	</head>
+	<body>
+	
+		<section class="page-header">
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
 				<h1>User Account Registration</h1>
 				<div style="clear: both;"></div>
 			</div>
-    </section>
+		</section>
 
-    <section class="main-content">
-      <!--FORM-->
-      <form method="POST" name="addUser" onsubmit="return checkForm();" id="addUserForm">
+		<section class="main-content">
+			<!--FORM-->
+			<form method="POST" name="addUser" onsubmit="return checkForm();" id="addUserForm">
 				<input type="hidden" name="birth" value="-">
-        <fieldset>
-          <legend>New Account</legend>
+				<fieldset>
+					<legend>New Account</legend>
 					Sex:<br>
-          <input type="radio" name="sex" value="M"> Male<br>
-          <input type="radio" name="sex" value="F"> Female<br>
-          Birth Month and Year:<br>
-          <select name="month" required>
+					<input type="radio" name="sex" value="M"> Male<br>
+					<input type="radio" name="sex" value="F"> Female<br>
+					Birth Month and Year:<br>
+					<select name="month" required>
 						<option value="-">Month</option>
 						<option value="0">January</option>
 						<option value="1">February</option>
@@ -43,14 +43,14 @@
 						<option value="11">December</option>
 					</select>
 					<input type="text" name="year" size="4" placeholder="yyyy" required><br>
-          Password:<br>
-          <input type="password" name="pw" required> <br>
-          Confirm Password:<br>
-          <input type="password" name="pwConf" required> <br>
-          <input type="submit" value="Create Account" class="btn">
-        </fieldset>
-      </form>
-    </section>
+					Password:<br>
+					<input type="password" name="pw" required> <br>
+					Confirm Password:<br>
+					<input type="password" name="pwConf" required> <br>
+					<input type="submit" value="Create Account" class="btn">
+				</fieldset>
+			</form>
+		</section>
 		<script src="/scripts/math-ext.js"></script>
 		<script>
 			function checkForm() {
@@ -77,10 +77,6 @@
 				}
 				if(!s || !m || (m == "-") || !y || !pw || !pwC){
 					alert("Please finish the form");
-					return false;
-				}
-				if(/[<>]/.test(pw)){
-					alert("Please do not include \"<\" or \">\" in your password");
 					return false;
 				}
 				
@@ -116,6 +112,7 @@
 				//Guess middle of month (day 15)
 				var d1 = new Date(y, m, 15);
 				var d2 = randDate(d1);
+				d2 = d2.toISOString().split("T")[0];
 				document.forms["addUser"]["birth"].value = d2;
 				return true;
 			}
@@ -123,8 +120,9 @@
 			function randDate(d){
 				//math-ext.norm(median, std_dev, clip_radius)
 				var o = norm(0, 15, 45);
-				return d.setDate(d.getDate() + o);
+				d.setDate(d.getDate() + o);
+				return d;
 			}
 		</script>
-  </body>
+	</body>
 </html>

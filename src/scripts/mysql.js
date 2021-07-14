@@ -17,12 +17,12 @@ var con_details = {
 	host: 'localhost',
 	user: 'nodejs',
 	password: pw,
-	database: 'codecredits'
+	database: 'tictrainer'
 };
 
 function connect(callback){
 	/**
-	*	Connect to the codecredits db
+	*	Connect to the tictrainer db
 	*	callback arguments: (err, connection)
 	*/
 	var connection = mysql.createConnection(con_details);
@@ -31,7 +31,7 @@ function connect(callback){
 		  callback(err);
 		  return;
 	  }
-	  console.log('Connected to MySQL Server: codecredits database');
+	  //console.log('Connected to MySQL Server: tictrainer database');
 	  callback(null, connection);
 	});
 }

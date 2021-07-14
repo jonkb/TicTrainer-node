@@ -1,0 +1,20 @@
+
+<section class="main-content">
+	<!--FORM-->
+	<form method="POST" name="login" id="loginForm" action="/account/login">
+		<input type="hidden" name="redirect" value="{{redirect}}">
+		<fieldset>
+			<legend>Log in</legend>
+			<div>
+				<label for="uname">Username:</label>
+				<input type="text" name="uname" id="uname" placeholder="username" maxlength="255" required>
+			</div>
+			<div>
+				<label for="pw">Password:</label>
+				<input type="password" name="pw" id="pw" maxlength="255" required>
+			</div>
+			<input type="submit" value="Log in" class="btn">
+		</fieldset>
+	</form>
+	By logging in, you consent to a session cookie.
+</section>
