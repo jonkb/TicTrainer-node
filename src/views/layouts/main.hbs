@@ -6,24 +6,23 @@
 		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
 		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
 		<title>TicTrainer: {{title}}</title>
-		<!--<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">-->
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
 		<script src="/scripts/account.js"></script>
 	</head>
 	<body>
 		<section class="page-header">
+			<div id="account_btn" style="float: right;">
+				{{_Account}}<span id="actname"></span>
+				<div id="account_menu">
+					<a href="/account/login?redirect={{url}}" id="loginbtn" class="menubtn">{{ac_login}}</a>
+					<a href="/register/index.html" id="registerbtn" class="menubtn">{{ac_register}}</a>
+					<a href="/" id="logoutbtn" class="menubtn">{{ac_logout}}</a>
+					<a href="/account/manage" id="actmng" class="menubtn">{{ac_manage}}</a>
+				</div>
+			</div>
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
-				<div id="account_btn" style="float: right;">
-					{{_Account}}<span id="actname"></span>
-					<div id="account_menu">
-						<a href="/account/login?redirect={{url}}" id="loginbtn" class="menubtn">{{ac_login}}</a>
-						<a href="/register/index.html" id="registerbtn" class="menubtn">{{ac_register}}</a>
-						<a href="/" id="logoutbtn" class="menubtn">{{ac_logout}}</a>
-						<a href="/account/" id="actmng" class="menubtn">{{ac_manage}}</a>
-					</div>
-				</div>
 				<h1>{{title}}</h1>
 				<div style="clear: both;"></div>
 			</div>

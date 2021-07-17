@@ -1,0 +1,111 @@
+
+<section class='main-content' id='mainC'>
+	<table>
+		<tr>
+			<td>ID:</td>
+			<td id="disp_id">{{id}}</td>
+		</tr>
+		{{#if isuser}}
+		<tr>
+			<td>Level: </td>
+			<td id="disp_level"></td>
+		</tr>
+		<tr>
+			<td>Points: </td>
+			<td id="disp_points"></td>
+		</tr>
+		<tr>
+			<td>Coins: </td>
+			<td id="disp_coins"></td>
+		</tr>
+		<tr>
+			<td>Linked Trainers:</td>
+			<td id="disp_lnacc"></td>
+		</tr>
+		{{else}}
+		<tr>
+			<td>Linked Users:</td>
+			<td id="disp_lnacc"></td>
+		</tr>
+		{{/if}}
+	</table>
+	<form method='POST' name="addL" onsubmit="return validate_addl();">
+		<input type='hidden' name='source' value='addL'>
+		<fieldset>
+			{{#if isuser}}
+			<legend>Add Trainer</legend>
+			Trainer Account ID:<br>
+			<input type='text' name='lid' placeholder='t0000' required> <br>
+			{{else}}
+			<legend>Add User</legend>
+			User Account ID:<br>
+			<input type='text' name='lid' placeholder='u0000' required> <br>
+			{{/if}}
+			<input type='submit' value='Link' class="btn">
+		</fieldset>
+	</form>
+	<form method='POST' name="editP">
+		<input type='hidden' name='source' value='editP'>
+		<fieldset>
+			<legend>Change Password</legend>
+			New Password:<br>
+			<input type='password' name='pw' required> <br>
+			<input type='submit' value='Change Password' class="btn">
+		</fieldset>
+	</form>
+	{{#if isuser}}
+	<fieldset>
+		<legend>Your Items</legend>
+		<div id="heap">
+		</div>
+	</fieldset>
+	<script src="/scripts/store.js"></script>
+	{{/if}}
+	<a href='/index.html' class='btn'>Return to Home</a>
+</section>
+<script>
+	$(document).ready(init);
+	
+	var acc_obj = {{{acc_obj}}};
+	var isuser = acc_obj.id[0] == "u";
+	
+	function init(){
+		// logout() and account_init() are from account.js
+		$("#logoutbtn").click(logout);
+		account_init(acc_obj);
+		if(isuser){
+			//genheap() is from store.js
+			genHeap("g"); //TODO
+		}
+		$("#actmng").hide();
+		
+		fill_display();
+	}
+	
+	function fill_display(){
+		$("#disp_id").text(acc_obj.id);
+		$("#disp_lnacc").text("TODO: linked accounts");
+		if(isuser){
+			$("#disp_level").text(acc_obj.level);
+			$("#disp_points").text(acc_obj.points);
+			$("#disp_coins").text(acc_obj.coins);
+		}
+	}
+	
+	function validate_addl(){
+		var lid = document.forms["addL"]["lid"].value.toLowerCase();
+		if(isuser){
+			if(lid[0] != "t" || lid.length < 2){
+				alert("Invalid ID. Use a trainer account ID.");
+				return false;
+			}
+		}
+		else{
+			if(lid[0] != "u" || lid.length < 2){
+				alert("Invalid ID. Use a user account ID.");
+				return false;
+			}
+		}
+		return true;
+	}
+</script>

@@ -13,6 +13,12 @@ const sql = require(scriptsroot+"/mysql.js")
 // Other constants
 const localeroot = "./locales/";
 const languages = ["en", "pt"];
+const user_editable_fields = ["password", "birth_date", "sex", "level", "points", "coins", "best_tfi"];
+const trainer_editable_fields = ["password", "birth_year"];
+const admin_editable_fields = ["password"];
+// Global Variables
+var lnusers = new Set();
+var lndata = {};
 
 /**
 *	Exported constants
@@ -24,10 +30,14 @@ module.exports.languages = languages;
 */
 module.exports.time = time;
 module.exports.db_log = db_log;
+module.exports.ln_add = ln_add;
+module.exports.ln_has = ln_has;
+module.exports.ln_delete = ln_delete;
 module.exports.get_locale_data = get_locale_data;
 module.exports.register_user = register_user;
 module.exports.register_trainer = register_trainer;
 module.exports.login = login;
+module.exports.edit_account = edit_account;
 
 function id_to_N(id){
 	var N36 = id.slice(1);
@@ -92,6 +102,43 @@ function db_log(message, depth){
 		depth = 2;
 	if(settings.debugging >= depth)
 		console.log(message);
+}
+
+function ln_add(link_data){
+	/**
+	*	Add an entry to lnusers
+	*/
+	lnusers.add(link_data.uid);
+	lndata[link_data.uid] = link_data;
+}
+
+function ln_has(link_data){
+	/**
+	*	Check for an entry in lnusers
+	*	(Also, if the entry found is older than 1h, reject and delete it)
+	*/
+	if(!lnusers.has(link_data.uid))
+		return false;
+	
+	let age = Date.now() - lndata[link_data.uid].ts;
+	if(age > 3600*1000){
+		// Delete the entry if it's >1h old
+		ln_delete(link_data);
+		return false;
+	}
+	
+	if(lndata[link_data.uid].tid == link_data.tid)
+		return true;
+	
+	return false;
+}
+
+function ln_delete(link_data){
+	/**
+	*	Remove an entry from lnusers
+	*/
+	lnusers.delete(link_data.uid);
+	delete lndata[link_data.uid];
 }
 
 function get_locale_data(lang, callback){
@@ -191,7 +238,7 @@ function login(body, callback){
 		pwh = Buffer.from(body.pwh.data);
 	}
 	let table = null;
-	db_log(`id: ${body.id}; id[0]: ${body.id[0]}`);
+	//db_log(`id: ${body.id}; id[0]: ${body.id[0]}`);
 	switch(body.id[0]){
 		case "u":
 			table = "users";
@@ -207,7 +254,7 @@ function login(body, callback){
 			return;
 	}
 	let idN = sql.esc(id_to_N(body.id));
-	db_log(`id_N: ${idN};`);
+	//db_log(`id_N: ${idN};`);
 	
 	sql.connect((err, con) => {
 		if(err){
@@ -226,8 +273,8 @@ FROM ${table} WHERE ID=${idN}`;
 				// Account exists with this username
 				// Verify password
 				existing_pwh = result[0].password_hash;
-				db_log(pwh);
-				db_log(existing_pwh);
+				//db_log(pwh);
+				//db_log(existing_pwh);
 				if(Buffer.compare(pwh, existing_pwh) === 0){
 					// Password Verified
 					//body = {...body, ...result[0]]}
@@ -258,4 +305,78 @@ FROM ${table} WHERE ID=${idN}`;
 			}
 		});
 	});
+}
+
+function edit_account(data, con, callback){
+	/**
+	*	Edit an account
+	*		data.id = uid
+	*		data.key = field name (e.g. is_coder) Must be in editable_fields
+	*		data.val = new value
+	*		con = sql connection (from login)
+	*/
+	//TODO: refactor for editing mutiple values at once. data.edits = {k1:v1, k2:v2, ...}
+	let editable_fields, table;
+	switch(data.id[0]){
+		case "u":
+			editable_fields = trainer_editable_fields;
+			table = "users";
+			break;
+		case "t":
+			editable_fields = trainer_editable_fields;
+			table = "trainers";
+			break;
+		case "a":
+			editable_fields = admin_editable_fields;
+			table = "admins";
+	}
+	if(editable_fields.indexOf(data.key) == -1){
+		callback("se");
+		return;
+	}
+	if(data.key == "password"){
+		data.key = "password_hash";
+		let pwh = crypto.createHash("sha256");
+		pwh.update(sql.esc(data.val));
+		data.val = pwh.digest();
+	}
+	let key = sql.esc(data.key).slice(1,-1);
+	let val = sql.esc(data.val);
+	let idN = sql.esc(id_to_N(data.id));
+	let update_query = `UPDATE ${table}
+SET ${key} = ${val}
+WHERE ID = ${idN}`;
+	con.query(update_query, (err, result) => {
+		if(err){
+			callback(err);
+			return;
+		}
+		// TODO: Check to see if it worked & return new acc_obj
+		db_log(result);
+		callback(null, data.val);
+	});
+}
+
+function add_link(data, con, callback){
+	/**
+	*	Add a link btw trainer & user
+	*	data should have id & lid
+	*/
+	let isuser = data.id[0] == "u";
+	let table, tid, uid;
+	if(isuser){
+		table = "user_links";
+		tid = data.lid;
+		uid = data.id;
+	}
+	else{
+		table = "trainer_links";
+		tid = data.id;
+		uid = data.lid;
+	}
+	let tidN = sql.esc(id_to_N(tid));
+	let uidN = sql.esc(id_to_N(uid));
+	let insert_query = `INSERT INTO ${table} (TID, UID)
+VALUES (${tidN}, ${uidN})`;
+	//TODO
 }

@@ -38,12 +38,14 @@ app.use(cookieSession(ckses_options));
 
 // Define responses for specific requests
 app.get("/", hrq.root);
-
+// Requests related to accounts (registration, login, manage account)
 app.post("/register/user.html", hrq.register_user);
 app.post("/register/trainer.html", hrq.register_trainer);
 app.get("/account/login", hrq.login_get);
 app.post("/account/login", hrq.login);
 app.get("/account/logout", hrq.logout);
+app.get("/account/manage", hrq.manage_get);
+app.post("/account/manage", hrq.manage);
 //TODO
 
 // Everything else should be loaded normally
