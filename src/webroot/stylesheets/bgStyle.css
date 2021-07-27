@@ -16,7 +16,8 @@ a {
 	color: #1d66af;
 	text-decoration: none; }
 	a:hover {
-		text-decoration: underline; }
+		text-decoration: underline;
+}
 
 button {
 	cursor: -webkit-pointer;
@@ -160,6 +161,38 @@ footer {
 	text-decoration: none;
 	background-color: rgba(255, 255, 255, 0.2);
 	border-color: rgba(255, 255, 255, 0.9);
+}
+
+.dropdown-btn {
+	min-width: 128px;
+	border-color: rgba(255, 255, 255, 0.8);
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 0.2rem;
+}
+
+.dropdown-hover {
+	float: right;
+	cursor: pointer;
+}
+
+.dropdown-hover .menubtn {
+	margin: 0;
+}
+
+.dropdown-content{
+	min-width: 130px;
+	background-color: rgba(100, 100, 100, 0.8);
+	cursor: auto;
+	display: none;
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	z-index: 1;
+}
+
+.dropdown-hover:hover .dropdown-content {
+	display: block;
 }
 
 .main-content form .btn {
