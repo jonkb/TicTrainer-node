@@ -38,6 +38,8 @@ module.exports.register_user = register_user;
 module.exports.register_trainer = register_trainer;
 module.exports.login = login;
 module.exports.edit_account = edit_account;
+module.exports.get_links = get_links;
+module.exports.add_link = add_link;
 
 function id_to_N(id){
 	var N36 = id.slice(1);
@@ -357,6 +359,56 @@ WHERE ID = ${idN}`;
 	});
 }
 
+function get_links(data, con, callback){
+	/**
+	*	Get the links associated with this account.
+	*		data.id = uid
+	*		body.pw = pw || body.pwh = pwh (if no con)
+	*/
+	if(!con){
+		login(data, (err, acc_obj, con) => {
+			if(err){
+				callback(err);
+				return;
+			}
+			get_links(data, con, callback);
+		});
+		return;
+	}
+	let isuser = data.id[0] == "u";
+	let lid_type = isuser ? "t" : "u";
+	let id = sql.esc(id_to_N(data.id));
+	let table, IDcol;
+	if(isuser){
+		table = "user_links";
+		IDcol = "UID";
+		LIDcol = "TID";
+	}
+	else{
+		table = "trainer_links";
+		IDcol = "TID";
+		LIDcol = "UID";
+	}
+	// Get all links related to this account
+	let select_query = `SELECT * 
+FROM ${table} WHERE ${IDcol} = ${id}
+ORDER BY ${LIDcol}`;
+	con.query(select_query, (err, result, fields) => {
+		if(err){
+			callback(err);
+			return;
+		}
+		let lids = [];
+		for(row of result){
+			let lid = isuser ? row.TID : row.UID;
+			lid = N_to_id(lid, lid_type);
+			lids.push(lid);
+		}
+		db_log(lids);
+		callback(null, lids);
+	});
+}
+
 function add_link(data, con, callback){
 	/**
 	*	Add a link btw trainer & user
@@ -378,5 +430,12 @@ function add_link(data, con, callback){
 	let uidN = sql.esc(id_to_N(uid));
 	let insert_query = `INSERT INTO ${table} (TID, UID)
 VALUES (${tidN}, ${uidN})`;
-	//TODO
+	con.query(insert_query, (err, result) => {
+		if(err){
+			callback(err);
+			return;
+		}
+		//db_log("Link insert result: " + result.toString());
+		callback();
+	});
 }

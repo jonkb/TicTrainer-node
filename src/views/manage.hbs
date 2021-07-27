@@ -68,6 +68,7 @@
 	
 	var acc_obj = {{{acc_obj}}};
 	var isuser = acc_obj.id[0] == "u";
+	var linked_accounts = {{{linked_accounts}}};
 	
 	function init(){
 		// logout() and account_init() are from account.js
@@ -84,7 +85,7 @@
 	
 	function fill_display(){
 		$("#disp_id").text(acc_obj.id);
-		$("#disp_lnacc").text("TODO: linked accounts");
+		$("#disp_lnacc").text(linked_accounts.join(", "));
 		if(isuser){
 			$("#disp_level").text(acc_obj.level);
 			$("#disp_points").text(acc_obj.points);

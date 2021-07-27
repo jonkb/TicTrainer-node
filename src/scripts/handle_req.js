@@ -150,26 +150,32 @@ function manage_get(req, res){
 	*	Handle GET requests for "/account/manage"
 	*/
 	if(req.session && req.session.acc_obj){
-		let isuser = req.session.acc_obj.id[0] == "u";
-		let linked_accounts = "TEMP"; //TODO
-		let hbs_data = {
-			layout: "main",
-			title: "Manage Account",
-			acc_obj : JSON.stringify(req.session.acc_obj),
-			isuser : isuser,
-			id: req.session.acc_obj.id,
-			linked_accounts: linked_accounts
-		};
-		const lang = req.acceptsLanguages(...aux.languages);
-		aux.get_locale_data(lang, (err, locale_data) => {
+		let acc_obj = req.session.acc_obj;
+		aux.get_links(acc_obj, null, (err, lids) => {
 			if(err){
 				res.status(500).end(); //TODO
 				return;
 			}
-			// Combine all the data into one object for Handlebars
-			var all_data = {...hbs_data, ...locale_data};
-			// This is the step where handlebars injects the data
-			res.render("manage", all_data);
+			let isuser = acc_obj.id[0] == "u";
+			let hbs_data = {
+				layout: "main",
+				title: "Manage Account",
+				acc_obj: JSON.stringify(acc_obj),
+				isuser: isuser,
+				id: acc_obj.id,
+				linked_accounts: JSON.stringify(lids)
+			};
+			const lang = req.acceptsLanguages(...aux.languages);
+			aux.get_locale_data(lang, (err, locale_data) => {
+				if(err){
+					res.status(500).end(); //TODO
+					return;
+				}
+				// Combine all the data into one object for Handlebars
+				var all_data = {...hbs_data, ...locale_data};
+				// This is the step where handlebars injects the data
+				res.render("manage", all_data);
+			});
 		});
 	}
 	else{
@@ -206,7 +212,19 @@ function manage(req, res){
 			};
 			aux.add_link(link_data, con, (err) => {
 				if(err){
-					ret_error(res, err);
+					if(err.code == "ER_DUP_ENTRY"){
+						// Link already exists
+						aux.db_log("Link already exists");
+						res.redirect("/account/manage");
+					}
+					else if(err.code == "ER_NO_REFERENCED_ROW_2"){
+						// Account does not exist
+						aux.db_log("That account does not exist");
+						res.redirect("/account/manage");
+					}
+					else{
+						ret_error(res, err);
+					}
 					return;
 				}
 				// Reload the account manage page
