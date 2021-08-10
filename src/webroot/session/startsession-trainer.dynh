@@ -15,16 +15,12 @@
 			</div>
     </section>
     <section class="main-content">
-			<form id='startButton' method='POST' action="/session/startsession-trainer.dynh" style='width: 100%; text-align:center;'>
-				<input type='hidden' name='id' value='**[id]**'>
-				<input type='hidden' name='pw' value='**[pw]**'>
-				<input type='hidden' name='lid' value='**[lid]**'>
+			<form id='startButton' method='POST' action="/session/sst" onsubmit="return submit();" style='width: 100%; text-align:center;'>
+				<input type='hidden' name='reqType' value='start'>
 				<input type='submit' class='bigBtn' value='START'>
 			</form>
     </section>
 		<script>
-			//Change the URL bar
-			window.history.pushState("", "Start Session: Trainer", "/session/startsession-trainer.dynh");
 			
 			var already_left = false;
 			var submitted = false;
@@ -32,13 +28,18 @@
 			window.onbeforeunload = leave;
 			window.onpagehide = leave;
 			//document.addEventListener('visibilitychange', function(){if(document.hidden){leave();}}, false);
-			document.getElementById('startButton').addEventListener('click', function(){submitted = true;});
+			//document.getElementById('startButton').addEventListener('click', function(){submitted = true;});
+			
+			function submit(){
+				submitted = true;
+				return true;
+			}
 			
 			function leave(){
 				if(!(submitted || already_left)){
 					var xhr = new XMLHttpRequest();
 					var url = '/session/startsession-trainer.dynh';
-					var reqBody = 'id=**[id]**&pw=**[pw]**&lid=**[lid]**&reqType=leave';
+					var reqBody = 'reqType=leave';
 					xhr.open('POST', url, true);
 					xhr.send(reqBody);
 					already_left = true;

@@ -19,7 +19,10 @@ const TESTING_PORT = 8888;
 
 // Create server
 const app = express();
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+	extended: true,
+	type: "application/x-www-form-urlencoded"
+}));
 
 // Set up handlebars
 app.set('view engine', 'hbs');
@@ -46,6 +49,26 @@ app.post("/account/login", hrq.login);
 app.get("/account/logout", hrq.logout);
 app.get("/account/manage", hrq.manage_get);
 app.post("/account/manage", hrq.manage);
+// Requests related to training sessions
+app.get("/session/", hrq.new_session_get); // New Training Session
+app.post("/session/", hrq.new_session);
+app.get("/session/llt", hrq.ll_get); // Link Loading
+app.post("/session/llt", hrq.llt);
+app.get("/session/llu", hrq.ll_get);
+app.post("/session/llu", hrq.llu);
+app.get("/session/sst", hrq.ss_get); // Start Session
+app.post("/session/sst", hrq.sst);
+app.get("/session/ssu", hrq.ss_get);
+app.post("/session/ssu", hrq.ssu);
+app.get("/session/sest", hrq.ses_get); // Active Session
+app.post("/session/sest", hrq.sest);
+app.get("/session/sesu", hrq.ses_get);
+app.post("/session/sesu", hrq.sesu);
+app.get("/session/session_ended", hrq.session_ended);
+
+// gj: Get JSON. API for requesting certain JSON files
+app.get("/gj/settings.gj", hrq.gj_settings);
+
 //TODO
 
 // Everything else should be loaded normally

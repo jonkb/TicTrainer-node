@@ -16,6 +16,15 @@ const languages = ["en", "pt"];
 const user_editable_fields = ["password", "birth_date", "sex", "level", "points", "coins", "best_tfi"];
 const trainer_editable_fields = ["password", "birth_year"];
 const admin_editable_fields = ["password"];
+//const err_types = ["anfe", "anle", "conses", "dfe", "fe", "ice", "ide", "ife", "pce", "se", "toe"];
+const err_types = ["anfe", "pce", "ife", "fe", "se"];
+const err_titles = {
+	anfe: "Account Does Not Exist",
+	pce: "Invalid Password",
+	ife: "Input Error: Incomplete Form",
+	fe: "Error 500: File System",
+	se: "Error 500: Server"
+};
 // Global Variables
 var lnusers = new Set();
 var lndata = {};
@@ -25,6 +34,10 @@ var lndata = {};
 */
 module.exports.settings = settings;
 module.exports.languages = languages;
+module.exports.err_types = err_types;
+module.exports.err_titles = err_titles;
+module.exports.dbroot = mainroot + "/db/";
+module.exports.mainroot = mainroot;
 /**
 *	Exported functions
 */
@@ -291,6 +304,14 @@ FROM ${table} WHERE ID=${idN}`;
 						acc_obj.points = result[0].points;
 						acc_obj.coins = result[0].coins;
 						acc_obj.best_tfi = result[0].best_tfi;
+						acc_obj.items = result[0].items;
+						// Research settings
+						acc_obj.RID = result[0].RID;
+						acc_obj.RS = result[0].RSTATE;
+						acc_obj.AITI = result[0].AITI;
+						acc_obj.SMPR = result[0].SMPR;
+						acc_obj.PTIR = result[0].PTIR;
+						acc_obj.FLASH = result[0].FLASH;
 					}
 					else if(table == "trainers"){
 						acc_obj.birth_year = result[0].birth_year;
@@ -404,7 +425,7 @@ ORDER BY ${LIDcol}`;
 			lid = N_to_id(lid, lid_type);
 			lids.push(lid);
 		}
-		db_log(lids);
+		db_log(lids, 3);
 		callback(null, lids);
 	});
 }

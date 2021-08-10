@@ -1,0 +1,86 @@
+
+<section class='main-content' id='mainC'>
+	<h2>Linking {{id}} - {{lid}}</h2>
+	<p>Waiting for Trainer</p>
+	<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>
+</section>
+<script>
+	var url = '/session/llu';
+	
+	var ll_vars = {
+		//30 tries, 2s per try --> 1 min
+		"tryN" : 0,
+		"max_tries" : 30,
+		"period" : 2000,
+		"already_left" : false
+	};
+	window.onbeforeunload = leave;
+	window.onpagehide = leave;
+	
+	look();
+	function cleanup(){
+		ll_vars = {};
+	}
+	function look(){
+		if(ll_vars.tryN < ll_vars.max_tries){
+			ll_vars.tryN++;
+			var xhr = new XMLHttpRequest();
+			var reqBody = 'reqType=exists';
+			xhr.open('POST', url, true);
+			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			xhr.onreadystatechange = function(){
+				if(xhr.readyState == 4){
+					let resParts = xhr.responseText.split("=");
+					switch(resParts[0]){
+						case "msg":
+							if(resParts[1] == "wait")
+								setTimeout(look, ll_vars.period);
+							else
+								alert("Unknown Response");
+							break;
+						case "next":
+							cleanup();
+							if(resParts[1] == "ssu")
+								window.location.href = "/session/ssu";
+							else
+								alert("Unknown Response");
+							break;
+						case "err":
+							cleanup();
+							window.location.href = "/error/"+resParts[1];
+							break;
+						default:
+							alert("Unknown Response");
+					}
+				}
+			};
+			xhr.send(reqBody);
+		}
+		else{//Timeout
+			var xhr = new XMLHttpRequest();
+			var reqBody = 'reqType=timeout';
+			xhr.open('POST', url, true);
+			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			xhr.onreadystatechange = function(){
+				if(xhr.readyState == 4){
+					window.location.href = "/error/toe";
+				}
+			};
+			xhr.send(reqBody);
+		}
+	}
+	function leave(){
+		/**
+		*	Called if the user closes the tab
+		*/
+		if(!ll_vars.already_left){
+			cleanup();
+			var xhr = new XMLHttpRequest();
+			var reqBody = 'reqType=leave';
+			xhr.open('POST', url, true);
+			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			xhr.send(reqBody);
+			ll_vars.already_left = true;
+		}
+	}
+</script>

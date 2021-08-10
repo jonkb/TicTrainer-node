@@ -12,12 +12,14 @@
 	</head>
 	<body>
 		<section class="page-header">
-			<div id="account_btn" style="float: right;">
-				{{_Account}}<span id="actname"></span>
-				<div id="account_menu">
-					<a href="/account/login?redirect={{url}}" id="loginbtn" class="menubtn">{{ac_login}}</a>
+			<div id="account_btn" class="dropdown-hover">
+				<div class="dropdown-btn">
+					{{_Account}}<span id="actname"></span>
+				</div>
+				<div id="account_menu" class="dropdown-content">
+					<a href="/account/login?redirect=/" id="loginbtn" class="menubtn">{{ac_login}}</a>
 					<a href="/register/index.html" id="registerbtn" class="menubtn">{{ac_register}}</a>
-					<a href="/" id="logoutbtn" class="menubtn">{{ac_logout}}</a>
+					<a href="#" id="logoutbtn" class="menubtn">{{ac_logout}}</a>
 					<a href="/account/manage" id="actmng" class="menubtn">{{ac_manage}}</a>
 				</div>
 			</div>

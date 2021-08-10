@@ -15,13 +15,51 @@ module.exports.register_user = register_user;
 module.exports.register_trainer = register_trainer;
 module.exports.manage_get = manage_get;
 module.exports.manage = manage;
+module.exports.new_session_get = new_session_get;
 module.exports.new_session = new_session;
+module.exports.ll_get = ll_get;
+module.exports.llt = llt;
+module.exports.llu = llu;
+module.exports.ss_get = ss_get;
+module.exports.sst = sst;
+module.exports.ssu = ssu;
+module.exports.ses_get = ses_get;
+module.exports.sest = sest;
+module.exports.sesu = sesu;
+module.exports.gj_settings = gj_settings;
+module.exports.session_ended = session_ended;
 
 
 function ret_error(res, err, redirect){
-	//TODO: STUB
-	console.log(err);
-	res.status(400).end();
+	/**
+	*	Return an error page
+	*/
+	
+	let hbs_data = {
+		layout: "simple",
+		title: "Unknown Error",
+		retry: (redirect ? redirect : "/"),
+		retry_cls: "bigBtn"
+	};
+	let status_code = 400;
+	if(["fe", "se"].indexOf(err) > -1){
+		status_code = 500;
+		hbs_data.e500 = true;
+		hbs_data.retry_cls = "btn";
+	}
+	res.status(status_code);
+	
+	if(aux.err_types.indexOf(err) > -1){
+		aux.db_log("38: "+err);
+		hbs_data[err] = true;
+		hbs_data.title = aux.err_titles[err];
+		res.render("error", hbs_data);
+	}
+	else{
+		aux.db_log("54: "+err);
+		res.render("error", hbs_data);
+		//TODO: Handle other errors better
+	}
 }
 
 function root(req, res){
@@ -39,7 +77,7 @@ function root(req, res){
 	const lang = req.acceptsLanguages(...aux.languages);
 	aux.get_locale_data(lang, (err, locale_data) => {
 		if(err){
-			res.status(500).end(); //TODO
+			ret_error(res, "se");
 			return;
 		}
 		// Combine all the data into one object for Handlebars
@@ -64,7 +102,7 @@ function login_get(req, res){
 	const lang = req.acceptsLanguages(...aux.languages);
 	aux.get_locale_data(lang, (err, locale_data) => {
 		if(err){
-			res.status(500).end(); //TODO
+			ret_error(res, "se");
 			return;
 		}
 		// Combine all the data into one object for Handlebars
@@ -153,7 +191,7 @@ function manage_get(req, res){
 		let acc_obj = req.session.acc_obj;
 		aux.get_links(acc_obj, null, (err, lids) => {
 			if(err){
-				res.status(500).end(); //TODO
+				ret_error(res, "se"); //TODO
 				return;
 			}
 			let isuser = acc_obj.id[0] == "u";
@@ -168,7 +206,7 @@ function manage_get(req, res){
 			const lang = req.acceptsLanguages(...aux.languages);
 			aux.get_locale_data(lang, (err, locale_data) => {
 				if(err){
-					res.status(500).end(); //TODO
+					ret_error(res, "se");
 					return;
 				}
 				// Combine all the data into one object for Handlebars
@@ -254,6 +292,44 @@ function manage(req, res){
 
 // Requests related to training sessions
 
+function new_session_get(req, res){
+	/**
+	*	Return the page for starting a new session
+	*/
+	if(req.session && req.session.acc_obj){
+		let acc_obj = req.session.acc_obj;
+		aux.get_links(acc_obj, null, (err, lids) => {
+			if(err){
+				ret_error(res, "se"); //TODO
+				return;
+			}
+			//let isuser = acc_obj.id[0] == "u";
+			let hbs_data = {
+				layout: "simple",
+				title: "New Session",
+				acc_obj: JSON.stringify(acc_obj),
+				//isuser: isuser,
+				linked_accounts: lids//JSON.stringify(lids)
+			};
+			const lang = req.acceptsLanguages(...aux.languages);
+			aux.get_locale_data(lang, (err, locale_data) => {
+				if(err){
+					ret_error(res, "se");
+					return;
+				}
+				// Combine all the data into one object for Handlebars
+				var all_data = {...hbs_data, ...locale_data};
+				// This is the step where handlebars injects the data
+				res.render("new_session", all_data);
+			});
+		});
+	}
+	else{
+		// Go to the login page
+		res.redirect("/account/login?redirect=/session/");
+	}
+}
+
 function new_session(req, res){
 	/**
 	*	Start a new training session
@@ -268,15 +344,15 @@ function new_session(req, res){
 	let tid = null;
 	let uid = null;
 	let ist = null;
-	if(body.id[0] == "t"){
+	if(req.body.id[0] == "t"){
 		ist = true;
-		tid = body.id;
-		uid = body.lid;
+		tid = req.body.id;
+		uid = req.body.lid;
 	}
-	else if(body.id[0] == "u"){
+	else if(req.body.id[0] == "u"){
 		ist = false;
-		tid = body.lid;
-		uid = body.id;
+		tid = req.body.lid;
+		uid = req.body.id;
 	}
 	else{
 		ret_error(res, "ife");
@@ -286,10 +362,11 @@ function new_session(req, res){
 	var oldSFile = aux.dbroot + "session/ongoing/" + tid + uid + ".ttsd";
 	fs.stat(oldSFile, function(err){
 		if(err){
-			if(err.code == "ENOENT"){
-				//Good.
+			if(err.code == "ENOENT"){ //Good.
+				// Save lid in the session
+				req.session.lid = req.body.lid;
 				if(ist){
-					ret_llt(res, body);
+					res.redirect("/session/llt");
 				}
 				else{
 					//Now add uid to lnusers
@@ -299,6 +376,7 @@ function new_session(req, res){
 						ts: Date.now()
 					};
 					aux.ln_add(link_data);
+					res.redirect("/session/llu");
 				}
 			}
 			else{
@@ -308,15 +386,37 @@ function new_session(req, res){
 		else{//There is a concurrent (or 'ghost') session
 			ret_error(res, "conses");
 		}
-	});	
+	});
 }
 
-function ret_llt(res, data){
-	//TODO
-}
-
-function ret_llu(res, data){
-	//TODO
+function ll_get(req, res){
+	/**
+	*	Return one of the LinkLoading pages
+	*/
+	if(req.session && req.session.acc_obj){
+		if(req.session.lid){
+			let id = req.session.acc_obj.id;
+			let lid = req.session.lid;
+			let isuser = id[0] == "u";
+			let hbs_data = {
+				layout: "simple",
+				title: "Loading Link",
+				id: id,
+				lid: lid
+			};
+			if(isuser)
+				res.render("llu", hbs_data);
+			else
+				res.render("llt", hbs_data);
+		}
+		else{
+			res.redirect("/session/");
+		}
+	}
+	else{
+		// Go to the login page
+		res.redirect("/account/login?redirect=/session/");
+	}
 }
 
 function llt(req, res){
@@ -327,29 +427,30 @@ function llt(req, res){
 	*		3. If not found, return "wait"
 	*			If found, create session and return start session page
 	*/
-	if(body.timeout){
-		ret_error(res, "toe");
-		return;
-	}
+	// TODO: Test to see if this crashes if there is no session
+	let id = req.session.acc_obj.id;
+	let lid = req.session.lid;
 	let link_data = {
-		uid: uid,
-		tid: tid
+		uid: lid,
+		tid: id
 	};
 	if(aux.ln_has(link_data)){
 		aux.ln_delete(link_data);
-		var sesFileName = aux.dbroot + "session/ongoing/"+ body.id + body.lid + ".ttsd";
+		var sesFileName = aux.dbroot + "session/ongoing/"+ id + "-" + lid + ".ttsd";
 		/*make a session file - this should only exist for the duration of the session.
 			when the session ends, rename and copy the file to an archive: db/session/archive
 		*/
 		fs.writeFile(sesFileName, "", function(err){
 			if(err)
-				ret_error(res, "fe");
+				res.send("err=fe");
+				//ret_error(res, "fe");
 			else
-				ret_start_sest(res, body);
+				res.send("next=sst");
+				//res.redirect("/session/sst");
 		});
 	}
 	else{
-		res.send("wait");
+		res.send("msg=wait");
 	}
 }
 
@@ -361,61 +462,87 @@ function llu(req, res){
 	*		3. If not found, return "wait"
 	*			If found, create session and return start session page
 	*/
-	if(body.reqType == 'leave' || body.reqType == 'timeout'){
+	let id = req.session.acc_obj.id;
+	let lid = req.session.lid;
+	if(req.body.reqType == 'leave' || req.body.reqType == 'timeout'){
 		//remove entry in lnusers
 		let link_data = {
-			uid: uid,
-			tid: tid
+			uid: id,
+			tid: lid
 		};
 		aux.ln_delete(link_data);
-		if(body.reqType == 'timeout'){
-			ret_error("toe");
-			return;
-		}
-		return;
+		return; // No response expected on leave
 	}
 	// See if the session file exists
-	var searchFile = aux.dbroot + "session/ongoing/"+ body.lid + body.id + ".ttsd";
+	var searchFile = aux.dbroot + "session/ongoing/"+ lid + "-" + id + ".ttsd";
 	fs.stat(searchFile, function(err, stats){
 		if(err == null){//File exists
-			ret_start_sesu(res, body);
+			res.send("next=ssu");
 		}
 		else if(err.code == "ENOENT"){//File does not exist
-			res.send("wait");
+			res.send("msg=wait");
 		}
 		else//Some other error
-			ret_error(res, "fe");
+			res.send("err=fe");
 	});
 }
 
-function ret_start_sest(res, data){
-	//TODO
-}
-
-function ret_start_sesu(res, data){
-	//TODO
-}
-
-function start_sest(req, res){
+function ss_get(req, res){
 	/**
-	*	Respond to POST requests for "/session/start_t"
+	*	Return one of the Start Session pages
 	*/
-	let sesFile = aux.dbroot + "session/ongoing/" + body.id + body.lid + ".ttsd";
+	if(req.session && req.session.acc_obj){
+		if(req.session.lid){
+			let id = req.session.acc_obj.id;
+			let lid = req.session.lid;
+			let isuser = id[0] == "u";
+			let hbs_data = {
+				layout: "simple",
+				title: "Link Successful",
+				id: id,
+				lid: lid
+			};
+			if(isuser)
+				res.render("ssu", hbs_data);
+			else
+				res.render("sst", hbs_data);
+		}
+		else{
+			res.redirect("/session/");
+		}
+	}
+	else{
+		// Go to the login page
+		res.redirect("/account/login?redirect=/session/");
+	}
+}
+
+function sst(req, res){
+	/**
+	*	Handle POST requests from "/session/sst"
+	*		1. If reqType == start, start session
+	*		2. If reqType == leave, delete session file
+	*/
+	let id = req.session.acc_obj.id;
+	let lid = req.session.lid;
+	let sesFile = aux.dbroot + "session/ongoing/" + id + "-" + lid + ".ttsd";
 	//If aborting, delete the session file.
 	//don't bother with archive because it hasn't even started yet
-	if(body.reqType == 'leave'){
+	if(req.body.reqType == 'leave'){
 		fs.unlink(sesFile, function(err){
 			if(err)
 				ret_error(res, "fe");
+			// The browser isn't actually listening
 		});
 	}
-	else{ //START pressed
+	else if(req.body.reqType == 'start'){ //START pressed
 		fs.stat(sesFile, function(err){
 			if(err){
 				if(err.code == "ENOENT"){
 					//user left (or magic ghosts deleted the file)
-					aux.debugShout("1284", 3);
-					ret_ended(res, body);
+					aux.db_log("1284", 2);
+					res.redirect("/session/session_ended");
+					//ret_ended(res, req.body);
 				}
 				else
 					ret_error(res, "fe");
@@ -429,86 +556,133 @@ function start_sest(req, res){
 						ret_error(res, "fe");
 						return;
 					}
-					ret_session_t(res, body);
+					res.redirect("/session/sest");
+					//ret_session_t(res, req.body);
 				});
 			}
 		});
 	}
 }
 
-function start_sesu(req, res){
+function ssu(req, res){
 	/**
-	*	Respond to POST requests for "/session/start_u"
+	*	Handle POST requests from "/session/ssu"
+	*		1. If reqType == started, check if session has started
+	*		2. If reqType == leave || timeout, delete the session
 	*/
-	let sesFile = aux.dbroot + "session/ongoing/" + body.lid + body.id + ".ttsd";
+	let id = req.session.acc_obj.id;
+	let lid = req.session.lid;
+	let sesFile = aux.dbroot + "session/ongoing/" + lid + "-" + id + ".ttsd";
+	
 	//end session - it has not started yet, so just delete it
-	if(body.reqType == 'leave' || body.reqType == 'timeout'){
+	if(req.body.reqType == 'leave' || req.body.reqType == 'timeout'){
 		fs.unlink(sesFile, function(err){
-			if(err){
+			// Not really listening
+			/*if(err){
 				ret_error(res, "fe");
 			}
-			else if(body.reqType == 'timeout'){
-				ret_ended(res, body);
-			}
+			else if(req.body.reqType == 'timeout'){
+				res.redirect("/session/session_ended");
+				//ret_ended(res, req.body);
+			}*/
 		});
 	}
-	else if(body.reqType == 'started'){
+	else if(req.body.reqType == 'started'){
 		// Check to see if the session has started
-		let searchFile = aux.dbroot + "session/ongoing/"+ body.lid + body.id + ".ttsd";
-		fs.readFile(searchFile, "utf8", function(err, sfdata){
+		fs.readFile(sesFile, "utf8", function(err, sfdata){
 			if(err){
 				if(err.code == "ENOENT")//trainer left
-					ret_ended(res, body);
+					res.send("next=session_ended");
 				else
-					ret_error("fe");
-					callback("fe");
+					res.send("err=fe");
 				return;
 			}
 			if(sfdata.indexOf("session started|") == -1){
-				res.send("wait");
+				res.send("msg=wait");
 				return;
 			}
-			//load level and points and start session
-			//TODO
-			aux.loadAcc(body.id, function(err, uData){
-				if(err){
-					ret_error(res, err);//anfe or ide
-					return;
-				}
-				if(body.lid == 'a'){
-					body.ntid = uData[8];
-					callback(null, "session", body);
-				}
-				else{
-					// TODO: Populate the hbs_data object
-					var ru_settings = uData[7].split(","); //(RS,AITI,SMPR,PTIR,FLASH)
-					if(ru_settings[4] == "YES")
-						body.flash = true;
-					else//This could be a moment to check if it says NO or if there's an error
-						body.flash = false;
-					var startLPEntry = "\nstarting user l,p,c|"+ lpc[0]+","+lpc[1]+","+lpc[2];
-					fs.appendFile(searchFile, startLPEntry, function(err){
-						if(err){
-							callback("fe");
-							return;
-						}
-						//current session file length (just two/three lines)
-						//TO DO: fix so it won't continue an immediately terminated session.
-						body.sesL = sfdata.length + startLPEntry.length;
-						ret_sesu(res, body);
-					});
-				}
-			});
+			if(lid == 'a'){
+				res.send("next=sesu");
+			}
+			else{
+				//Add the Starting l,p,c line to the session file
+				let level = req.session.acc_obj.level;
+				let points = req.session.acc_obj.points;
+				let coins = req.session.acc_obj.coins;
+				let startLPCEntry = "\nstarting user l,p,c|"+ level +","+ points +","+ coins;
+				fs.appendFile(sesFile, startLPCEntry, function(err){
+					if(err){
+						res.send("err=fe");
+						return;
+					}
+					//TO DO: fix so it won't continue an immediately terminated session.
+					//current session file length (just two/three lines)
+					req.session.sesL += startLPCEntry.length;
+					res.send("next=sesu");
+				});
+			}
 		});
 	}
 }
 
-function ret_ended(res, data){
-	//TODO
+function ses_get(req, res){
+	/**
+	*	Return either Session-trainer or Session-user
+	*/
+	if(req.session && req.session.acc_obj){
+		let acc_obj = req.session.acc_obj;
+		if(req.session.lid){
+			let id = req.session.acc_obj.id;
+			let lid = req.session.lid;
+			let isuser = id[0] == "u";
+			let hbs_data = {
+				layout: "simple",
+				title: "Training Session"
+			};
+			if(isuser){
+				hbs_data.acc_obj = JSON.stringify(acc_obj),
+				hbs_data.sesL = req.session.sesL;
+				hbs_data.ncr = acc_obj.RS == "ncr";
+				hbs_data.none = acc_obj.RS == "none";
+				hbs_data.reg = acc_obj.RS == "reg";
+				res.render("sesu", hbs_data);
+			}
+			else
+				res.render("sest", hbs_data);
+		}
+		else{
+			res.redirect("/session/");
+		}
+	}
+	else{
+		// Go to the login page
+		res.redirect("/account/login?redirect=/session/");
+	}
 }
 
-function ret_session_t(res, data){
-	//TODO
+function sest(req, res){
+	/**
+	*	Handle POST requests from the Session-trainer page
+	*/
 }
 
-//TODO: sest & sesu
+function sesu(req, res){
+	/**
+	*	Handle POST requests from the Session-user page
+	*/
+	
+}
+
+function session_ended(req, res){
+	/**
+	*	Handle GET requests for the Session Ended page
+	*/
+	
+}
+
+function gj_settings(req, res){
+	/**
+	*	Return the settings.json file
+	*/
+	res.sendFile(aux.mainroot + "/settings.json");
+}

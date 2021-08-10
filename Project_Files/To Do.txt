@@ -1,7 +1,6 @@
-To Do: (priority,difficulty) (0-5,0-5) 
+To Do: (priority,difficulty) (0-5,0-5)
 IN PROGRESS:
-- Manage account w/ session.acc_obj
-- New session dropdown using session.acc_obj
+- Session overhaul
 - translation
 
 FUNCTIONAL:
