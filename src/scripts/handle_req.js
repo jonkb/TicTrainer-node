@@ -8,6 +8,7 @@ const scriptsroot = __dirname;
 const aux = require(scriptsroot+"/auxiliary.js");
 
 module.exports.root = root;
+module.exports.err_get = err_get;
 module.exports.login_get = login_get;
 module.exports.login = login;
 module.exports.logout = logout;
@@ -60,6 +61,16 @@ function ret_error(res, err, redirect){
 		res.render("error", hbs_data);
 		//TODO: Handle other errors better
 	}
+}
+
+function err_get(req, res){
+	/**
+	*	Handle GET requests for error pages
+	*/
+	
+	let err = req.path.slice(req.path.lastIndexOf("/")+1);
+	//TODO: allow redirect in the query?
+	ret_error(res, err)
 }
 
 function root(req, res){
@@ -270,18 +281,19 @@ function manage(req, res){
 			});
 		}
 		else{ //editP
-			data = {
+			let data = {
 				id: acc_obj.id,
-				key: "password",
-				val: req.body.pw
+				edits: {
+					"password": req.body.pw
+				}
 			}
-			aux.edit_account(data, con, (err, val) => {
+			aux.edit_account(data, con, (err, new_pwh) => {
 				if(err){
 					ret_error(res, err);
 					return;
 				}
 				// Update the cookie to reflect the change
-				req.session.acc_obj.pwh = val;
+				req.session.acc_obj.pwh = new_pwh;
 				//console.log(`216: ${val}`)
 				// Reload the account manage page
 				res.redirect("/account/manage");
@@ -341,34 +353,22 @@ function new_session(req, res){
 	*				Add ids to set of lnusers
 	*				Return user link loading page
 	*/
-	let tid = null;
-	let uid = null;
-	let ist = null;
-	if(req.body.id[0] == "t"){
-		ist = true;
-		tid = req.body.id;
-		uid = req.body.lid;
-	}
-	else if(req.body.id[0] == "u"){
-		ist = false;
+	let tid = req.body.id;
+	let uid = req.body.lid;
+	let isuser = false;
+	if(req.body.id[0] == "u"){
+		isuser = true;
 		tid = req.body.lid;
 		uid = req.body.id;
 	}
-	else{
-		ret_error(res, "ife");
-		return;
-	}
+	let sesFile = aux.dbroot + "session/ongoing/" + tid + "-" + uid + ".ttsd";
 	// Note: is this really the right time to check for conses?
-	var oldSFile = aux.dbroot + "session/ongoing/" + tid + uid + ".ttsd";
-	fs.stat(oldSFile, function(err){
+	fs.stat(sesFile, function(err){
 		if(err){
 			if(err.code == "ENOENT"){ //Good.
 				// Save lid in the session
 				req.session.lid = req.body.lid;
-				if(ist){
-					res.redirect("/session/llt");
-				}
-				else{
+				if(isuser){
 					//Now add uid to lnusers
 					let link_data = {
 						uid: uid,
@@ -377,6 +377,9 @@ function new_session(req, res){
 					};
 					aux.ln_add(link_data);
 					res.redirect("/session/llu");
+				}
+				else{
+					res.redirect("/session/llt");
 				}
 			}
 			else{
@@ -523,6 +526,7 @@ function sst(req, res){
 	*		1. If reqType == start, start session
 	*		2. If reqType == leave, delete session file
 	*/
+	
 	let id = req.session.acc_obj.id;
 	let lid = req.session.lid;
 	let sesFile = aux.dbroot + "session/ongoing/" + id + "-" + lid + ".ttsd";
@@ -664,13 +668,222 @@ function sest(req, res){
 	/**
 	*	Handle POST requests from the Session-trainer page
 	*/
+	let id = req.session.acc_obj.id;
+	let lid = req.session.lid;
+	let sesFile = aux.dbroot + "session/ongoing/" + id + "-" + lid + ".ttsd"; //TODO: a for admin
+	
+	console.log(672, req.body);
+	
+	switch(req.body.reqType){
+		case "tic":
+			var tEntry = "\ntic detected|" +aux.time();
+			fs.stat(sesFile, function(err, stats){
+				if(err == null){//File exists
+					fs.appendFile(sesFile, tEntry, function(err){
+						if(err)
+							res.send("err=fe");
+						else{
+							res.send("msg=good");
+						}
+					});
+				}
+				//File does not exist.
+				//This happens when the user has ended the session already
+				else if(err.code == "ENOENT"){
+					endses();
+				}
+				else//Some other error
+					res.send("err=fe");
+			});
+			break;
+		case "end":
+			aux.db_log("SE-T");
+			var eEntry = "\nsession ended|"+aux.time();
+			fs.stat(sesFile, function(err, stats){
+				if(err == null){//File exists
+					aux.db_log("586", 2);
+					//should I also archive it? No, the user needs to save their new points and level
+					fs.appendFile(sesFile, eEntry, function(err){
+						if(err)
+							res.send("err=fe");
+						else{
+							endses();
+						}
+					});
+				}
+				//File does not exist. 
+				//This happens if the user has ended the session already
+				else if(err.code == "ENOENT"){
+					endses();
+				}
+				else{//Some other error
+					res.send("err=fe");
+				}
+			});
+			break;
+		default:
+			aux.db_log("679: Unknown request");
+	}
+	function endses(){
+		// TODO
+		aux.build_endses_report(lid, id, null, (err, report) => {
+			if(err){
+				res.send("err=fe");
+				return;
+			}
+			var data = {
+				type: "t",
+				report: report
+			};
+			console.log(268, data);
+			res.send("next=session_ended");
+			//ret.tt_session_ended(res, data);
+		});
+	}
 }
 
 function sesu(req, res){
 	/**
 	*	Handle POST requests from the Session-user page
 	*/
+	let id = req.session.acc_obj.id;
+	let lid = req.session.lid;
+	let sesFile = aux.dbroot + "session/ongoing/" + lid + "-" + id + ".ttsd"; //TODO: a for admin
 	
+	console.log(748, req.body);
+	
+	switch(req.body.reqType){
+		case "check":
+			//Check the session file here for tic detected or session ended
+			var oldL = req.body.sesL;
+			fs.readFile(sesFile, "utf8", function(err, data){
+				if(err){
+					console.log(756, err);
+					res.json({err: "fe"});
+					return;
+				}
+				var newL = data.length;
+				aux.db_log("old: "+oldL+"new:"+newL+"sub: "+data.slice(oldL+1));
+				var entries = data.slice(oldL).split("\n");// = cut off first ""\n
+				aux.db_log("deltadata == "+entries);
+				var retMessage = {
+					newL: data.length,
+					tics: 0,
+					end: false
+				};
+				for(i = 1; i<entries.length; i++){//i=1 cut off first ""\n
+					var entryType = entries[i].split("|")[0];//First part
+					switch(entryType){
+						case "tic detected":
+							retMessage.tics++;
+							break;
+						case "session ended":
+							retMessage.end = true;
+							break;
+						case "user l,p,c":
+							break;
+						default:
+							aux.db_log("Unknown session file entry");
+							break;
+					}
+				}
+				res.json(retMessage);
+			});
+			break;
+		case "end":
+			aux.db_log("SE-U");
+			let data = {
+				id: id,
+				pwh: req.session.acc_obj.pwh,
+				edits: {
+					"level": req.body.level,
+					"points": req.body.points,
+					"coins": req.body.coins
+					//TODO: best tfi
+				}
+			}
+			aux.edit_account(data, null, (err) => {
+				if(err){
+					console.log(802, err);
+					res.json({err: "se"});
+					return;
+				}
+				//End and archive session
+				fs.readFile(sesFile, "utf8", function(err, sData){
+					if(err){
+						console.log(809);
+						res.json({err: "fe"});
+						return;
+					}
+					if(sData.indexOf("session ended") == -1){
+						//The session still needs to be ended
+						var eEntry = "\nsession ended|"+aux.time();
+						fs.appendFile(sesFile, eEntry, function(err){
+							if(err){
+								res.json({err: "fe"});
+								return;
+							}
+							aux.archiveSession(sesFile, function(err, report){
+								if(err){
+									res.json({err: err});
+									return;
+								}
+								res.json({next: "session_ended"});
+							});
+						});
+					}
+					else{
+						aux.archiveSession(sesFile, function(err, report){
+							if(err){
+								console.log(833);
+								res.json({err: err});
+								return;
+							}
+							// TODO: session ended page with report
+							res.json({next: "session_ended"});
+						});
+					}
+				});
+			});
+			break;
+		case "loglpc"://id, pass, l,p,c
+			//Append to session file and edit user file.
+			//Return an error if the session file doesn't exist.
+			fs.access(sesFile, function(err){
+				if(err){
+					console.log(854);
+					res.json({err: "fe"});
+					return;
+				}
+				var newlpc = req.body.level +","+ req.body.points +","+ req.body.coins;
+				var lpcEntry = "\nuser l,p,c|" +newlpc+ "|" +aux.time();
+				fs.appendFile(sesFile, lpcEntry, function(err){
+					if(err){
+						console.log(861);
+						res.json({err: "fe"});
+						return;
+					}
+					let data = {
+						id: id,
+						pwh: req.session.acc_obj.pwh,
+						edits: {
+							"level": req.body.level,
+							"points": req.body.points,
+							"coins": req.body.coins
+						}
+					}
+					aux.edit_account(data, null, (err) => {
+						if(err){
+							console.log(875); // This is happening
+							res.json({err: "se"});
+							return;
+						}
+						res.end();
+					});
+				});
+			});
+			break;
+	}
 }
 
 function session_ended(req, res){

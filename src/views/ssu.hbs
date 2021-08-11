@@ -11,7 +11,8 @@
 		"tryN" : 0,
 		"max_tries" : 30,
 		"period" : 2000,
-		"already_left" : false
+		"already_left" : false,
+		"next" : false
 	};
 	window.onbeforeunload = leave;
 	window.onpagehide = leave;
@@ -39,6 +40,7 @@
 							break;
 						case "next":
 							cleanup();
+							ss_vars.next = true;
 							if(resParts[1] == "sesu")
 								window.location.href = "/session/sesu";
 							else if(resParts[1] == "session_ended")
@@ -48,6 +50,7 @@
 							break;
 						case "err":
 							cleanup();
+							ss_vars.next = true;
 							window.location.href = "/error/"+resParts[1];
 							break;
 						default:
@@ -75,7 +78,7 @@
 		/**
 		*	Called if the user closes the tab
 		*/
-		if(!ss_vars.already_left){
+		if(!(ss_vars.next || ss_vars.already_left)){
 			cleanup();
 			var xhr = new XMLHttpRequest();
 			var reqBody = 'reqType=leave';

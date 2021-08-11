@@ -41,6 +41,7 @@ app.use(cookieSession(ckses_options));
 
 // Define responses for specific requests
 app.get("/", hrq.root);
+app.get("/error/*", hrq.err_get);
 // Requests related to accounts (registration, login, manage account)
 app.post("/register/user.html", hrq.register_user);
 app.post("/register/trainer.html", hrq.register_trainer);
@@ -67,7 +68,7 @@ app.post("/session/sesu", hrq.sesu);
 app.get("/session/session_ended", hrq.session_ended);
 
 // gj: Get JSON. API for requesting certain JSON files
-app.get("/gj/settings.gj", hrq.gj_settings);
+app.get("/gj/settings.json", hrq.gj_settings);
 
 //TODO
 

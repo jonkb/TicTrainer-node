@@ -5,8 +5,10 @@
 // Import modules
 const crypto = require("crypto");
 const fs = require("fs");
-const mainroot = __dirname + "/..";
+const path = require("path");
+const mainroot = path.join(__dirname, "/..");
 const scriptsroot = __dirname;
+const dbroot = mainroot + "/db/";
 const settings = JSON.parse(fs.readFileSync(mainroot+"/settings.json"));
 // Functions for reading and writing to the database
 const sql = require(scriptsroot+"/mysql.js")
@@ -36,7 +38,7 @@ module.exports.settings = settings;
 module.exports.languages = languages;
 module.exports.err_types = err_types;
 module.exports.err_titles = err_titles;
-module.exports.dbroot = mainroot + "/db/";
+module.exports.dbroot = dbroot;
 module.exports.mainroot = mainroot;
 /**
 *	Exported functions
@@ -53,6 +55,8 @@ module.exports.login = login;
 module.exports.edit_account = edit_account;
 module.exports.get_links = get_links;
 module.exports.add_link = add_link;
+
+module.exports.build_endses_report = build_endses_report; //TODO
 
 function id_to_N(id){
 	var N36 = id.slice(1);
@@ -334,10 +338,25 @@ function edit_account(data, con, callback){
 	/**
 	*	Edit an account
 	*		data.id = uid
-	*		data.key = field name (e.g. is_coder) Must be in editable_fields
-	*		data.val = new value
+	*		data.edits = {key1:val1, key2:val2, ...}
+	*			key = field name (e.g. is_coder) Must be in editable_fields
+	*			val = new value
 	*		con = sql connection (from login)
+	*		data.pw = pw || data.pwh = pwh (if no con)
 	*/
+	
+	if(!con){
+		// Create a connection if none was provided
+		login(data, (err, acc_obj, con) => {
+			if(err){
+				callback(err);
+				return;
+			}
+			edit_account(data, con, callback);
+		});
+		return;
+	}
+	
 	//TODO: refactor for editing mutiple values at once. data.edits = {k1:v1, k2:v2, ...}
 	let editable_fields, table;
 	switch(data.id[0]){
@@ -353,22 +372,29 @@ function edit_account(data, con, callback){
 			editable_fields = admin_editable_fields;
 			table = "admins";
 	}
-	if(editable_fields.indexOf(data.key) == -1){
-		callback("se");
-		return;
-	}
-	if(data.key == "password"){
-		data.key = "password_hash";
-		let pwh = crypto.createHash("sha256");
-		pwh.update(sql.esc(data.val));
-		data.val = pwh.digest();
-	}
-	let key = sql.esc(data.key).slice(1,-1);
-	let val = sql.esc(data.val);
+	let new_pwh = false; // If updating pwh, then return the new hash
 	let idN = sql.esc(id_to_N(data.id));
-	let update_query = `UPDATE ${table}
-SET ${key} = ${val}
-WHERE ID = ${idN}`;
+	let update_query = `UPDATE ${table}`;
+	for(let key in data.edits){
+		if(editable_fields.indexOf(key) == -1){
+			callback("se");
+			return;
+		}
+		let val = data.edits[key];
+		if(key == "password"){
+			key = "password_hash";
+			let pwh = crypto.createHash("sha256");
+			pwh.update(sql.esc(val));
+			val = pwh.digest();
+			new_pwh = sql.esc(val);
+		}
+		key = sql.esc(key).slice(1,-1);
+		val = sql.esc(val);
+		update_query += `\nSET ${key} = ${val}`;
+	}
+	update_query += `\nWHERE ID = ${idN}`;
+	db_log(update_query);
+	
 	con.query(update_query, (err, result) => {
 		if(err){
 			callback(err);
@@ -376,7 +402,10 @@ WHERE ID = ${idN}`;
 		}
 		// TODO: Check to see if it worked & return new acc_obj
 		db_log(result);
-		callback(null, data.val);
+		if(new_pwh)
+			callback(null, new_pwh);
+		else
+			callback(null);
 	});
 }
 
@@ -384,9 +413,11 @@ function get_links(data, con, callback){
 	/**
 	*	Get the links associated with this account.
 	*		data.id = uid
-	*		body.pw = pw || body.pwh = pwh (if no con)
+	*		data.pw = pw || data.pwh = pwh (if no con)
 	*/
+	
 	if(!con){
+		// Create a connection if none was provided
 		login(data, (err, acc_obj, con) => {
 			if(err){
 				callback(err);
@@ -396,6 +427,7 @@ function get_links(data, con, callback){
 		});
 		return;
 	}
+	
 	let isuser = data.id[0] == "u";
 	let lid_type = isuser ? "t" : "u";
 	let id = sql.esc(id_to_N(data.id));
@@ -459,4 +491,80 @@ VALUES (${tidN}, ${uidN})`;
 		//db_log("Link insert result: " + result.toString());
 		callback();
 	});
+}
+
+function build_endses_report(uid, tid, report, callback){
+	/**
+	*	Load the user's data to know the personal best and load the report if needed.
+	*		Then combine that info into a single report object.
+	*	uid: user id
+	*	tid: trainer id (Provide if report not provided)
+	*	report: The text of the session report. When the user ends, it has the report text,
+	*		but the trainer needs to load it from the archived file.
+	*/
+	//TODO: Personal best not yet implemented
+	if(report){
+		var obj = report_to_obj(report);
+		//TODO: Add personal best
+		callback(null, obj);
+		return;
+	}
+	console.log(760, uid, tid);
+	// Search for, load, and parse the archived session file
+	const archive_dname = dbroot + "session/archive";
+	// Poll repeatedly to see if the user has archived the session yet
+	const maxtries = 30;
+	const interval = 1000;
+	var tries = 0;
+	var timer = setInterval(check, interval);
+	function check(){
+		tries++;
+		if(tries > maxtries){
+			clearInterval(timer);
+			callback(null, {});
+			return;
+		}
+		var now = new Date();
+		fs.readdir(archive_dname, (err, files) => {
+			if(err){
+				clearInterval(timer);
+				callback("se");
+				return;
+			}
+			for(const i in files){
+				var file = files[i];
+				//This is terribly inefficient. Oh well.
+				//TODO: also check uid & tid
+				fileparts = file.split("_");
+				if(fileparts.length < 2)
+					continue;
+				if(fileparts[0] != tid+uid)
+					continue;
+				console.log(792, file);
+				var datetime = fileparts[1]; //YYYYMMDD-hhmmss
+				var dtparts = datetime.split("-");
+				var ISOdt = dtparts[0].slice(0,4) + "-" + dtparts[0].slice(4,6) + "-" 
+				ISOdt += dtparts[0].slice(6,8) + "T" + dtparts[1].slice(0,2) + ":" 
+				ISOdt += dtparts[1].slice(2,4) + ":" + dtparts[1].slice(4,6) + ".000Z";
+				var fdate = new Date(ISOdt);
+				if(Math.abs(fdate - now) < 30*1000){
+					//This file was archived within 30s of now
+					clearInterval(timer);
+					load_report(file);
+					return;
+				}
+			}
+		});
+	}
+	function load_report(file){
+		fs.readFile(archive_dname + "/" + file, "utf8", (err, data) => {
+			if(err){
+				callback("se");
+				return;
+			}
+			var report_text = data.split("Report:")[1];
+			console.log(791, file, report_text);
+			callback(null, report_to_obj(report_text));
+		});
+	}
 }

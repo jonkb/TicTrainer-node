@@ -25,6 +25,7 @@
 <!--For genHeap-->
 <script src="/scripts/store.js"></script>
 <script>
+	var url = "/session/sesu";
 	var already_left = false;
 	
 	window.onbeforeunload = endS;
@@ -100,61 +101,53 @@
 		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		xhr.onreadystatechange = function(){
 			if(xhr.readyState == 4){//4: request finished & response ready - readystate codes:http://www.w3schools.com/ajax/ajax_xmlhttprequest_onreadystatechange.asp
-				if(xhr.status == 200){
-					var tic = 0;
-					var end = 0;
-					var fields = xhr.responseText.split('&');
-					ses_vars.lastL = fields[0];//The first field is the newest length of the session file.
-					for(i=1; i<fields.length; i++){
-						if(fields[i] == 'tic') tic++;
-						if(fields[i] == 'end') end++;
-					}
-					if(end == 0){
+				let res_obj = JSON.parse(xhr.responseText);
+				if(res_obj.err){
+					cleanup();
+					already_left = true;
+					window.location.href = "/error/"+res_obj.err;
+				}
+				else if(res_obj.end){
+					endS();
+				}
 {{#unless none}} //If reward scheme is none, delete this block of code
-						
+				else{
 {{#if ncr}}
-						//Alternative reward scheme
-						//Uses the random ticcer
-						if(!ncr_tic())
+					//Alternative reward scheme
+					//Uses the random ticcer
+					if(!ncr_tic())
 {{else}}
-						//Standard reward scheme
-						if(tic == 0)
+					//Standard reward scheme
+					if(res_obj.tics == 0)
 {{/if}}
-						{
-							ses_vars.framesSince++;
-							if(ses_vars.framesSince >= (ses_vars.level * ses_vars.starting_ms_per_reward / ses_vars.mspf)){
-								// Now, (level) seconds have passed since the last reward/tic, so it is time to give reward
-								ses_vars.framesSince = 0;
-								if(ses_vars.rewards_since_increment >= ses_vars.period_to_increment_rate){
-									ses_vars.rewards_since_increment = 0;
-									if(ses_vars.rate < ses_vars.cap){
-										ses_vars.rate += ses_vars.level*ses_vars.level;
-										if(ses_vars.rate > ses_vars.cap)//Overshot
-											ses_vars.rate = ses_vars.cap;
-									}
+					{
+						ses_vars.framesSince++;
+						if(ses_vars.framesSince >= (ses_vars.level * ses_vars.starting_ms_per_reward / ses_vars.mspf)){
+							// Now, (level) seconds have passed since the last reward/tic, so it is time to give reward
+							ses_vars.framesSince = 0;
+							if(ses_vars.rewards_since_increment >= ses_vars.period_to_increment_rate){
+								ses_vars.rewards_since_increment = 0;
+								if(ses_vars.rate < ses_vars.cap){
+									ses_vars.rate += ses_vars.level*ses_vars.level;
+									if(ses_vars.rate > ses_vars.cap)//Overshot
+										ses_vars.rate = ses_vars.cap;
 								}
-								ses_vars.points += ses_vars.rate;
-								ses_vars.rewards_since_increment++;
-								
-								if(ses_vars.points > ses_vars.nextLevel)
-									levelUp();
-								loglpc();//record the new points (it changed)
-								update_display();
 							}
-						}
-						else{
-							ticTrigger();
+							ses_vars.points += ses_vars.rate;
+							ses_vars.rewards_since_increment++;
+							
+							if(ses_vars.points > ses_vars.nextLevel)
+								levelUp();
+							loglpc();//record the new points (it changed)
 							update_display();
 						}
-{{/unless}}
 					}
-					else{ endS(); }
+					else{
+						ticTrigger();
+						update_display();
+					}
 				}
-				else{//For an Error Page
-					var response = xhr.responseText;
-					//console.log("172: "+response)
-					endS(response);
-				}//ERROR
+{{/unless}}
 			}
 		};
 		xhr.send(reqBody);
@@ -185,18 +178,26 @@
 		if(!already_left){
 			already_left = true;
 			var xhr = new XMLHttpRequest();
-			var reqBody = 'reqType=end&level='
-			reqBody += ses_vars.level+'&points='+ses_vars.points+'&coins='+ses_vars.coins;
+			var reqBody = 'reqType=end&level='+ses_vars.level+'&points=';
+			reqBody += ses_vars.points+'&coins='+ses_vars.coins;
 			cleanup();
 			xhr.open('POST', url, true);
 			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 			xhr.onreadystatechange = function(){
 				if(xhr.readyState == 4){
-					var response = xhr.responseText;
-					document.open();
-					if(err_page){ document.write(err_page); }
-					else{ document.write(response); }
-					document.close();
+					let res_obj = JSON.parse(xhr.responseText);
+					if(res_obj.err){
+						window.location.href = "/error/"+res_obj.err;
+					}
+					else if(res_obj.next){
+						if(res_obj.next == "session_ended"){
+							//TODO: Session Ended Page
+							window.location.href = "/session/session_ended";
+						}
+						else{
+							alert("Unknown response from server");
+						}
+					}
 				}
 			}
 			xhr.send(reqBody);
@@ -224,16 +225,18 @@
 	*/
 	function loglpc(){
 		var xhr = new XMLHttpRequest();
-		//Needed: reqType, id, pw, lid, l, p, c
-		var reqBody = 'reqType=loglpc&level='
-		reqBody += ses_vars.level+'&points='+ses_vars.points+'&coins='+ses_vars.coins;
+		//Needed: reqType, l, p, c
+		var reqBody = 'reqType=loglpc&level='+ses_vars.level+'&points=';
+		reqBody += ses_vars.points+'&coins='+ses_vars.coins;
 		xhr.open('POST', url, true);
 		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		xhr.onreadystatechange = function(){
 			if(xhr.readyState == 4){
-				if(xhr.status != 200){//Display Error Page
-					var response = xhr.responseText;
-					endS(response);
+				let res_obj = JSON.parse(xhr.responseText);
+				if(res_obj.err){
+					cleanup();
+					already_left = true;
+					window.location.href = "/error/"+res_obj.err;
 				}
 			}
 		}

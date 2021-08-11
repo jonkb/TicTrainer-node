@@ -59,18 +59,25 @@
 		var reqBody = 'reqType=tic';
 		xhr.onreadystatechange = function(){
 			if(xhr.readyState == 4){//just check that everything is fine
-				var response = xhr.responseText;
-				if(xhr.status != 200){//Error
-					document.open();
-					document.write(response);
-					document.close();
-				}
-				else{
-					if(response != 'good'){//end page
-						document.open();
-						document.write(response);
-						document.close();
-					}
+				let resParts = xhr.responseText.split("=");
+				switch(resParts[0]){
+					case "msg":
+						if(resParts[1] != "good")
+							alert("Unknown response from server");
+						break;
+					case "next":
+						cleanup();
+						if(resParts[1] == "session_ended")
+							window.location.href = "/session/session_ended";
+						else
+							alert("Unknown response from server");
+						break;
+					case "err":
+						cleanup();
+						window.location.href = "/error/"+resParts[1];
+						break;
+					default:
+						alert("Unknown response from server");
 				}
 			}
 		};
@@ -84,10 +91,22 @@
 			var reqBody = 'reqType=end';
 			xhr.onreadystatechange = function(){
 				if(xhr.readyState == 4){//just check that everything is fine
-					var response = xhr.responseText;
-					document.open();
-					document.write(response);
-					document.close();
+					let resParts = xhr.responseText.split("=");
+					switch(resParts[0]){
+						case "next":
+							cleanup();
+							if(resParts[1] == "session_ended")
+								window.location.href = "/session/session_ended";
+							else
+								alert("Unknown response from server");
+							break;
+						case "err":
+							cleanup();
+							window.location.href = "/error/"+resParts[1];
+							break;
+						default:
+							alert("Unknown response from server");
+					}
 				}
 			};
 			xhr.open('POST', url, true);
