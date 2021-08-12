@@ -9,6 +9,7 @@ const aux = require(scriptsroot+"/auxiliary.js");
 
 module.exports.root = root;
 module.exports.err_get = err_get;
+module.exports.ghses = ghses;
 module.exports.login_get = login_get;
 module.exports.login = login;
 module.exports.logout = logout;
@@ -28,13 +29,19 @@ module.exports.ses_get = ses_get;
 module.exports.sest = sest;
 module.exports.sesu = sesu;
 module.exports.gj_settings = gj_settings;
-module.exports.session_ended = session_ended;
+module.exports.session_ended_get = session_ended_get;
 
 
 function ret_error(res, err, redirect){
 	/**
 	*	Return an error page
 	*/
+	
+	let default_redirect = "/";
+	if(err == "conses"){
+		default_redirect = "/session/";
+	}
+	redirect = redirect || default_redirect;
 	
 	let hbs_data = {
 		layout: "simple",
@@ -63,14 +70,63 @@ function ret_error(res, err, redirect){
 	}
 }
 
-function err_get(req, res){
+function err_get(req, res, next){
 	/**
 	*	Handle GET requests for error pages
 	*/
 	
 	let err = req.path.slice(req.path.lastIndexOf("/")+1);
-	//TODO: allow redirect in the query?
-	ret_error(res, err)
+	if(err.slice(-5) == ".html"){
+		// Process a normal GET
+		next();
+	}
+	else{
+		//TODO: allow redirect in the query?
+		ret_error(res, err);
+	}
+}
+
+function ghses(req, res){
+	/**
+	*	Handle POST requests from the Ghost Session Termination page
+	*/
+	
+	let credentials = {
+		id: req.body.tid,
+		pw: req.body.pw
+	}
+	aux.login(credentials, (err, acc_obj, con) => {
+		if(err){
+			ret_error(err);
+			return;
+		}
+		let tid = req.body.tid;
+		if(tid[0] == 'a'){
+			tid = 'a';
+		}
+		var sesFile = aux.dbroot + "session/ongoing/"+ tid + "-" + req.body.uid + ".ttsd";
+		fs.stat(sesFile, function(err){
+			if(err){
+				if(err.code == "ENOENT"){//already deleted
+					res.redirect("/session/");
+				}
+				else{
+					ret_error("fe");
+				}
+			}
+			else{//legit ghost file
+				aux.archiveSession(sesFile, function(err, report){
+					if(err){
+						ret_error(err);
+						return;
+					}
+					res.redirect("/session/");
+					aux.log_error("ghost session", "ghost session archived between "+tid+" and "+req.body.uid);
+				});
+			}
+		});
+		
+	});
 }
 
 function root(req, res){
@@ -287,13 +343,13 @@ function manage(req, res){
 					"password": req.body.pw
 				}
 			}
-			aux.edit_account(data, con, (err, new_pwh) => {
+			aux.edit_account(data, con, (err, acc_obj) => {
 				if(err){
 					ret_error(res, err);
 					return;
 				}
 				// Update the cookie to reflect the change
-				req.session.acc_obj.pwh = new_pwh;
+				req.session.acc_obj = acc_obj;
 				//console.log(`216: ${val}`)
 				// Reload the account manage page
 				res.redirect("/account/manage");
@@ -621,7 +677,8 @@ function ssu(req, res){
 					}
 					//TO DO: fix so it won't continue an immediately terminated session.
 					//current session file length (just two/three lines)
-					req.session.sesL += startLPCEntry.length;
+					req.session.sesL = sfdata.length + startLPCEntry.length;
+					//req.session.sesL += startLPCEntry.length;
 					res.send("next=sesu");
 				});
 			}
@@ -690,7 +747,7 @@ function sest(req, res){
 				//File does not exist.
 				//This happens when the user has ended the session already
 				else if(err.code == "ENOENT"){
-					endses();
+					res.send("next=session_ended");
 				}
 				else//Some other error
 					res.send("err=fe");
@@ -698,6 +755,7 @@ function sest(req, res){
 			break;
 		case "end":
 			aux.db_log("SE-T");
+			req.session.lid = null; // Blocks access to the active session pages
 			var eEntry = "\nsession ended|"+aux.time();
 			fs.stat(sesFile, function(err, stats){
 				if(err == null){//File exists
@@ -707,14 +765,14 @@ function sest(req, res){
 						if(err)
 							res.send("err=fe");
 						else{
-							endses();
+							res.send("next=session_ended");
 						}
 					});
 				}
 				//File does not exist. 
 				//This happens if the user has ended the session already
 				else if(err.code == "ENOENT"){
-					endses();
+					res.send("next=session_ended");
 				}
 				else{//Some other error
 					res.send("err=fe");
@@ -723,22 +781,6 @@ function sest(req, res){
 			break;
 		default:
 			aux.db_log("679: Unknown request");
-	}
-	function endses(){
-		// TODO
-		aux.build_endses_report(lid, id, null, (err, report) => {
-			if(err){
-				res.send("err=fe");
-				return;
-			}
-			var data = {
-				type: "t",
-				report: report
-			};
-			console.log(268, data);
-			res.send("next=session_ended");
-			//ret.tt_session_ended(res, data);
-		});
 	}
 }
 
@@ -792,6 +834,7 @@ function sesu(req, res){
 			break;
 		case "end":
 			aux.db_log("SE-U");
+			req.session.lid = null; // Blocks access to the active session pages
 			let data = {
 				id: id,
 				pwh: req.session.acc_obj.pwh,
@@ -802,12 +845,14 @@ function sesu(req, res){
 					//TODO: best tfi
 				}
 			}
-			aux.edit_account(data, null, (err) => {
+			aux.edit_account(data, null, (err, acc_obj) => {
 				if(err){
 					console.log(802, err);
 					res.json({err: "se"});
 					return;
 				}
+				// Update the cookie to reflect the change
+				req.session.acc_obj = acc_obj;
 				//End and archive session
 				fs.readFile(sesFile, "utf8", function(err, sData){
 					if(err){
@@ -839,7 +884,7 @@ function sesu(req, res){
 								res.json({err: err});
 								return;
 							}
-							// TODO: session ended page with report
+							// TODO: session ended page with report (xhr to load)
 							res.json({next: "session_ended"});
 						});
 					}
@@ -872,13 +917,15 @@ function sesu(req, res){
 							"coins": req.body.coins
 						}
 					}
-					aux.edit_account(data, null, (err) => {
+					aux.edit_account(data, null, (err, acc_obj) => {
 						if(err){
-							console.log(875); // This is happening
-							res.json({err: "se"});
+							console.log(875, err); // This is happening
+							res.json({err: err});
 							return;
 						}
-						res.end();
+						// Update the cookie to reflect the change
+						req.session.acc_obj = acc_obj;
+						res.json({ msg: "good" });
 					});
 				});
 			});
@@ -886,11 +933,35 @@ function sesu(req, res){
 	}
 }
 
-function session_ended(req, res){
+function session_ended_get(req, res){
 	/**
 	*	Handle GET requests for the Session Ended page
 	*/
-	
+	if(req.session && req.session.acc_obj){
+		let acc_obj = req.session.acc_obj;
+		let isuser = acc_obj.id[0] == "u";
+		let hbs_data = {
+			layout: "main",
+			title: "Session Ended",
+			acc_obj: JSON.stringify(acc_obj),
+			isuser: isuser
+		};
+		const lang = req.acceptsLanguages(...aux.languages);
+		aux.get_locale_data(lang, (err, locale_data) => {
+			if(err){
+				ret_error(res, "se");
+				return;
+			}
+			// Combine all the data into one object for Handlebars
+			var all_data = {...hbs_data, ...locale_data};
+			// This is the step where handlebars injects the data
+			res.render("session_ended", all_data);
+		});
+	}
+	else{
+		// Go to the login page
+		res.redirect("/account/login?redirect=/account/manage");
+	}
 }
 
 function gj_settings(req, res){

@@ -15,7 +15,7 @@
 		</section>
 		<section class='main-content' id='mainC'>
 			Either a session is already in progress between these two accounts,
-			or the previous session was ended improperly. 
+			or the previous session was not ended properly. 
 			You can end the previous session and 
 			<a href='**[retry]**' class='btn'>Try Again</a>
 			or, if you believe there is no session currently in progress, visit the 

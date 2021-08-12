@@ -58,7 +58,7 @@
 		var xhr = new XMLHttpRequest();
 		var reqBody = 'reqType=tic';
 		xhr.onreadystatechange = function(){
-			if(xhr.readyState == 4){//just check that everything is fine
+			if(xhr.readyState == 4 && xhr.status == 200){//just check that everything is fine
 				let resParts = xhr.responseText.split("=");
 				switch(resParts[0]){
 					case "msg":
@@ -66,14 +66,12 @@
 							alert("Unknown response from server");
 						break;
 					case "next":
-						cleanup();
 						if(resParts[1] == "session_ended")
 							window.location.href = "/session/session_ended";
 						else
 							alert("Unknown response from server");
 						break;
 					case "err":
-						cleanup();
 						window.location.href = "/error/"+resParts[1];
 						break;
 					default:
@@ -90,18 +88,16 @@
 			var xhr = new XMLHttpRequest();
 			var reqBody = 'reqType=end';
 			xhr.onreadystatechange = function(){
-				if(xhr.readyState == 4){//just check that everything is fine
+				if(xhr.readyState == 4 && xhr.status == 200){//just check that everything is fine
 					let resParts = xhr.responseText.split("=");
 					switch(resParts[0]){
 						case "next":
-							cleanup();
 							if(resParts[1] == "session_ended")
 								window.location.href = "/session/session_ended";
 							else
 								alert("Unknown response from server");
 							break;
 						case "err":
-							cleanup();
 							window.location.href = "/error/"+resParts[1];
 							break;
 						default:

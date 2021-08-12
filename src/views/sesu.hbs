@@ -32,6 +32,18 @@
 	window.onpagehide = endS;
 	//document.addEventListener('visibilitychange', function(){if(document.hidden){endS();}}, false);
 
+	$(document).ready(() => {
+		req_settings(function(code, res){
+			if(code == 200){
+				ses_vars.points_to_first_level = res.points_to_first_level;
+				start();
+			}
+			else{
+				endS(res);
+			}
+		});
+	});
+
 	var acc_obj = {{{acc_obj}}};
 	
 	var ses_vars = {
@@ -51,24 +63,6 @@
 	};
 
 
-	if(ses_vars.level == 0){
-		ses_vars.level = 1;
-		//First time spiel
-		alert('It appears to be your first session. Try not to tic.');
-	}
-	ses_vars.nextLevel = ses_vars.points_to_first_level*ses_vars.level*ses_vars.level;
-	ses_vars.cap = 10*ses_vars.level*ses_vars.level;
-	ses_vars.rate = ses_vars.level*ses_vars.level;
-
-	req_settings(function(code, res){
-		if(code == 200){
-			ses_vars.points_to_first_level = res.points_to_first_level;
-			start();
-		}
-		else{
-			endS(res);
-		}
-	});
 
 {{#if ncr}}
 	/*Number of reward periods between random ncr tics on avg.
@@ -88,6 +82,16 @@
 {{/if}}
 
 	function start(){
+		// Initialize variables
+		if(ses_vars.level == 0){
+			ses_vars.level = 1;
+			//First time spiel
+			alert("It appears to be your first session. Try not to tic.");
+		}
+		ses_vars.nextLevel = ses_vars.points_to_first_level*ses_vars.level*ses_vars.level;
+		ses_vars.cap = 10*ses_vars.level*ses_vars.level;
+		ses_vars.rate = ses_vars.level*ses_vars.level;
+		
 		update_display();
 		frame();
 		ses_vars.frame_timer = setInterval(frame, ses_vars.mspf);
@@ -100,7 +104,7 @@
 		xhr.open('POST', url, true);
 		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		xhr.onreadystatechange = function(){
-			if(xhr.readyState == 4){//4: request finished & response ready - readystate codes:http://www.w3schools.com/ajax/ajax_xmlhttprequest_onreadystatechange.asp
+			if(xhr.readyState == 4 && xhr.status == 200){//4: request finished & response ready - readystate codes:http://www.w3schools.com/ajax/ajax_xmlhttprequest_onreadystatechange.asp
 				let res_obj = JSON.parse(xhr.responseText);
 				if(res_obj.err){
 					cleanup();
@@ -110,8 +114,9 @@
 				else if(res_obj.end){
 					endS();
 				}
-{{#unless none}} //If reward scheme is none, delete this block of code
 				else{
+					ses_vars.lastL = res_obj.newL;
+{{#unless none}} //If reward scheme is none, delete this block of code
 {{#if ncr}}
 					//Alternative reward scheme
 					//Uses the random ticcer
@@ -146,8 +151,8 @@
 						ticTrigger();
 						update_display();
 					}
-				}
 {{/unless}}
+				}
 			}
 		};
 		xhr.send(reqBody);
@@ -184,7 +189,7 @@
 			xhr.open('POST', url, true);
 			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 			xhr.onreadystatechange = function(){
-				if(xhr.readyState == 4){
+				if(xhr.readyState == 4 && xhr.status == 200){
 					let res_obj = JSON.parse(xhr.responseText);
 					if(res_obj.err){
 						window.location.href = "/error/"+res_obj.err;
@@ -231,7 +236,7 @@
 		xhr.open('POST', url, true);
 		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		xhr.onreadystatechange = function(){
-			if(xhr.readyState == 4){
+			if(xhr.readyState == 4 && xhr.status == 200){
 				let res_obj = JSON.parse(xhr.responseText);
 				if(res_obj.err){
 					cleanup();

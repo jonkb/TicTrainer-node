@@ -1,0 +1,30 @@
+
+<section class='main-content' id='mainC'>
+	<h3>Session Summary</h3>
+	<div id="report">
+	</div>
+	<br>
+	<a href='/' class='bigBtn'>Return to Home</a>
+</section>
+<script src="/scripts/req_logs.js"></script>
+<script>
+	$(document).ready(init);
+	
+	var acc_obj = {{{acc_obj}}};
+	
+	function init(){
+		// logout() and account_init() are from account.js
+		$("#logoutbtn").click(logout);
+		account_init(acc_obj);
+		
+		look();
+	}
+	
+	function look(){
+		/**
+		*	Poll the server to see if the report for the session is ready
+		*	TODO
+		*/
+		$("#report").text("PLACEHOLDER");
+	}
+</script>
