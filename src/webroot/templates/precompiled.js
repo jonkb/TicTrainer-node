@@ -9,11 +9,11 @@ templates['report_trainer.hbs'] = template({"compiler":[8,">= 4.3.0"],"main":fun
     };
 
   return "<p><b>Session Details:</b></p>\r\n<table style=\"table-layout: auto;\">\r\n	<tbody>\r\n		<tr><td>Levels Gained:</td> <td>"
-    + alias4(((helper = (helper = lookupProperty(helpers,"levels") || (depth0 != null ? lookupProperty(depth0,"levels") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"levels","hash":{},"data":data,"loc":{"start":{"line":4,"column":34},"end":{"line":4,"column":44}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"ses_levels") || (depth0 != null ? lookupProperty(depth0,"ses_levels") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"ses_levels","hash":{},"data":data,"loc":{"start":{"line":4,"column":34},"end":{"line":4,"column":48}}}) : helper)))
     + "</td></tr>\r\n		<tr><td>Points Earned:</td> <td>"
-    + alias4(((helper = (helper = lookupProperty(helpers,"points") || (depth0 != null ? lookupProperty(depth0,"points") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"points","hash":{},"data":data,"loc":{"start":{"line":5,"column":34},"end":{"line":5,"column":44}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"ses_points") || (depth0 != null ? lookupProperty(depth0,"ses_points") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"ses_points","hash":{},"data":data,"loc":{"start":{"line":5,"column":34},"end":{"line":5,"column":48}}}) : helper)))
     + "</td></tr>\r\n		<tr><td>Coins Earned:</td> <td>"
-    + alias4(((helper = (helper = lookupProperty(helpers,"coins") || (depth0 != null ? lookupProperty(depth0,"coins") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"coins","hash":{},"data":data,"loc":{"start":{"line":6,"column":33},"end":{"line":6,"column":42}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"ses_coins") || (depth0 != null ? lookupProperty(depth0,"ses_coins") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"ses_coins","hash":{},"data":data,"loc":{"start":{"line":6,"column":33},"end":{"line":6,"column":46}}}) : helper)))
     + "</td></tr>\r\n		<tr><td>Number of Tics:</td> <td>"
     + alias4(((helper = (helper = lookupProperty(helpers,"tics") || (depth0 != null ? lookupProperty(depth0,"tics") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"tics","hash":{},"data":data,"loc":{"start":{"line":7,"column":35},"end":{"line":7,"column":43}}}) : helper)))
     + "</td></tr>\r\n		<tr><td>Longest Tic-free Interval:</td> <td>"
@@ -37,11 +37,11 @@ templates['report_user.hbs'] = template({"compiler":[8,">= 4.3.0"],"main":functi
     };
 
   return "<p><b>Session Details:</b></p>\r\n<table style=\"table-layout: auto;\">\r\n	<tbody>\r\n		<tr><td>Levels Gained:</td> <td>"
-    + alias4(((helper = (helper = lookupProperty(helpers,"levels") || (depth0 != null ? lookupProperty(depth0,"levels") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"levels","hash":{},"data":data,"loc":{"start":{"line":4,"column":34},"end":{"line":4,"column":44}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"ses_levels") || (depth0 != null ? lookupProperty(depth0,"ses_levels") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"ses_levels","hash":{},"data":data,"loc":{"start":{"line":4,"column":34},"end":{"line":4,"column":48}}}) : helper)))
     + "</td></tr>\r\n		<tr><td>Points Earned:</td> <td>"
-    + alias4(((helper = (helper = lookupProperty(helpers,"points") || (depth0 != null ? lookupProperty(depth0,"points") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"points","hash":{},"data":data,"loc":{"start":{"line":5,"column":34},"end":{"line":5,"column":44}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"ses_points") || (depth0 != null ? lookupProperty(depth0,"ses_points") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"ses_points","hash":{},"data":data,"loc":{"start":{"line":5,"column":34},"end":{"line":5,"column":48}}}) : helper)))
     + "</td></tr>\r\n		<tr><td>Coins Earned:</td> <td>"
-    + alias4(((helper = (helper = lookupProperty(helpers,"coins") || (depth0 != null ? lookupProperty(depth0,"coins") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"coins","hash":{},"data":data,"loc":{"start":{"line":6,"column":33},"end":{"line":6,"column":42}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"ses_coins") || (depth0 != null ? lookupProperty(depth0,"ses_coins") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"ses_coins","hash":{},"data":data,"loc":{"start":{"line":6,"column":33},"end":{"line":6,"column":46}}}) : helper)))
     + "</td></tr>\r\n		<tr><td>Number of Tics:</td> <td>"
     + alias4(((helper = (helper = lookupProperty(helpers,"tics") || (depth0 != null ? lookupProperty(depth0,"tics") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"tics","hash":{},"data":data,"loc":{"start":{"line":7,"column":35},"end":{"line":7,"column":43}}}) : helper)))
     + "</td></tr>\r\n		<tr><td>Longest Tic-free Interval:</td> <td>"

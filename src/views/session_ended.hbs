@@ -67,21 +67,38 @@
 		console.log(67, report_obj, user_info);
 		let isuser = acc_obj.id[0] == "u";
 		let report_html = "";
-		const personal_best_tag = "\n<p style='text-align:center;'>New Personal Best!</p>";
+		let personal_best_tag = "\n<p style='text-align:center; font-weight: bold;'>";
+		personal_best_tag += "New Personal Best!</p>";
 		
 		let template_us = Handlebars.templates["user_status.hbs"];
 		report_html += template_us(user_info);
 		
+		let hbs_data = {
+			user_level: user_info.level,
+			user_points: user_info.points,
+			user_coins: user_info.coins,
+			best_tfi: user_info.best_tfi / 1000,
+			ses_levels: report_obj.levels,
+			ses_points: report_obj.points, // Clear up the ambiguity here
+			ses_coins: report_obj.coins,
+			tics: report_obj.tics,
+			ses_tics: report_obj.tics,
+			longest_tfi: report_obj.longest_tfi / 1000,
+			tens_tfis: report_obj.tens_tfis,
+			duration: report_obj.duration / 1000,
+			tt_version: report_obj.tt_version
+		};
+		
 		if(isuser){
 			let template_ru = Handlebars.templates["report_user.hbs"];
-			report_html += template_ru({...report_obj, ...user_info});
+			report_html += template_ru(hbs_data);
 			if(user_info.best_tfi == report_obj.longest_tfi){
 				report_html += personal_best_tag;
 			}
 		}
 		else{
 			let template_rt = Handlebars.templates["report_trainer.hbs"];
-			report_html += template_rt({...report_obj, ...user_info});
+			report_html += template_rt(hbs_data);
 		}
 		
 		$("#report").html(report_html);

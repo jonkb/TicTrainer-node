@@ -20,6 +20,8 @@ const user_editable_fields = ["password", "birth_date", "sex", "level",
 	"PTIR", "FLASH"];
 const trainer_editable_fields = ["password", "birth_year"];
 const admin_editable_fields = ["password"];
+const directories = ["/error", "/session", "/tsp", "/register", "/account"];
+
 //const err_types = ["anfe", "anle", "conses", "dfe", "fe", "ice", "ide", "ife", "pce", "se", "toe"];
 const err_types = ["anfe", "pce", "ife", "fe", "se", "conses"];
 const err_titles = {
@@ -43,6 +45,7 @@ module.exports.err_types = err_types;
 module.exports.err_titles = err_titles;
 module.exports.dbroot = dbroot;
 module.exports.mainroot = mainroot;
+module.exports.directories = directories;
 /**
 *	Exported functions
 */

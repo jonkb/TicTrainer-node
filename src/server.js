@@ -39,6 +39,7 @@ ckses_options = {
 };
 app.use(cookieSession(ckses_options));
 
+app.get(aux.directories, hrq.slash_redirect); // e.g. Redirect /session to /session/
 // Define responses for specific requests
 app.get("/", hrq.root);
 app.get("/error/*", hrq.err_get);
@@ -49,11 +50,15 @@ app.post("/register/trainer.html", hrq.register_trainer);
 app.get("/account/login", hrq.login_get);
 app.post("/account/login", hrq.login);
 app.get("/account/logout", hrq.logout);
+app.all("/account/manage", hrq.check_login);
 app.get("/account/manage", hrq.manage_get);
 app.post("/account/manage", hrq.manage);
 // Requests related to training sessions
+app.all("/session/*", hrq.check_login); // Must be logged in
 app.get("/session/", hrq.new_session_get); // New Training Session
 app.post("/session/", hrq.new_session);
+app.get("/session/session_ended", hrq.session_ended_get);
+app.all("/session/*", hrq.check_lid); // Must be in an ongoing session from here on
 app.get("/session/llt", hrq.ll_get); // Link Loading
 app.post("/session/llt", hrq.llt);
 app.get("/session/llu", hrq.ll_get);
@@ -66,7 +71,24 @@ app.get("/session/sest", hrq.ses_get); // Active Session
 app.post("/session/sest", hrq.sest);
 app.get("/session/sesu", hrq.ses_get);
 app.post("/session/sesu", hrq.sesu);
-app.get("/session/session_ended", hrq.session_ended_get);
+// TSP sessions
+app.all("/tsp/*", hrq.check_login); // Must be logged in
+app.get("/tsp/", hrq.new_tspses_get);
+app.post("/tsp/", hrq.new_session);
+app.get("/tsp/session_ended", hrq.session_ended_get);
+app.all("/tsp/*", hrq.check_lid); // Must be in an ongoing session from here on
+app.get("/tsp/llt", hrq.ll_get); // Link Loading
+app.post("/tsp/llt", hrq.llt);
+app.get("/tsp/llu", hrq.ll_get);
+app.post("/tsp/llu", hrq.llu);
+app.get("/tsp/sst", hrq.ss_get); // Start Session
+app.post("/tsp/sst", hrq.sst);
+app.get("/tsp/ssu", hrq.ss_get);
+app.post("/tsp/ssu", hrq.ssu);
+app.get("/tsp/sest", hrq.ses_get); // Active Session
+app.post("/tsp/sest", hrq.sest);
+app.get("/tsp/sesu", hrq.ses_get);
+app.post("/tsp/sesu", hrq.sesu);
 
 // gj: Get JSON. API for requesting certain JSON files
 app.get("/gj/settings.json", hrq.gj_settings);
