@@ -436,18 +436,29 @@ function new_tspses_get(req, res){
 	*	Handle GET requests for /tsp/
 	*/
 	let acc_obj = req.session.acc_obj;
-	aux.get_links(acc_obj, null, (err, lids) => {
-		if(err){
-			ret_error(res, "se"); //TODO
-			return;
-		}
-		//let isuser = acc_obj.id[0] == "u";
+	let isuser = acc_obj.id[0] == "u";
+	let israter = acc_obj.id[0] == "a";
+	if(isuser){
+		// Go ahead and start waiting for rater
+		// TODO: Should this really use admin accounts? That lets them use /admin/
+		req.session.lid = "a";
+		// Add uid to lnusers
+		let link_data = {
+			uid: req.session.acc_obj.id,
+			tid: "a",
+			ts: Date.now()
+		};
+		aux.ln_add(link_data);
+		res.redirect("llu");
+	}
+	else if(israter){
 		let hbs_data = {
 			layout: "simple",
-			title: "New Session",
+			title: "New TSP Session",
 			acc_obj: JSON.stringify(acc_obj),
-			//isuser: isuser,
-			linked_accounts: lids//JSON.stringify(lids)
+			linked_accounts: "u",
+			isuser: false,
+			israter: true
 		};
 		const lang = req.acceptsLanguages(...aux.languages);
 		aux.get_locale_data(lang, (err, locale_data) => {
@@ -460,7 +471,10 @@ function new_tspses_get(req, res){
 			// This is the step where handlebars injects the data
 			res.render("new_session", all_data);
 		});
-	});
+	}
+	else{
+		res.redirect("/");
+	}
 }
 
 function new_session(req, res){
@@ -540,7 +554,6 @@ function llt(req, res){
 	*		3. If not found, return "wait"
 	*			If found, create session and return start session page
 	*/
-	// TODO: Test to see if this crashes if there is no session
 	let id = req.session.acc_obj.id;
 	let lid = req.session.lid;
 	let link_data = {
@@ -565,6 +578,9 @@ function llt(req, res){
 	else{
 		res.send("msg=wait");
 	}
+	// TODO: since there's no beforepageunload here, the trainer could leave this page
+	//		with session.lid intact and then go to one of the ongoing session pages,
+	//		leading to an error.
 }
 
 function llu(req, res){
@@ -584,6 +600,7 @@ function llu(req, res){
 			tid: lid
 		};
 		aux.ln_delete(link_data);
+		req.session.lid = null;
 		return; // No response expected on leave
 	}
 	// See if the session file exists
@@ -638,6 +655,7 @@ function sst(req, res){
 				ret_error(res, "fe");
 				return;
 			}
+			req.session.lid = null;
 			res.end();
 		});
 	}
@@ -691,6 +709,7 @@ function ssu(req, res){
 				res.redirect("/session/session_ended");
 				//ret_ended(res, req.body);
 			}*/
+			req.session.lid = null;
 			res.end();
 		});
 	}

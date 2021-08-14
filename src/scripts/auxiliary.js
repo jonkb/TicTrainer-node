@@ -20,7 +20,7 @@ const user_editable_fields = ["password", "birth_date", "sex", "level",
 	"PTIR", "FLASH"];
 const trainer_editable_fields = ["password", "birth_year"];
 const admin_editable_fields = ["password"];
-const directories = ["/error", "/session", "/tsp", "/register", "/account"];
+const directories = ["/error", "/session", "/tsp", "/register", "/account", "/admin"];
 
 //const err_types = ["anfe", "anle", "conses", "dfe", "fe", "ice", "ide", "ife", "pce", "se", "toe"];
 const err_types = ["anfe", "pce", "ife", "fe", "se", "conses"];
@@ -161,6 +161,7 @@ function ln_add(link_data){
 	*/
 	lnusers.add(link_data.uid);
 	lndata[link_data.uid] = link_data;
+	db_log("Current lnusers list: "+Array.from(lnusers).join(", "), 3);
 }
 
 function ln_has(link_data){
@@ -190,6 +191,7 @@ function ln_delete(link_data){
 	*/
 	lnusers.delete(link_data.uid);
 	delete lndata[link_data.uid];
+	db_log("Current lnusers list: "+Array.from(lnusers).join(", "), 3);
 }
 
 function get_locale_data(lang, callback){

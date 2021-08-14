@@ -92,6 +92,7 @@ app.post("/tsp/sesu", hrq.sesu);
 
 // gj: Get JSON. API for requesting certain JSON files
 app.get("/gj/settings.json", hrq.gj_settings);
+app.get("/gj/recent_session", hrq.check_login);
 app.get("/gj/recent_session", hrq.gj_recent_session);
 
 //TODO

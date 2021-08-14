@@ -6,11 +6,16 @@
 		<fieldset>
 			<legend>New Session</legend>
 			ID to link to:
+{{#if israter}}
+			<!--This is how TSP sessions start. Raters have no links.-->
+			<input type="text" name="lid" id="lid" placeholder="uXXXX" maxlength="9" required>
+{{else}}
 			<select name="lid" id="lid">
 				{{#each linked_accounts}}
 				<option value="{{this}}">{{this}}</option>
 				{{/each}}
 			</select><br>
+{{/if}}
 			<input type="submit" value="Link" class="btn">
 		</fieldset>
 	</form>
