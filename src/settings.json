@@ -1,8 +1,8 @@
 {
-	"tt_version" : "2020.11.11",
+	"tt_version" : "2021.08.14",
 	"debugging" : 2,
 	"testing" : true,
 	"points_to_first_level" : 300,
-	"nts_lbl_bgc" : true,
-	"nts_len" : 5
+	"tsp_lbl_bgc" : true,
+	"tsp_len" : 5
 }

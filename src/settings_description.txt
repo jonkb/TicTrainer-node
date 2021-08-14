@@ -6,5 +6,5 @@
 	3 - Way too many log messages
 "testing" : Run server on PORT 8888 for testing or run normal HTTP and HTTPS servers (true/false)
 "points_to_first_level" : How many points a user needs to level up. (int)
-"nts_lbl_bgc" : TicTimer session label background color (true/false)
-"nts_len" : TicTimer session default length (min)
+"tsp_lbl_bgc" : TicTimer Web session label background color (true/false)
+"tsp_len" : TicTimer Web session default length (min)

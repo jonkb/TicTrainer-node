@@ -42,6 +42,7 @@
 						</tr>
 						<tr>
 							<td>Research ID: </td>
+							<!--TODO: Rename-->
 							<td id="display_user_NTID"></td>
 							<td><input type="text" name="ntid" placeholder="NT###" size="6"></td>
 						</tr>

@@ -2,29 +2,88 @@
 <section class='main-content' id='mainC'>
 	<h3>Session Summary</h3>
 	<div id="report">
+		<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>
 	</div>
 	<br>
 	<a href='/' class='bigBtn'>Return to Home</a>
 </section>
 <script src="/scripts/req_logs.js"></script>
+<script src="/templates/precompiled.js"></script>
 <script>
 	$(document).ready(init);
+	$(window).on('beforeunload', cleanup);
 	
-	var acc_obj = {{{acc_obj}}};
+	const acc_obj = {{{acc_obj}}};
+	const lid = "{{{lid}}}";
+	const period = 2000;
+	const max_tries = 30;
+	const look_url = "/gj/recent_session";
+	const reqData = { lid: lid }; //id: acc_obj.id, 
+	let look_clock = null;
+	let tries = 0;
 	
 	function init(){
 		// logout() and account_init() are from account.js
 		$("#logoutbtn").click(logout);
 		account_init(acc_obj);
 		
-		look();
+		look_clock = setInterval(look, period);
+	}
+	
+	function cleanup(){
+		clearInterval(look_clock);
 	}
 	
 	function look(){
 		/**
 		*	Poll the server to see if the report for the session is ready
-		*	TODO
 		*/
-		$("#report").text("PLACEHOLDER");
+		tries++;
+		if(tries > max_tries){
+			clearInterval(look_clock);
+			$("#report").text("Could not load session report (Timeout)");
+			return;
+		}
+		var xhr = $.get(look_url, reqData);
+		xhr.done((data) => {
+			if(data.err){
+				alert(err);
+				return;
+			}
+			if(data.msg == "ready"){
+				fill_report(data.report, data.user_info);
+				cleanup();
+			}
+		});
+		xhr.fail((data) => {
+			alert(data);
+		});
+	}
+	
+	function fill_report(report_obj, user_info){
+		/**
+		*	Fill the report div
+		*/
+		console.log(67, report_obj, user_info);
+		let isuser = acc_obj.id[0] == "u";
+		let report_html = "";
+		const personal_best_tag = "\n<p style='text-align:center;'>New Personal Best!</p>";
+		
+		let template_us = Handlebars.templates["user_status.hbs"];
+		report_html += template_us(user_info);
+		
+		if(isuser){
+			let template_ru = Handlebars.templates["report_user.hbs"];
+			report_html += template_ru({...report_obj, ...user_info});
+			if(user_info.best_tfi == report_obj.longest_tfi){
+				report_html += personal_best_tag;
+			}
+		}
+		else{
+			let template_rt = Handlebars.templates["report_trainer.hbs"];
+			report_html += template_rt({...report_obj, ...user_info});
+		}
+		
+		$("#report").html(report_html);
 	}
 </script>

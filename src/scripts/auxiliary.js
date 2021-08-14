@@ -55,13 +55,16 @@ module.exports.ln_delete = ln_delete;
 module.exports.get_locale_data = get_locale_data;
 module.exports.register_user = register_user;
 module.exports.register_trainer = register_trainer;
+module.exports.load_account = load_account;
 module.exports.login = login;
 module.exports.edit_account = edit_account;
 module.exports.get_links = get_links;
 module.exports.add_link = add_link;
+module.exports.gen_report_obj = gen_report_obj;
+module.exports.gen_report_txt = gen_report_txt;
+module.exports.archive_session = archive_session;
+module.exports.load_report = load_report;
 
-module.exports.build_endses_report = build_endses_report; //TODO
-module.exports.archiveSession = archiveSession; //TODO
 
 function id_to_N(id){
 	var N36 = id.slice(1);
@@ -87,7 +90,7 @@ function pad2(num){
 	return num.toString();
 }
 
-function time(type){
+function time(type, date){
 	/**
 	*	Returns the current time in the requested format type
 	*	type:
@@ -95,7 +98,7 @@ function time(type){
 	*		"millis": (e.g.)1494298134109
 	*		"ISO": YYYY-MM-DDThh:mm:ss.sssZ (GMT)
 	*/
-	var d = new Date();
+	let d = date || new Date();
 	switch(type){
 		case "forfile"://YYYYMMDD-hhmmss
 			//return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+
@@ -537,265 +540,245 @@ VALUES (${tidN}, ${uidN})`;
 	});
 }
 
-function genReport(data){
+function gen_report_obj(log_txt){
 	/**
-	*	Generates a report for the end of a session
-	*	Takes the text of the session file (data)
-	*	TO DO: switch to async? Does it take long enough to justify it?
+	*	Takes the text of the session file (data) and generates a report object
+	*	summarizing the session
 	*/
-	var tics = 0, tenSIntervals = 0, longestInterval = 0;
-	var initL = 0, initP = 0, initC = 0, initT;
-	var endL = 0, endP = 0, endC = 0, endT;
-	var lastTic, ticFree;
-	var is_nt = false;
-	var ended = false;
-	var rewards = 0;
-	let lpc = "";
-	var entries = data.split("\n");
-	for(var i = 0; i<entries.length; i++){
-		if(entries[i].trim() == ""){
-			//Ignore blank lines
-			continue;
+	let report_obj = {
+		tt_version: settings.tt_version,
+		tics: 0,
+		tens_tfis: 0, // 10-second tic-free intervals
+		longest_tfi: 0, // Longest tic-free interval
+		is_tsp: false,
+		tsp_stype: "",
+		ended: false,
+		initT: 0,
+		endT: 0,
+		duration: 0,
+		initL: 0,
+		endL: 0,
+		levels: 0,
+		initP: 0,
+		endP: 0,
+		points: 0,
+		initC: 0,
+		endC: 0,
+		coins: 0,
+		tsp_rewards: 0
+	};
+	// Temporary variables, not part of the report
+	let tic_time, last_tic, tfi_time; // Last tic time, Tic Free Interval time
+	let lpc = [];
+	let line_parts = [];
+	// Loop through each line in the file
+	let lines = log_txt.split("\n");
+	for(let line of lines){
+		if(line.trim() == ""){
+			continue;//Ignore blank lines
 		}
-		var entryParts = entries[i].split("|");
-		switch(entryParts[0]){
+		line_parts = line.split("|");
+		switch(line_parts[0]){
 			case "session started":
-				initT = new Date(entryParts[1]);
-				endT = initT;
-				lastTic = initT;
+				report_obj.initT = new Date(line_parts[1]);
+				report_obj.endT = report_obj.initT;
+				last_tic = report_obj.initT;
 			break;
 			case "starting user l,p,c":
-				lpc = entryParts[1].split(",");
-				initL = parseInt(lpc[0]);
-				endL = initL;
-				initP = parseInt(lpc[1]);
-				endP = initP;
-				initC = parseInt(lpc[2]);
-				endC = initC;
+				lpc = line_parts[1].split(",");
+				report_obj.initL = parseInt(lpc[0]);
+				report_obj.endL = report_obj.initL;
+				report_obj.initP = parseInt(lpc[1]);
+				report_obj.endP = report_obj.initP;
+				report_obj.initC = parseInt(lpc[2]);
+				report_obj.endC = report_obj.initC;
 			break;
 			case "tic detected":
-				tics++;
-				var ticTime = new Date(entryParts[1]);
-				ticFree = ticTime - lastTic;
-				lastTic = ticTime;
-				if(!ended)
-					endT = ticTime;
-				if(ticFree > longestInterval)
-					longestInterval = ticFree;
-				/*Convert ticFree time to seconds. 
+				report_obj.tics++;
+				tic_time = new Date(line_parts[1]);
+				tfi_time = tic_time - last_tic;
+				last_tic = tic_time;
+				if(!report_obj.ended)
+					report_obj.endT = tic_time;
+				if(tfi_time > report_obj.longest_tfi)
+					report_obj.longest_tfi = tfi_time;
+				/*Convert tfi_time time to seconds. 
 					Divide that by 10s and add that many to the 10s Interval count.
 				*/
-				tenSIntervals += Math.floor(ticFree / 1e4);
+				report_obj.tens_tfis += Math.floor(tfi_time / 1e4);
 			break;
 			case "session ended":
-				endT = new Date(entryParts[1]);
-				ended = true;
-				ticFree = endT - lastTic;
-				if(ticFree > longestInterval)
-					longestInterval = ticFree;
-				tenSIntervals += Math.floor(ticFree / 1e4);
+				report_obj.endT = new Date(line_parts[1]);
+				report_obj.ended = true;
+				tfi_time = report_obj.endT - last_tic;
+				if(tfi_time > report_obj.longest_tfi)
+					report_obj.longest_tfi = tfi_time;
+				report_obj.tens_tfis += Math.floor(tfi_time / 1e4);
 			break;
 			case "user l,p,c":
-				lpc = entryParts[1].split(",");
-				endL = parseInt(lpc[0]);
-				endP = parseInt(lpc[1]);
-				endC = parseInt(lpc[2]);
-				if(!ended)
-					endT = new Date(entryParts[2]);
+				lpc = line_parts[1].split(",");
+				report_obj.endL = parseInt(lpc[0]);
+				report_obj.endP = parseInt(lpc[1]);
+				report_obj.endC = parseInt(lpc[2]);
+				if(!report_obj.ended)
+					report_obj.endT = new Date(line_parts[2]);
 			break;
 			case "Research ID":
-				is_nt = true;
+				report_obj.is_tsp = true;
+				report_obj.tsp_stype = line_parts[2];
 			break;
 			case "reward dispensed":
-				rewards++;
-				if(!ended)
-					endT = new Date(entryParts[1]);
+				report_obj.tsp_rewards++;
+				if(!report_obj.ended)
+					report_obj.endT = new Date(line_parts[1]);
 			break;
 			case "ncr reward times":
 			break;
 			default:
-				return "\nError: unknown entry: "+entries[i];
+				return "\nError: unknown entry: "+line;
 			break;
 		}
 	}
-	if(endL > initL){
+	// Levels, points, and coins gained
+	report_obj.levels = report_obj.endL - report_obj.initL;
+	report_obj.points = report_obj.endP - report_obj.initP;
+	report_obj.coins = report_obj.endC - report_obj.initC;
+	report_obj.duration = report_obj.endT - report_obj.initT;
+	if(report_obj.endL > report_obj.initL){
 		/*At each levelUp(), points are subtracted
 			and converted to coins.
 			Add those subtracted points to the point total.
 		*/
-		for(var i = initL; i<endL; i++){
-			endP += settings.points_to_first_level*i*i;//300L^2 = nextLevel
+		for(var i = report_obj.initL; i < report_obj.endL; i++){
+			//300L^2 = nextLevel
+			report_obj.points += settings.points_to_first_level*i*i;
 		}
 	}
-	db_log("start: "+initT+". end: "+endT);
-	var report = "\n****************\nReport:";
-	if(!ended)
-		report += "\nWARNING: no \"session ended\" entry found. Session length may be inaccurate.";
-	report += "\nsession length|"+ (endT - initT)/1000;
-	if(!is_nt){
-		report += "\nending l,p,c|"+endL+","+endP+","+endC;
-		report += "\nlevels gained|"+ (endL - initL);
-		report += "\npoints earned|"+ (endP - initP);
-		report += "\ncoins earned|"+ (endC - initC);
-	}
-	report += "\nnumber of tics|"+ tics;
-	report += "\nlongest tic free interval|"+ longestInterval/1000;
-	report += "\nnumber of 10s tic free intervals|"+ tenSIntervals;
-	if(is_nt)
-		report += "\nnumber of rewards dispensed|"+ rewards;
-	report += "\nreport generated with TicTrainer version|"+settings.tt_version+"\n";
-	return report;
+	return report_obj;
 }
 
-function report_to_obj(report_text){
+function gen_report_txt(report_obj){
 	/**
-	*	Parse the report text into an object
+	*	Convert a report object to report text, to be appended to the end of the
+	*	archived session log file
 	*/
-	var lines = report_text.split("\n");
-	var obj = {};
-	for(const i in lines){
-		var line = lines[i]
-		var parts = line.split("|")
-		if(parts.length > 1){
-			// This is a line with data
-			switch(parts[0]){
-				case "session length":
-					obj.seslen = parseFloat(parts[1]);
-				break;
-				case "ending l,p,c":
-					let lpc = parts[1].split(",");
-					obj.endl = parseInt(lpc[0]);
-					obj.endp = parseInt(lpc[1]);
-					obj.endc = parseInt(lpc[2]);
-				break;
-				case "levels gained":
-					obj.lvls = parseInt(parts[1]);
-				break;
-				case "points earned":
-					obj.pts = parseInt(parts[1]);
-				break;
-				case "coins earned":
-					obj.coins = parseInt(parts[1]);
-				break;
-				case "number of tics":
-					obj.tics = parseInt(parts[1]);
-				break;
-				case "longest tic free interval":
-					obj.ltflen = parseFloat(parts[1]);
-				break;
-				case "number of 10s tic free intervals":
-					obj.tfis = parseInt(parts[1]);
-				break;
-				case "number of rewards dispensed":
-					obj.rewards = parseInt(parts[1]);
-				break;
-				case "report generated with TicTrainer version":
-					obj.ttv = parts[1];
-				break;
-			}
-		}
+	let report_txt = "\n****************\nReport:";
+	if(!report_obj.ended)
+		report_txt += "\nWARNING: no \"session ended\" entry found. Session length may be inaccurate.";
+	report_txt += "\nsession length|"+ report_obj.duration/1000;
+	if(!report_obj.is_tsp){
+		report_txt += "\nending l,p,c|"+report_obj.endL+","+report_obj.endP+","+report_obj.endC;
+		report_txt += "\nlevels gained|"+ report_obj.levels;
+		report_txt += "\npoints earned|"+ report_obj.points;
+		report_txt += "\ncoins earned|"+ report_obj.coins;
 	}
-	return obj
+	report_txt += "\nnumber of tics|"+ report_obj.tics;
+	report_txt += "\nlongest tic free interval|"+ report_obj.longest_tfi/1000;
+	report_txt += "\nnumber of 10s tic free intervals|"+ report_obj.tens_tfis;
+	if(report_obj.is_tsp)
+		report_txt += "\nnumber of rewards dispensed|"+ report_obj.tsp_rewards;
+	report_txt += "\nreport generated with TicTrainer version|"+report_obj.tt_version+"\n";
+	return report_txt;
 }
 
-function build_endses_report(uid, tid, report, callback){
+function archive_log(data, callback){
 	/**
-	*	Load the user's data to know the personal best and load the report if needed.
-	*		Then combine that info into a single report object.
-	*	uid: user id
-	*	tid: trainer id (Provide if report not provided)
-	*	report: The text of the session report. When the user ends, it has the report text,
-	*		but the trainer needs to load it from the archived file.
+	*	Store the session object in the database
+	*	data = {tid, uid, end_ts, report_obj}
 	*/
-	// Make this something that loads from /session/session_ended, via xhr
-	//TODO: Personal best not yet implemented
-	if(report){
-		var obj = report_to_obj(report);
-		//TODO: Add personal best
-		callback(null, obj);
-		return;
-	}
-	// Search for, load, and parse the archived session file
-	const archive_dname = dbroot + "session/archive";
-	// Poll repeatedly to see if the user has archived the session yet
-	const maxtries = 30;
-	const interval = 1000;
-	var tries = 0;
-	var timer = setInterval(check, interval);
-	function check(){
-		tries++;
-		if(tries > maxtries){
-			clearInterval(timer);
-			callback(null, {});
+	sql.connect((err, con) => {
+		if(err){
+			console.log(690);
+			callback(err);
 			return;
 		}
-		var now = new Date();
-		fs.readdir(archive_dname, (err, files) => {
+		let tidN = sql.esc(id_to_N(data.tid));
+		let uidN = sql.esc(id_to_N(data.uid));
+		let insert_cols = "(TID, UID, filename, end_ts, duration, levels, points, coins, tics, "
+		insert_cols += "longest_tfi, tens_tfis, is_tsp, tsp_stype, tsp_rewards, tt_version)";
+		let insert_query = `INSERT INTO session_archive_index ${insert_cols}
+VALUES (${tidN}, ${uidN}, ${sql.esc(data.filename)}, ${sql.esc(data.end_ts)},
+${sql.esc(data.report_obj.duration)}, ${sql.esc(data.report_obj.levels)},
+${sql.esc(data.report_obj.points)}, ${sql.esc(data.report_obj.coins)},
+${sql.esc(data.report_obj.tics)}, ${sql.esc(data.report_obj.longest_tfi)},
+${sql.esc(data.report_obj.tens_tfis)}, ${sql.esc(data.report_obj.is_tsp)},
+${sql.esc(data.report_obj.tsp_stype)}, ${sql.esc(data.report_obj.tsp_rewards)},
+${sql.esc(data.report_obj.tt_version)})`;
+		console.log(706, insert_query)
+		con.query(insert_query, (err, result) => {
 			if(err){
-				clearInterval(timer);
-				callback("se");
+				console.log(708, err);
+				callback(err);
 				return;
 			}
-			for(const i in files){
-				var file = files[i];
-				//This is terribly inefficient. Oh well.
-				//TODO: also check uid & tid
-				fileparts = file.split("_");
-				if(fileparts.length < 2)
-					continue;
-				if(fileparts[0] != tid+uid)
-					continue;
-				var datetime = fileparts[1]; //YYYYMMDD-hhmmss
-				var dtparts = datetime.split("-");
-				var ISOdt = dtparts[0].slice(0,4) + "-" + dtparts[0].slice(4,6) + "-" 
-				ISOdt += dtparts[0].slice(6,8) + "T" + dtparts[1].slice(0,2) + ":" 
-				ISOdt += dtparts[1].slice(2,4) + ":" + dtparts[1].slice(4,6) + ".000Z";
-				var fdate = new Date(ISOdt);
-				if(Math.abs(fdate - now) < 30*1000){
-					//This file was archived within 30s of now
-					clearInterval(timer);
-					load_report(file);
-					return;
-				}
-			}
+			callback();
 		});
-	}
-	function load_report(file){
-		fs.readFile(archive_dname + "/" + file, "utf8", (err, data) => {
-			if(err){
-				callback("se");
-				return;
-			}
-			var report_text = data.split("Report:")[1];
-			callback(null, report_to_obj(report_text));
-		});
-	}
+	});
 }
 
-function archiveSession(sesFile, callback){
+function update_best_tfi(uid, tfi_time, callback){
+	/**
+	*	Saves tfi_time as the user's personal best if it is greater than
+	*	the current personal best
+	*/
+	let idN = sql.esc(id_to_N(uid));
+	let tfi = parseInt(sql.esc(tfi_time));
+	sql.connect((err, con) => {
+		if(err){
+			console.log(730);
+			callback(err);
+			return;
+		}
+		let update_query = `UPDATE users
+SET best_tfi = GREATEST(best_tfi, ${tfi})
+WHERE ID = ${idN}`;
+		con.query(update_query, (err, result) => {
+			if(err){
+				console.log(735, err);
+				callback(err);
+				return;
+			}
+			callback();
+		});
+	});
+}
+
+function archive_session(sesFile, callback){
 	/**
 	*	Archives the given session file
-	*	If it was an NT session, include the stype in the filename
+	*	If it was a TSP session, include the stype in the filename
 	*	callback(err)
+	*
+	*	1. Generate the report object and text
+	*	2. Append that text to the session file
+	*	3. Move the session file to the archive directory
+	*	4. Store a summary of the report object to the database
+	*	5. Update the user's personal best if appropriate
 	*/
-	fs.readFile(sesFile, "utf8", function(err, data){
+	fs.readFile(sesFile, "utf8", function(err, log_txt){
 		if(err){
 			callback("fe");
 			return;
 		}
-		var sesFile2 = sesFile.slice(sesFile.lastIndexOf("/")+1);
+		let report_obj = gen_report_obj(log_txt);
+		let report_txt = gen_report_txt(report_obj);
+		let end_d = new Date();
+		let end_ts = end_d.toISOString();
+		let end_tsf = time("forfile", end_d);
+		// For file (See time(forfile))
+		//let end_tsf = end_ts.replace(/-/g, "").replace(/:/g,"").replace("T", "-").split(".")[0];
+		
+		let sesFile2 = sesFile.slice(sesFile.lastIndexOf("/")+1);
+		let ids = sesFile2.split("_")[0].split("-");
+		console.log(730, ids);
 		sesFile2 = sesFile2.slice(0, sesFile2.indexOf(".ttsd"));
-		sesFile2 += "_" + time("forfile");
-		var ntsi = data.indexOf("Research ID|");
-		if(ntsi != -1){
-			var stype = data.slice(ntsi);
-			stype = stype.slice(indexNOf(stype, "|", 2)+1, stype.indexOf("\n"));
-			sesFile2 += "_"+stype;
-		}
+		sesFile2 += "_" + end_tsf;
+		if(report_obj.is_tsp)
+			sesFile2 += "_"+report_obj.tsp_stype;
 		sesFile2 += ".ttsd";
+		let filename = sesFile2; // Grab just the filename, after the path
 		sesFile2 = dbroot + "session/archive/" + sesFile2;
-		var report = genReport(data);
-		fs.appendFile(sesFile, report, function(err){
+		fs.appendFile(sesFile, report_txt, function(err){
 			if(err){
 				callback("fe");
 				return;
@@ -805,8 +788,64 @@ function archiveSession(sesFile, callback){
 					callback("fe");
 					return;
 				}
-				callback(null, report);
+				let data = {
+					tid: ids[0],
+					uid: ids[1],
+					end_ts: end_ts,
+					filename: filename,
+					report_obj: report_obj
+				};
+				// Save report to database
+				archive_log(data, (err) => {
+					if(err){
+						callback(err);
+						return;
+					}
+					// Update user's personal best
+					update_best_tfi(ids[1], report_obj.longest_tfi, (err) => {
+						if(err){
+							callback(err);
+							return;
+						}
+						callback(null, report_obj);
+					});
+				});
 			});
+		});
+	});
+}
+
+function load_report(tid, uid, callback){
+	/**
+	*	Search the session archive for a recently completed session btw tid & uid
+	*	Then (if found) load that report and return it as an object
+	*/
+	sql.connect((err, con) => {
+		if(err){
+			callback(err);
+			return;
+		}
+		let tidN = sql.esc(id_to_N(tid));
+		let uidN = sql.esc(id_to_N(uid));
+		// Load all session files btw tid & uid that ended in the last 5 minutes
+		// Sorted so that the first one is the most recent
+		let select_query = `SELECT *
+FROM session_archive_index 
+WHERE TID=${tidN} AND UID=${uidN}
+AND TIMEDIFF( UTC_TIMESTAMP(), STR_TO_DATE(end_ts, "%Y-%m-%dT%T.%fZ") ) < TIME("00:05:00")
+ORDER BY end_ts DESC`;
+		con.query(select_query, (err, result, fields) => {
+			if(err){
+				callback(err);
+				return;
+			}
+			if(result.length > 0){
+				callback(null, result[0]);
+			}
+			else{
+				// No error, no report
+				callback(null);
+			}
 		});
 	});
 }

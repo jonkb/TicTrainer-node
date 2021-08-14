@@ -28,8 +28,9 @@ module.exports.ssu = ssu;
 module.exports.ses_get = ses_get;
 module.exports.sest = sest;
 module.exports.sesu = sesu;
-module.exports.gj_settings = gj_settings;
 module.exports.session_ended_get = session_ended_get;
+module.exports.gj_recent_session = gj_recent_session;
+module.exports.gj_settings = gj_settings;
 
 
 function ret_error(res, err, redirect){
@@ -97,7 +98,7 @@ function ghses(req, res){
 	}
 	aux.login(credentials, (err, acc_obj, con) => {
 		if(err){
-			ret_error(err);
+			ret_error(res, err);
 			return;
 		}
 		let tid = req.body.tid;
@@ -111,13 +112,13 @@ function ghses(req, res){
 					res.redirect("/session/");
 				}
 				else{
-					ret_error("fe");
+					ret_error(res, "fe");
 				}
 			}
 			else{//legit ghost file
-				aux.archiveSession(sesFile, function(err, report){
+				aux.archive_session(sesFile, function(err, report){
 					if(err){
-						ret_error(err);
+						ret_error(res, err);
 						return;
 					}
 					res.redirect("/session/");
@@ -125,7 +126,6 @@ function ghses(req, res){
 				});
 			}
 		});
-		
 	});
 }
 
@@ -755,6 +755,7 @@ function sest(req, res){
 			break;
 		case "end":
 			aux.db_log("SE-T");
+			req.session.last_lid = req.session.lid;
 			req.session.lid = null; // Blocks access to the active session pages
 			var eEntry = "\nsession ended|"+aux.time();
 			fs.stat(sesFile, function(err, stats){
@@ -834,6 +835,7 @@ function sesu(req, res){
 			break;
 		case "end":
 			aux.db_log("SE-U");
+			req.session.last_lid = req.session.lid;
 			req.session.lid = null; // Blocks access to the active session pages
 			let data = {
 				id: id,
@@ -865,11 +867,13 @@ function sesu(req, res){
 						var eEntry = "\nsession ended|"+aux.time();
 						fs.appendFile(sesFile, eEntry, function(err){
 							if(err){
+								console.log(870);
 								res.json({err: "fe"});
 								return;
 							}
-							aux.archiveSession(sesFile, function(err, report){
+							aux.archive_session(sesFile, function(err, report){
 								if(err){
+									console.log(875);
 									res.json({err: err});
 									return;
 								}
@@ -878,9 +882,9 @@ function sesu(req, res){
 						});
 					}
 					else{
-						aux.archiveSession(sesFile, function(err, report){
+						aux.archive_session(sesFile, function(err, report){
 							if(err){
-								console.log(833);
+								console.log(855);
 								res.json({err: err});
 								return;
 							}
@@ -944,11 +948,13 @@ function session_ended_get(req, res){
 			layout: "main",
 			title: "Session Ended",
 			acc_obj: JSON.stringify(acc_obj),
-			isuser: isuser
+			//isuser: isuser,
+			lid: req.session.last_lid
 		};
 		const lang = req.acceptsLanguages(...aux.languages);
 		aux.get_locale_data(lang, (err, locale_data) => {
 			if(err){
+				console.log(955);
 				ret_error(res, "se");
 				return;
 			}
@@ -962,6 +968,54 @@ function session_ended_get(req, res){
 		// Go to the login page
 		res.redirect("/account/login?redirect=/account/manage");
 	}
+}
+
+function gj_recent_session(req, res){
+	/**
+	*	Attempt to load the report data for a recent session
+	*/
+	//console.log(973);
+	let tid = req.session.acc_obj.id;
+	let uid = req.query.lid;
+	let isuser = false;
+	if(req.session.acc_obj.id[0] == "u"){
+		isuser = true;
+		tid = req.query.lid;
+		uid = req.session.acc_obj.id;
+	}
+	aux.load_report(tid, uid, (err, report) => {
+		//console.log(982, err, report);
+		if(err){
+			res.json({err: err});
+		}
+		else if(report){
+			let res_obj = {
+				msg: "ready",
+				report: report
+			};
+			// Load updated info about the user
+			aux.load_account(uid, null, (err, acc_obj) => {
+				if(err){
+					res.json({err: err});
+					return;
+				}
+				if(isuser){
+					// Go ahead and update acc_obj if user
+					req.session.acc_obj = acc_obj;
+				}
+				res_obj.user_info = {
+					level: acc_obj.level,
+					points: acc_obj.points,
+					coins: acc_obj.coins,
+					best_tfi: acc_obj.best_tfi
+				};
+				res.json(res_obj);
+			});
+		}
+		else{
+			res.json({msg: "wait"});
+		}
+	});
 }
 
 function gj_settings(req, res){
