@@ -3,14 +3,14 @@
 	<head>
 		<title>Manage Research User Accounts</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
-    <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
 	</head>
 	<body>
-    <section class="page-header">
+		<section class="page-header">
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
-				<h1>Manage Research User Accounts: **[admin_id]**</h1>
+				<h1>Manage Research User Accounts</h1>
 				<div style="clear: both;"></div>
 			</div>
 			<!-- Maybe there could be something comparable here for switching coins for US cash.
@@ -19,16 +19,16 @@
 				<a class="btn" href="leaderboard/">Leaderboard</button></a>
 			</div>
 			-->
-    </section>
-    <section class="main-content">
+		</section>
+		<section class="main-content">
 			<fieldset>
 				<legend>Manage Research User Account</legend>
-				<form method="POST" name="Load_Acc" style="float:left;" onsubmit="return load_user_data();">
+				<form method="POST" name="Load_Acc" onsubmit="return load_user_data();">
 					User Account ID:<br>
 					<input type="text" name="id" placeholder="u0000" required><br>
 					<input type='submit' value='Load Account Data' class="btn">
 				</form>
-				<form method="POST" name="Edit_Acc" style="float:right;" onsubmit="return edit_acc();">
+				<form method="POST" name="Edit_Acc" onsubmit="return edit_acc();">
 					<table>
 						<tr>
 							<th>Property</th>
@@ -41,10 +41,40 @@
 							<td>--</td>
 						</tr>
 						<tr>
+							<td>Approx. birth: </td>
+							<td id="display_user_birth"></td>
+							<td>--</td>
+						</tr>
+						<tr>
+							<td>Sex: </td>
+							<td id="display_user_sex"></td>
+							<td>--</td>
+						</tr>
+						<tr>
+							<td>Level: </td>
+							<td id="display_user_level"></td>
+							<td>--</td>
+						</tr>
+						<tr>
+							<td>Points: </td>
+							<td id="display_user_points"></td>
+							<td>--</td>
+						</tr>
+						<tr>
+							<td>Coins: </td>
+							<td id="display_user_coins"></td>
+							<td>--</td>
+						</tr>
+						<tr>
+							<td>Best tic-free interval (s): </td>
+							<td id="display_user_best_tfi"></td>
+							<td>--</td>
+						</tr>
+						<tr>
 							<td>Research ID: </td>
 							<!--TODO: Rename-->
-							<td id="display_user_NTID"></td>
-							<td><input type="text" name="ntid" placeholder="NT###" size="6"></td>
+							<td id="display_user_RID"></td>
+							<td><input type="text" name="rid" placeholder="NT###" size="6"></td>
 						</tr>
 						<tr>
 							<td>Research State: </td>
@@ -78,8 +108,8 @@
 							<td id="display_user_FLASH"></td>
 							<td>
 								<select name="flash">
-									<option value="NO">NO</option>
-									<option value="YES">YES</option>
+									<option value="0">NO</option>
+									<option value="1">YES</option>
 								</select>
 							</td>
 						</tr>
@@ -89,11 +119,11 @@
 					</table>
 				</form>
 			</fieldset>
-    </section>
+		</section>
 		<script>
 			//Always returns false because I don't want it to reload the page
 			function load_user_data(){
-				var id = document.forms.Load_Acc.id.value.toLowerCase();
+				let id = document.forms.Load_Acc.id.value.toLowerCase();
 				
 				if(!id){
 					alert("Please finish the form");
@@ -105,32 +135,34 @@
 				}
 				
 				//Ask the server for the user's data and display it
-				var xhr = new XMLHttpRequest();
-				var url = '/admin/manageRU.dynh';
-				var reqBody = 'admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&id='+id+'&source=load_user_data';
+				let xhr = new XMLHttpRequest();
+				let url = '/admin/MRU-load_acc';
+				let reqBody = 'id='+id;
 				xhr.open('POST', url, true);
-				xhr.setRequestHeader('Content-type', 'text/plain');
+				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
 						if(xhr.status == 200){
-							var res_json = '{"'+xhr.responseText.replace(/&/g,'","').replace(/=/g,'":"')+'"}';
-							var res_data = JSON.parse(res_json);
-							if(res_data.error){
-								alert("Error: "+res_data.error);
+							let res_data = JSON.parse(xhr.responseText);
+							if(res_data.err){
+								alert("Error: "+res_data.err);
 								return false;
 							}
 							document.getElementById("display_user_ID").innerHTML = id;
-							document.getElementById("display_user_NTID").innerHTML = res_data.ntid;
-							document.getElementById("display_user_RS").innerHTML = res_data.research_state;
-							document.getElementById("display_user_AITI").innerHTML = res_data.aiti;
-							document.getElementById("display_user_SMPR").innerHTML = res_data.smpr;
-							document.getElementById("display_user_PTIR").innerHTML = res_data.ptir;
-							document.getElementById("display_user_FLASH").innerHTML = res_data.flash;
-						}
-						else{
-							document.open();
-							document.write(xhr.responseText);
-							document.close();
+							let birth = new Date(res_data.acc_obj.birth_date);
+							document.getElementById("display_user_birth").innerHTML = birth.toLocaleDateString();
+							document.getElementById("display_user_sex").innerHTML = res_data.acc_obj.sex;
+							document.getElementById("display_user_level").innerHTML = res_data.acc_obj.level;
+							document.getElementById("display_user_points").innerHTML = res_data.acc_obj.points;
+							document.getElementById("display_user_coins").innerHTML = res_data.acc_obj.coins;
+							let best_tfi = res_data.acc_obj.best_tfi / 1000;
+							document.getElementById("display_user_best_tfi").innerHTML = best_tfi;
+							document.getElementById("display_user_RID").innerHTML = res_data.acc_obj.RID;
+							document.getElementById("display_user_RS").innerHTML = res_data.acc_obj.RS;
+							document.getElementById("display_user_AITI").innerHTML = res_data.acc_obj.AITI;
+							document.getElementById("display_user_SMPR").innerHTML = res_data.acc_obj.SMPR;
+							document.getElementById("display_user_PTIR").innerHTML = res_data.acc_obj.PTIR;
+							document.getElementById("display_user_FLASH").innerHTML = res_data.acc_obj.FLASH;
 						}
 					}
 				};
@@ -138,13 +170,17 @@
 				return false;
 			}
 			function edit_acc(){
-				var id = document.getElementById("display_user_ID").innerHTML.toLowerCase();
-				var NTID = document.forms.Edit_Acc.ntid.value.toUpperCase();
-				var RS = document.forms.Edit_Acc.RS.value;
-				var AITI = document.forms.Edit_Acc.aiti.value;
-				var SMPR = document.forms.Edit_Acc.smpr.value;
-				var PTIR = document.forms.Edit_Acc.ptir.value;
-				var FLASH = document.forms.Edit_Acc.flash.value;
+				let id = document.getElementById("display_user_ID").innerHTML.toLowerCase();
+				let RID = document.forms.Edit_Acc.rid.value.toUpperCase();
+				let RS = document.forms.Edit_Acc.RS.value;
+				let AITI = document.forms.Edit_Acc.aiti.value;
+				let SMPR = document.forms.Edit_Acc.smpr.value;
+				let PTIR = document.forms.Edit_Acc.ptir.value;
+				let FLASH = document.forms.Edit_Acc.flash.value;
+				if(id.length < 1){
+					alert("Load an account first");
+					return false;
+				}
 				if(AITI != "" && (isNaN(AITI) || AITI <= 0)){
 					alert("Please type a positive number for AITI");
 					return false;
@@ -157,18 +193,21 @@
 					alert("Please type a positive number for PTIR");
 					return false;
 				}
-				if(NTID.slice(0,2) != 'NT'){
+				/*
+				if(RID.length < 1){
+					alert("Please provide a research ID");
+					return false;
+				}if(RID.slice(0,2) != 'NT'){ //OLD
 					alert("The Research ID should start with 'NT'");
 					return false;
-				}
+				}*/
 				
 				//Ask the server to save the new RS [& AITI]
-				var xhr = new XMLHttpRequest();
-				var url = '/admin/manageRU.dynh';
-				var reqBody = 'source=edit_acc&admin_id=**[admin_id]**&admin_pw=**[admin_pw]**&id='+
-					id+'&RS='+RS+'&FLASH='+FLASH;
-				if(NTID)
-					reqBody += '&NTID='+NTID;
+				let xhr = new XMLHttpRequest();
+				let url = '/admin/MRU-edit_acc';
+				let reqBody = 'id='+id+'&RS='+RS+'&FLASH='+FLASH;
+				if(RID)
+					reqBody += '&RID='+RID;
 				if(AITI)
 					reqBody += '&AITI='+AITI;
 				if(SMPR)
@@ -176,34 +215,30 @@
 				if(PTIR)
 					reqBody += '&PTIR='+PTIR;
 				xhr.open('POST', url, true);
-				xhr.setRequestHeader('Content-type', 'text/plain');
+				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState == 4){
 						if(xhr.status == 200){
-							var res_data = xhr.responseText.split("=");
-							if(res_data[0] == "error"){
-								alert("Error: "+res_data[1]);
+							let res_data = JSON.parse(xhr.responseText);
+							if(res_data.err){
+								alert("Error: "+res_data.err);
 								return false;
 							}
-							if(res_data[0] != "good"){
+							if(res_data.msg != "good"){
 								alert("Error: Unknown response from the server");
 								return false;
 							}
+							// Update the table
 							document.getElementById("display_user_RS").innerHTML = RS;
 							document.getElementById("display_user_FLASH").innerHTML = FLASH;
-							if(NTID)
-								document.getElementById("display_user_NTID").innerHTML = NTID;
+							if(RID)
+								document.getElementById("display_user_RID").innerHTML = RID;
 							if(AITI)
 								document.getElementById("display_user_AITI").innerHTML = AITI;
 							if(SMPR)
 								document.getElementById("display_user_SMPR").innerHTML = SMPR;
 							if(PTIR)
 								document.getElementById("display_user_PTIR").innerHTML = PTIR;
-						}
-						else{
-							document.open();
-							document.write(xhr.responseText);
-							document.close();
 						}
 					}
 				};

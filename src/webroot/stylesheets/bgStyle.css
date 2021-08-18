@@ -204,6 +204,15 @@ footer {
 	padding: .3rem .5rem;
 }
 
+.main-content .subform {
+	display: inline-block;
+	margin: .25rem;
+	padding: .5rem;
+	border-width: 1px;
+	border-style: dashed;
+	border-color: #666;
+}
+
 .bigBtn {
 	-webkit-user-select: none;/*You can't select the text in the btn label*/
 	-khtml-user-select: none;
@@ -214,6 +223,7 @@ footer {
 	cursor: -moz-pointer;
 	cursor: pointer;
 	
+	display: block;
 	margin: .25rem auto;
 	text-align: center;
 	color: #fff;

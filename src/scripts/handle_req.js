@@ -7,12 +7,17 @@ const fs = require("fs");
 const scriptsroot = __dirname;
 const aux = require(scriptsroot+"/auxiliary.js");
 
+// Middleware
 module.exports.slash_redirect = slash_redirect;
 module.exports.check_login = check_login;
+module.exports.check_admin = check_admin;
 module.exports.check_lid = check_lid;
+module.exports.verify_account = verify_account;
+// Handlers
 module.exports.root = root;
 module.exports.err_get = err_get;
 module.exports.ghses = ghses;
+// Requests related to accounts (registration, login, manage account)
 module.exports.login_get = login_get;
 module.exports.login = login;
 module.exports.logout = logout;
@@ -20,6 +25,7 @@ module.exports.register_user = register_user;
 module.exports.register_trainer = register_trainer;
 module.exports.manage_get = manage_get;
 module.exports.manage = manage;
+// Requests related to training sessions
 module.exports.new_session_get = new_session_get;
 module.exports.new_session = new_session;
 module.exports.ll_get = ll_get;
@@ -33,9 +39,104 @@ module.exports.sest = sest;
 module.exports.sesu = sesu;
 module.exports.session_ended_get = session_ended_get;
 module.exports.new_tspses_get = new_tspses_get;
+module.exports.ssa = ssa;
+module.exports.tspsesa = tspsesa;
+module.exports.tspsesu = tspsesu;
+// Admin interface
+module.exports.MAA_LA = MAA_LA;
+module.exports.MAA_CP = MAA_CP;
+module.exports.MAA_CA = MAA_CA;
+module.exports.MRU_LA = MRU_LA;
+module.exports.MRU_EA = MRU_EA;
+module.exports.VL_log = VL_log;
+//module.exports.admin_get = admin_get;
+// GJ (Get Json) API
 module.exports.gj_recent_session = gj_recent_session;
 module.exports.gj_settings = gj_settings;
+module.exports.gj_archived_logs = gj_archived_logs;
 
+// Middleware
+
+function slash_redirect(req, res, next){
+	/**
+	*	If the url is a directory without a trailing slash, 
+	*	redirect to that same url with the slash.
+	*	This helps relative urls to work more reliably.
+	*/
+	if(!req.url.endsWith("/")){
+		res.redirect(301, req.url + "/");
+	}
+	else{
+		next();
+	}
+}
+
+function check_login(req, res, next){
+	/**
+	*	Check if logged in. If not, redirect to login page
+	*	However, does not re-verify the password
+	*/
+	if(req.session && req.session.acc_obj){
+		next();
+	}
+	else{
+		// Go to the login page
+		res.redirect("/account/login?redirect="+req.url);
+	}
+}
+
+function check_lid(req, res, next){
+	/**
+	*	Check if the user is currently in a session
+	*		(Is there req.session.lid?)
+	*/
+	if(req.session.lid){
+		next();
+	}
+	else{
+		let ses_root = req.url.slice(0, req.url.lastIndexOf("/")+1);
+		res.redirect(ses_root);
+	}
+}
+
+function check_admin(req, res, next){
+	/**
+	*	Same as check_login, but specific to admin
+	*	Must be logged in as admin
+	*	However, does not re-verify the password
+	*/
+	if(req.session && req.session.acc_obj && 
+		req.session.acc_obj.id[0] == "a"){
+		next();
+	}
+	else{
+		// Go to the login page
+		res.redirect("/account/login?redirect="+req.url);
+	}
+}
+
+function verify_account(req, res, next){
+	/**
+	*	Verify account password (also update session.acc_obj)
+	*	Should only be called after check_login or check_admin
+	*/
+	let credentials = {
+		id: req.session.acc_obj.id,
+		pwh: req.session.acc_obj.pwh
+	};
+	aux.login(credentials, null, (err, acc_obj, con) => {
+		if(err){
+			ret_error(res, err);
+			return;
+		}
+		req.sql_con = con;
+		req.session.acc_obj = acc_obj;
+		next();
+	});
+	
+}
+
+// General handlers
 
 function ret_error(res, err, redirect){
 	/**
@@ -75,47 +176,6 @@ function ret_error(res, err, redirect){
 	}
 }
 
-function slash_redirect(req, res, next){
-	/**
-	*	If the url is a directory without a trailing slash, 
-	*	redirect to that same url with the slash.
-	*	This helps relative urls to work more reliably.
-	*/
-	if(!req.url.endsWith("/")){
-		res.redirect(301, req.url + "/");
-	}
-	else{
-		next();
-	}
-}
-
-function check_login(req, res, next){
-	/**
-	*	Check if logged in. If not, redirect to login page
-	*/
-	if(req.session && req.session.acc_obj){
-		next();
-	}
-	else{
-		// Go to the login page
-		res.redirect("/account/login?redirect="+req.url);
-	}
-}
-
-function check_lid(req, res, next){
-	/**
-	*	Check if the user is currently in a session
-	*		(Is there req.session.lid?)
-	*/
-	if(req.session.lid){
-		next();
-	}
-	else{
-		let ses_root = req.url.slice(0, req.url.lastIndexOf("/")+1);
-		res.redirect(ses_root);
-	}
-}
-
 function err_get(req, res, next){
 	/**
 	*	Handle GET requests for error pages
@@ -141,7 +201,8 @@ function ghses(req, res){
 		id: req.body.tid,
 		pw: req.body.pw
 	}
-	aux.login(credentials, (err, acc_obj, con) => {
+	// TODO: Use the new login session system?
+	aux.login(credentials, null, (err, acc_obj, con) => {
 		if(err){
 			ret_error(res, err);
 			return;
@@ -228,7 +289,7 @@ function login(req, res){
 	*	Handle POST requests for "/account/login"
 	*	Log the user in and redirect them to where they were trying to go.
 	*/
-	aux.login(req.body, (err, acc_obj, con) => {
+	aux.login(req.body, null, (err, acc_obj, con) => {
 		if(err){
 			ret_error(res, err, "/account/login");
 			return;
@@ -300,6 +361,12 @@ function manage_get(req, res){
 	*	Handle GET requests for "/account/manage"
 	*/
 	let acc_obj = req.session.acc_obj;
+	
+	if(acc_obj.id[0] == "a"){
+		res.redirect("/admin/MAA.html");
+		return;
+	}
+	
 	aux.get_links(acc_obj, null, (err, lids) => {
 		if(err){
 			ret_error(res, "se"); //TODO
@@ -331,30 +398,20 @@ function manage_get(req, res){
 function manage(req, res){
 	/**
 	*	Handle POST requests from "/account/manage"
+	*	Follows check_login and verify_account
 	*	req.body.source is one of:
 	*		- addL
 	*		- editP
 	*/
 	// Do admins use this portal? TODO
-	if(["addL", "editP"].indexOf(req.body.source) == -1){
-		ret_error(res, "ife");
-		return;
-	}
-	let credentials = {
-		id: req.session.acc_obj.id,
-		pwh: req.session.acc_obj.pwh
-	};
-	aux.login(credentials, (err, acc_obj, con) => {
-		if(err){
-			ret_error(res, err);
-			return;
-		}
-		if(req.body.source == "addL"){
+	let acc_obj = req.session.acc_obj;
+	switch(req.body.source){
+		case "addL":
 			let link_data = {
 				id: acc_obj.id,
 				lid: req.body.lid
 			};
-			aux.add_link(link_data, con, (err) => {
+			aux.add_link(link_data, req.sql_con, (err) => {
 				if(err){
 					if(err.code == "ER_DUP_ENTRY"){
 						// Link already exists
@@ -374,15 +431,15 @@ function manage(req, res){
 				// Reload the account manage page
 				res.redirect("/account/manage");
 			});
-		}
-		else{ //editP
+			break;
+		case "editP":
 			let data = {
 				id: acc_obj.id,
 				edits: {
 					"password": req.body.pw
 				}
 			}
-			aux.edit_account(data, con, (err, acc_obj) => {
+			aux.edit_account(data, req.sql_con, (err, acc_obj) => {
 				if(err){
 					ret_error(res, err);
 					return;
@@ -393,8 +450,10 @@ function manage(req, res){
 				// Reload the account manage page
 				res.redirect("/account/manage");
 			})
-		}
-	});
+			break;
+		default:
+			ret_error(res, "ife");
+	}
 }
 
 // Requests related to training sessions
@@ -555,6 +614,9 @@ function llt(req, res){
 	*			If found, create session and return start session page
 	*/
 	let id = req.session.acc_obj.id;
+	if(id[0] == "a"){
+		id = "a";
+	}
 	let lid = req.session.lid;
 	let link_data = {
 		uid: lid,
@@ -686,6 +748,13 @@ function sst(req, res){
 			}
 		});
 	}
+}
+
+function ssa(req, res){
+	/**
+	*	Handle POST requests from "/tsp/ssa"
+	TODO
+	*/
 }
 
 function ssu(req, res){
@@ -836,6 +905,12 @@ function sest(req, res){
 	}
 }
 
+function tspsesa(req, res){
+	/**
+	*	Handle POST requests from "/tsp/sest"
+	TODO
+	*/
+}
 function sesu(req, res){
 	/**
 	*	Handle POST requests from the Session-user page
@@ -992,6 +1067,12 @@ function sesu(req, res){
 	}
 }
 
+function tspsesu(req, res){
+	/**
+	*	Handle POST requests from "/tsp/sesu"
+	TODO
+	*/
+}
 function session_ended_get(req, res){
 	/**
 	*	Handle GET requests for the Session Ended page
@@ -1019,6 +1100,151 @@ function session_ended_get(req, res){
 	});
 }
 
+// Admin interface
+
+function MAA_LA(req, res){
+	/**
+	*	Handle POST requests for /admin/MAA-load_admin
+	*		Verify the password for the specified admin account
+	*	Follows check_admin and verify_account
+	*/
+	let credentials = {
+		id: req.body.id,
+		pw: req.body.pw
+	};
+	aux.login(credentials, req.sql_con, (err, acc_obj) => {
+		if(err){
+			res.json({err: err});
+			return;
+		}
+		res.json({acc_obj: acc_obj});
+	});
+}
+
+function MAA_CP(req, res){
+	/**
+	*	Handle POST requests for /admin/MAA-change_pw
+	*		Verify the password for the specified admin account
+	*		Change the password
+	*	Follows check_admin and verify_account
+	*/
+	let credentials = {
+		id: req.body.id,
+		pw: req.body.pw
+	};
+	aux.login(credentials, req.sql_con, (err, acc_obj, con) => {
+		if(err){
+			res.json({err: err});
+			return;
+		}
+		let data = {
+			id: req.body.id,
+			edits: {
+				password: req.body.new_pw
+			}
+		};
+		aux.edit_account(data, con, (err) => {
+			if(err){
+				res.json({err: err});
+				return;
+			}
+			res.json({msg: "good"});
+		});
+	});
+}
+
+function MAA_CA(req, res){
+	/**
+	*	Handle POST requests for /admin/MAA-create_admin
+	*	Follows check_admin and verify_account
+	*/
+	aux.register_admin(req.body, req.sql_con, (err, body) => {
+		if(err){
+			ret_error(res, err);
+			return;
+		}
+		ret_created(res, body);
+	});
+}
+
+function MRU_LA(req, res){
+	/**
+	*	Handle POST requests for /admin/MRU-load_acc
+	*	Follows check_admin and verify_account
+	*/
+	aux.load_account(req.body.id, req.sql_con, (err, acc_obj) => {
+		if(err){
+			res.json({err: err});
+			return;
+		}
+		res.json({acc_obj: acc_obj});
+	});
+}
+
+function MRU_EA(req, res){
+	/**
+	*	Handle POST requests for /admin/MRU-edit_acc
+	*	Follows check_admin and verify_account
+	*/
+	let data = {
+		id: req.body.id,
+		edits: {
+			RSTATE: req.body.RS,
+			FLASH: req.body.FLASH,
+			//RID: req.body.RID,
+			//AITI: req.body.AITI,
+			//SMPR: req.body.SMPR,
+			//PTIR: req.body.PTIR
+		}
+	};
+	// These aren't always updated
+	if(req.body.RID)
+		data.edits.RID = req.body.RID;
+	if(req.body.AITI)
+		data.edits.AITI = req.body.AITI;
+	if(req.body.SMPR)
+		data.edits.SMPR = req.body.SMPR;
+	if(req.body.PTIR)
+		data.edits.PTIR = req.body.PTIR;
+	aux.edit_account(data, req.sql_con, (err) => {
+		if(err){
+			res.json({err: err});
+			return;
+		}
+		res.json({msg: "good"});
+	})
+}
+
+function VL_log(req, res){
+	/**
+	*	Handle GET requests for /admin/VL-log
+	*	If query.file is one of the three system logs, return that specified log.
+	*	Otherwise, assume it's an archived session log filename
+	*	Follows check_admin and verify_account
+	*/
+	let filename = req.query.file;
+	if(!filename){
+		ret_error(res, "ife");
+	}
+	switch(filename){
+		case "console_log":
+			res.sendFile(aux.console_log_file);
+			break;
+		case "err_log":
+			res.sendFile(aux.err_log_file);
+			break;
+		case "lnusers":
+			console.log(1189, aux.ln_list());
+			res.json(aux.ln_list());
+			break;
+		default:
+			let path = aux.dbroot + "session/archive/" + filename;
+			res.sendFile(path);
+	}
+}
+
+// GJ (Get Json) API
+
 function gj_recent_session(req, res){
 	/**
 	*	Attempt to load the report data for a recent session
@@ -1026,13 +1252,17 @@ function gj_recent_session(req, res){
 	//console.log(973);
 	let tid = req.session.acc_obj.id;
 	let uid = req.query.lid;
+	if(!uid || uid.length < 2){
+		res.json({err: "ife"});
+		return;
+	}
 	let isuser = false;
 	if(req.session.acc_obj.id[0] == "u"){
 		isuser = true;
 		tid = req.query.lid;
 		uid = req.session.acc_obj.id;
 	}
-	aux.load_report(tid, uid, (err, report) => {
+	aux.load_recent_report(tid, uid, (err, report) => {
 		//console.log(982, err, report);
 		if(err){
 			res.json({err: err});
@@ -1072,4 +1302,20 @@ function gj_settings(req, res){
 	*	Return the settings.json file
 	*/
 	res.sendFile(aux.mainroot + "/settings.json");
+}
+
+function gj_archived_logs(req, res){
+	/**
+	*	Return a list of log files associated with the given user
+	*	This is used by /admin/VL and /tsp/ (NCR)
+	*	Follows check_admin and verify_account
+	*/
+	let uid = req.query.uid;
+	aux.list_archived_sessions(uid, (err, sessions) => {
+		if(err){
+			res.json({err: err});
+			return;
+		}
+		res.json(sessions)
+	});
 }

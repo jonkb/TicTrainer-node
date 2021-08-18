@@ -2,8 +2,10 @@
 <section class='main-content' id='mainC'>
 	Your account id is:
 	<div class="alertText">{{id}}</div>
+	{{#unless isadmin}}
 	Your password is:
 	<div class="alertText">{{pw}}</div>
+	{{/unless}}
 	Be sure to <b>record this information</b>, as it is needed to log in. <br>
 	
 	{{#unless isadmin}}

@@ -15,6 +15,8 @@ const sql = require(scriptsroot+"/mysql.js")
 // Other constants
 const localeroot = "./locales/";
 const languages = ["en", "pt"];
+const console_log_file = path.join(mainroot, "/../Project_Files/log.txt");
+const err_log_file = path.join(dbroot, "/err_log.ttd");
 const user_editable_fields = ["password", "birth_date", "sex", "level", 
 	"points", "coins", "best_tfi", "items", "RID", "RSTATE", "AITI", "SMPR",
 	"PTIR", "FLASH"];
@@ -41,6 +43,8 @@ var lndata = {};
 */
 module.exports.settings = settings;
 module.exports.languages = languages;
+module.exports.console_log_file = console_log_file;
+module.exports.err_log_file = err_log_file;
 module.exports.err_types = err_types;
 module.exports.err_titles = err_titles;
 module.exports.dbroot = dbroot;
@@ -55,9 +59,11 @@ module.exports.log_error = log_error;
 module.exports.ln_add = ln_add;
 module.exports.ln_has = ln_has;
 module.exports.ln_delete = ln_delete;
+module.exports.ln_list = ln_list;
 module.exports.get_locale_data = get_locale_data;
 module.exports.register_user = register_user;
 module.exports.register_trainer = register_trainer;
+module.exports.register_admin = register_admin;
 module.exports.load_account = load_account;
 module.exports.login = login;
 module.exports.edit_account = edit_account;
@@ -66,7 +72,8 @@ module.exports.add_link = add_link;
 module.exports.gen_report_obj = gen_report_obj;
 module.exports.gen_report_txt = gen_report_txt;
 module.exports.archive_session = archive_session;
-module.exports.load_report = load_report;
+module.exports.load_recent_report = load_recent_report;
+module.exports.list_archived_sessions = list_archived_sessions;
 
 
 function id_to_N(id){
@@ -136,7 +143,7 @@ function log_error(error_type, message){
 	message = message.replace(division_char, division_char_description);
 	var eEntry = open_char+error_type+division_char+time()+
 		division_char+message+close_char+"\n";
-	fs.appendFile(dbroot + "/err_log.ttd", eEntry, function(err){});
+	fs.appendFile(err_log_file, eEntry, function(err){});
 }
 
 function db_log(message, depth){
@@ -192,6 +199,14 @@ function ln_delete(link_data){
 	lnusers.delete(link_data.uid);
 	delete lndata[link_data.uid];
 	db_log("Current lnusers list: "+Array.from(lnusers).join(", "), 3);
+}
+
+function ln_list(){
+	/**
+	*	Getter for lndata
+	*/
+	
+	return Object.values(lndata);
 }
 
 function get_locale_data(lang, callback){
@@ -251,8 +266,8 @@ function register_trainer(body, callback){
 	*	Create a new trainer account
 	*/
 	
-	var pw = sql.esc(body.pw);
-	var birth = sql.esc(body.birth);
+	let pw = sql.esc(body.pw);
+	let birth = sql.esc(body.birth);
 	
 	sql.connect((err, con) => {
 		if(err){
@@ -260,8 +275,8 @@ function register_trainer(body, callback){
 			return;
 		}
 		// Create a new account for the trainer
-		var insert_cols = "(password_hash, birth_year)";
-		var insert_query = `INSERT INTO trainers ${insert_cols}
+		let insert_cols = "(password_hash, birth_year)";
+		let insert_query = `INSERT INTO trainers ${insert_cols}
 VALUES (UNHEX(SHA2("${pw}", 256)), ${birth})`;
 		con.query(insert_query, (err, result) => {
 			if(err){
@@ -272,6 +287,38 @@ VALUES (UNHEX(SHA2("${pw}", 256)), ${birth})`;
 			body.id = N_to_id(result.insertId, "t");
 			callback(null, body);
 		});
+	});
+}
+
+function register_admin(body, con, callback){
+	/**
+	*	Create a new admin account
+	*/
+	if(!con){
+		// Create a connection if none was provided
+		sql.connect((err, con) => {
+			if(err){
+				callback(err);
+				return;
+			}
+			register_admin(body, con, callback);
+		});
+		return;
+	}
+	
+	let pw = sql.esc(body.pw);
+	
+	// Create a new account
+	let insert_query = `INSERT INTO admins (password_hash)
+VALUES (UNHEX(SHA2("${pw}", 256)))`;
+	con.query(insert_query, (err, result) => {
+		if(err){
+			callback(err);
+			return;
+		}
+		db_log("Record inserted. ID: " + result.insertId);
+		body.id = N_to_id(result.insertId, "a");
+		callback(null, body);
 	});
 }
 
@@ -349,12 +396,24 @@ FROM ${table} WHERE ID=${idN}`;
 	});
 }
 
-function login(body, callback){
+function login(body, con, callback){
 	/**
 	*	Verify account
 	*		body.id = uid / tid / aid
 	*		body.pw = pw || body.pwh = pwh
 	*/
+	if(!con){
+		// Create a connection if none was provided
+		sql.connect((err, con) => {
+			if(err){
+				callback(err);
+				return;
+			}
+			login(body, con, callback);
+		});
+		return;
+	}
+	
 	let pwh = null;
 	if(body.pw){
 		pwh = crypto.createHash("sha256");
@@ -395,7 +454,7 @@ function edit_account(data, con, callback){
 	
 	if(!con){
 		// Create a connection if none was provided
-		login(data, (err, acc_obj, con) => {
+		login(data, null, (err, acc_obj, con) => {
 			if(err){
 				callback(err);
 				return;
@@ -470,7 +529,7 @@ function get_links(data, con, callback){
 	
 	if(!con){
 		// Create a connection if none was provided
-		login(data, (err, acc_obj, con) => {
+		login(data, null, (err, acc_obj, con) => {
 			if(err){
 				callback(err);
 				return;
@@ -519,6 +578,19 @@ function add_link(data, con, callback){
 	*	Add a link btw trainer & user
 	*	data should have id & lid
 	*/
+	
+	if(!con){
+		// Create a connection if none was provided
+		sql.connect((err, con) => {
+			if(err){
+				callback(err);
+				return;
+			}
+			add_link(data, con, callback);
+		});
+		return;
+	}
+	
 	let isuser = data.id[0] == "u";
 	let table, tid, uid;
 	if(isuser){
@@ -820,7 +892,7 @@ function archive_session(sesFile, callback){
 	});
 }
 
-function load_report(tid, uid, callback){
+function load_recent_report(tid, uid, callback){
 	/**
 	*	Search the session archive for a recently completed session btw tid & uid
 	*	Then (if found) load that report and return it as an object
@@ -851,6 +923,36 @@ ORDER BY end_ts DESC`;
 				// No error, no report
 				callback(null);
 			}
+		});
+	});
+}
+
+function list_archived_sessions(uid, callback){
+	/**
+	*	Return a list of all session archives associated with the given user
+	*/
+	sql.connect((err, con) => {
+		if(err){
+			callback(err);
+			return;
+		}
+		// Load all session files w/ uid
+		// Sorted so that the first one is the most recent
+		let select_query = `SELECT *
+FROM session_archive_index`;
+		if(uid){
+			let uidN = sql.esc(id_to_N(uid));
+			select_query += `
+WHERE UID=${uidN}`;
+		}
+		select_query += `
+ORDER BY end_ts DESC`;
+		con.query(select_query, (err, result, fields) => {
+			if(err){
+				callback(err);
+				return;
+			}
+			callback(null, result);
 		});
 	});
 }

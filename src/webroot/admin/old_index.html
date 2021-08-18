@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Admin Interface</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+		<link rel='stylesheet' type='text/css' href='/stylesheets/bgStyle.css'>
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+	</head>
+	<body>
+		<section class='page-header'>
+			<div class='header-navbar'>
+				<a href='/' class='logo'></a>
+				<h1>Admin Interface</h1>
+				<div style='clear: both;'></div>
+			</div>
+		</section>
+		<section class='main-content' id='mainC'>
+			<form method="POST" name="admin_login" onsubmit="return checkForm();">
+				<input type="hidden" name="source" value="admin_login">
+				<fieldset>
+					<legend>Authenticate</legend>
+					Admin ID:<br>
+					<input type="text" name="id" required><br>
+					Password:<br>
+					<input type="password" name="pw" required><br>
+					<input type="submit" value="Authenticate" class="btn">
+				</fieldset>
+			</form>
+			<div>
+				<h3>Links for running TicTimer Web sessions</h3>
+				New Session&mdash;Rater: <a href="/tsp/rater.html">tictrainer.com/tsp/rater.html</a><br>
+				New Session&mdash;User: <a href="/tsp/">tictrainer.com/tsp/</a>
+			</div>
+			
+		</section>
+		<script>
+			function checkForm(){
+				var id = document.forms["admin_login"]["id"].value.toLowerCase();
+				document.forms["admin_login"]["id"].value = id;
+				if(id[0] != "a" || id.length < 2){
+					alert("Invalid ID");
+					return false;
+				}
+			}
+		</script>
+		
+	</body>
+</html>

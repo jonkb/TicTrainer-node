@@ -1,25 +1,21 @@
 //Functions related to requesting log files.
 
-//Load a list of session log files. Needs admin authentication.
-function req_ses_list(aid, apw, uid, callback){
+function req_ses_list(uid, callback){
+	//Load a list of session log files. Needs active admin session.
 	var xhr = new XMLHttpRequest();
-	var url = '/admin/viewLogs.dynh';
-	var reqBody = 'admin_id='+aid+'&admin_pw='+apw+'&source=reqlist&uid='+uid;
-	xhr.open('POST', url, true);
-	xhr.setRequestHeader('Content-type', 'text/plain');
+	var url = "/gj/archived_logs";
+	if(uid.length > 1)
+		url += "?uid="+uid;
+	xhr.open('GET', url, true);
 	xhr.onreadystatechange = function(){
 		if(xhr.readyState == 4){
-			var res = xhr.responseText;
 			if(xhr.status == 200){
-				var loglist = JSON.parse(res);
-				callback(xhr.status, loglist);
-			}
-			else{
-				callback(xhr.status, res);
+				var res = JSON.parse(xhr.responseText);
+				callback(res);
 			}
 		}
 	};
-	xhr.send(reqBody);
+	xhr.send();
 }
 
 function ttd_to_HTML(data){
