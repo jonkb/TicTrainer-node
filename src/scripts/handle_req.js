@@ -90,6 +90,7 @@ function check_lid(req, res, next){
 	*	Check if the user is currently in a session
 	*		(Is there req.session.lid?)
 	*/
+	console.log(93, req.session.lid)
 	if(req.session.lid){
 		next();
 	}
@@ -555,6 +556,9 @@ function new_session(req, res){
 		tid = req.body.lid;
 		uid = req.body.id;
 	}
+	if(req.body.id[0] == "a"){
+		tid = "a";
+	}
 	let sesFile = aux.dbroot + "session/ongoing/" + tid + "-" + uid + ".ttsd";
 	// Note: is this really the right time to check for conses?
 	fs.stat(sesFile, function(err){
@@ -687,6 +691,7 @@ function ss_get(req, res){
 	let id = req.session.acc_obj.id;
 	let lid = req.session.lid;
 	let isuser = id[0] == "u";
+	let israter = id[0] == "u";
 	let hbs_data = {
 		layout: "simple",
 		title: "Link Successful",
@@ -695,6 +700,8 @@ function ss_get(req, res){
 	};
 	if(isuser)
 		res.render("ssu", hbs_data);
+	else if(israter)
+		res.render("ssa", hbs_data);
 	else
 		res.render("sst", hbs_data);
 }
@@ -847,8 +854,10 @@ function sest(req, res){
 	*	Handle POST requests from the Session-trainer page
 	*/
 	let id = req.session.acc_obj.id;
+	if(id[0] == "a")
+		id = "a";
 	let lid = req.session.lid;
-	let sesFile = aux.dbroot + "session/ongoing/" + id + "-" + lid + ".ttsd"; //TODO: a for admin
+	let sesFile = aux.dbroot + "session/ongoing/" + id + "-" + lid + ".ttsd";
 	
 	console.log(672, req.body);
 	
@@ -918,7 +927,7 @@ function sesu(req, res){
 	*/
 	let id = req.session.acc_obj.id;
 	let lid = req.session.lid;
-	let sesFile = aux.dbroot + "session/ongoing/" + lid + "-" + id + ".ttsd"; //TODO: a for admin
+	let sesFile = aux.dbroot + "session/ongoing/" + lid + "-" + id + ".ttsd";
 	
 	console.log(748, req.body);
 	
@@ -965,65 +974,47 @@ function sesu(req, res){
 			});
 			break;
 		case "end":
-			aux.db_log("SE-U");
+			// Shouldn't actually change user lpc, since that's saved whenever it's changed
+			aux.db_log("977: SE-U");
 			req.session.last_lid = req.session.lid;
 			req.session.lid = null; // Blocks access to the active session pages
-			let data = {
-				id: id,
-				pwh: req.session.acc_obj.pwh,
-				edits: {
-					"level": req.body.level,
-					"points": req.body.points,
-					"coins": req.body.coins
-					//TODO: best tfi
-				}
-			}
-			aux.edit_account(data, null, (err, acc_obj) => {
+			//End and archive session
+			fs.readFile(sesFile, "utf8", function(err, sData){
 				if(err){
-					console.log(802, err);
-					res.json({err: "se"});
+					console.log(809);
+					res.json({err: "fe"});
 					return;
 				}
-				// Update the cookie to reflect the change
-				req.session.acc_obj = acc_obj;
-				//End and archive session
-				fs.readFile(sesFile, "utf8", function(err, sData){
-					if(err){
-						console.log(809);
-						res.json({err: "fe"});
-						return;
-					}
-					if(sData.indexOf("session ended") == -1){
-						//The session still needs to be ended
-						var eEntry = "\nsession ended|"+aux.time();
-						fs.appendFile(sesFile, eEntry, function(err){
-							if(err){
-								console.log(870);
-								res.json({err: "fe"});
-								return;
-							}
-							aux.archive_session(sesFile, function(err, report){
-								if(err){
-									console.log(875);
-									res.json({err: err});
-									return;
-								}
-								res.json({next: "session_ended"});
-							});
-						});
-					}
-					else{
+				if(sData.indexOf("session ended") == -1){
+					//The session still needs to be ended
+					var eEntry = "\nsession ended|"+aux.time();
+					fs.appendFile(sesFile, eEntry, function(err){
+						if(err){
+							console.log(870);
+							res.json({err: "fe"});
+							return;
+						}
 						aux.archive_session(sesFile, function(err, report){
 							if(err){
-								console.log(855);
+								console.log(875);
 								res.json({err: err});
 								return;
 							}
-							// TODO: session ended page with report (xhr to load)
 							res.json({next: "session_ended"});
 						});
-					}
-				});
+					});
+				}
+				else{
+					aux.archive_session(sesFile, function(err, report){
+						if(err){
+							console.log(855);
+							res.json({err: err});
+							return;
+						}
+						// TODO: session ended page with report (xhr to load)
+						res.json({next: "session_ended"});
+					});
+				}
 			});
 			break;
 		case "loglpc"://id, pass, l,p,c

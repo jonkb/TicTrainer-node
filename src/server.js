@@ -83,8 +83,8 @@ app.get("/tsp/llt", hrq.ll_get); // Link Loading
 app.post("/tsp/llt", hrq.llt);
 app.get("/tsp/llu", hrq.ll_get);
 app.post("/tsp/llu", hrq.llu);
-app.get("/tsp/sst", hrq.ss_get); // Start Session
-app.post("/tsp/sst", hrq.ssa);
+app.get("/tsp/ssa", hrq.ss_get); // Start Session
+app.post("/tsp/ssa", hrq.ssa);
 app.get("/tsp/ssu", hrq.ss_get);
 app.post("/tsp/ssu", hrq.ssu);
 app.get("/tsp/sest", hrq.ses_get); // Active Session

@@ -19,7 +19,8 @@
 	
 	look();
 	function cleanup(){
-		ll_vars = {};
+		//ll_vars = {};
+		ll_vars.already_left = true;
 	}
 	function look(){
 		if(ll_vars.tryN < ll_vars.max_tries){
@@ -41,7 +42,7 @@
 						case "next":
 							cleanup();
 							if(resParts[1] == "ssu")
-								window.location.href = "/session/ssu";
+								window.location.href = "ssu";
 							else
 								alert("Unknown Response");
 							break;
@@ -80,7 +81,6 @@
 			xhr.open('POST', url, true);
 			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 			xhr.send(reqBody);
-			ll_vars.already_left = true;
 		}
 	}
 </script>

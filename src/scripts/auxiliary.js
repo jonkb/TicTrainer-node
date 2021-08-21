@@ -798,6 +798,7 @@ function update_best_tfi(uid, tfi_time, callback){
 	/**
 	*	Saves tfi_time as the user's personal best if it is greater than
 	*	the current personal best
+	*		ALT: alternate method compares tfi_time to session.acc_obj.best_tfi
 	*/
 	let idN = sql.esc(id_to_N(uid));
 	let tfi = parseInt(sql.esc(tfi_time));
