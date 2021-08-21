@@ -138,32 +138,32 @@ function verify_account(req, res, next){
 
 // General handlers
 
-function ret_error(res, err, redirect){
+function ret_error(res, err, retry){
 	/**
 	*	Return an error page
 	*/
 	
-	let default_redirect = "/";
+	let default_retry = "/";
 	if(err == "conses"){
-		default_redirect = "/session/";
+		default_retry = "/session/";
 	}
-	redirect = redirect || default_redirect;
+	retry = retry || default_retry;
 	
 	let hbs_data = {
 		layout: "simple",
 		title: "Unknown Error",
-		retry: (redirect ? redirect : "/"),
+		retry: retry,
 		retry_cls: "bigBtn"
 	};
 	let status_code = 400;
-	if(["fe", "se"].indexOf(err) > -1){
+	if(["fe", "se"].includes(err)){
 		status_code = 500;
 		hbs_data.e500 = true;
 		hbs_data.retry_cls = "btn";
 	}
 	res.status(status_code);
 	
-	if(aux.err_types.indexOf(err) > -1){
+	if(aux.err_types.includes(err)){
 		aux.db_log("38: "+err);
 		hbs_data[err] = true;
 		hbs_data.title = aux.err_titles[err];
@@ -182,13 +182,13 @@ function err_get(req, res, next){
 	*/
 	
 	let err = req.path.slice(req.path.lastIndexOf("/")+1);
+	let retry = req.query.retry || "/";
 	if(err.slice(-5) == ".html"){
 		// Process a normal GET
 		next();
 	}
 	else{
-		//TODO: allow redirect in the query?
-		ret_error(res, err);
+		ret_error(res, err, retry);
 	}
 }
 
@@ -266,8 +266,8 @@ function login_get(req, res){
 	/**
 	*	Handle GET requests for "/account/login"
 	*/
-	var redirect = req.query.redirect || "/";
-	var hbs_data = {
+	let redirect = req.query.redirect || "/";
+	let hbs_data = {
 		layout: "simple",
 		title: "Log in",
 		redirect: redirect
@@ -279,7 +279,7 @@ function login_get(req, res){
 			return;
 		}
 		// Combine all the data into one object for Handlebars
-		var all_data = {...hbs_data, ...locale_data};
+		let all_data = {...hbs_data, ...locale_data};
 		res.render("login", all_data);
 	});
 }
@@ -663,7 +663,8 @@ function llu(req, res){
 		};
 		aux.ln_delete(link_data);
 		req.session.lid = null;
-		return; // No response expected on leave
+		res.end();
+		return;
 	}
 	// See if the session file exists
 	var searchFile = aux.dbroot + "session/ongoing/"+ lid + "-" + id + ".ttsd";

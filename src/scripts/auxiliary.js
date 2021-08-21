@@ -25,14 +25,15 @@ const admin_editable_fields = ["password"];
 const directories = ["/error", "/session", "/tsp", "/register", "/account", "/admin"];
 
 //const err_types = ["anfe", "anle", "conses", "dfe", "fe", "ice", "ide", "ife", "pce", "se", "toe"];
-const err_types = ["anfe", "pce", "ife", "fe", "se", "conses"];
+const err_types = ["anfe", "pce", "ife", "fe", "se", "conses", "toe"];
 const err_titles = {
 	anfe: "Account Does Not Exist",
 	pce: "Invalid Password",
 	ife: "Input Error: Incomplete Form",
 	fe: "Error 500: File System",
 	se: "Error 500: Server",
-	conses: "Warning: Concurrent Session"
+	conses: "Warning: Concurrent Session",
+	toe: "Timeout"
 };
 // Global Variables
 var lnusers = new Set();
