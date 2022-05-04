@@ -27,6 +27,7 @@
 		<a href="/account/manage" id="actmng" class="bigBtn">Manage Account</a>
 	</div>
 </section>
+<script src="/scripts/account.js"></script>
 <script>
 	$(document).ready(init);
 	
@@ -43,8 +44,9 @@
 	}
 	
 	function checkForm(){
-		let lid = $("#lid").val();
+		let lid = validate_id($("#lid").val()); //validate_id is from account.js
 		if(lid == "-")
 			return false;
+		$("#lid").val(lid); // In case it changed to lowercase
 	}
 </script>

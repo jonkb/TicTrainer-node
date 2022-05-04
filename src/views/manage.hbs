@@ -96,13 +96,13 @@
 	function validate_addl(){
 		var lid = document.forms["addL"]["lid"].value.toLowerCase();
 		if(isuser){
-			if(lid[0] != "t" || lid.length < 2){
+			if(validate_id(lid, "t") == "-"){ //validate_id is from account.js
 				alert("Invalid ID. Use a trainer account ID.");
 				return false;
 			}
 		}
 		else{
-			if(lid[0] != "u" || lid.length < 2){
+			if(validate_id(lid, "u") == "-"){
 				alert("Invalid ID. Use a user account ID.");
 				return false;
 			}

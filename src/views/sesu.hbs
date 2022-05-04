@@ -27,20 +27,20 @@
 <script>
 	var url = "/session/sesu";
 	var already_left = false;
-	
+
 	window.onbeforeunload = endS;
 	window.onpagehide = endS;
 	//document.addEventListener('visibilitychange', function(){if(document.hidden){endS();}}, false);
 
 	$(document).ready(() => {
-		req_settings(function(code, res){
-			if(code == 200){
-				ses_vars.points_to_first_level = res.points_to_first_level;
-				start();
+		req_settings((err, res) => {
+			if(err){
+				alert(err);
+				endS(err);
+				return;
 			}
-			else{
-				endS(res);
-			}
+			ses_vars.points_to_first_level = res.points_to_first_level;
+			start();
 		});
 	});
 
@@ -61,7 +61,6 @@
 		//Last recorded length of the session file. Used to determine if the file has changed.
 		"lastL" : 0
 	};
-
 
 
 {{#if ncr}}
@@ -197,7 +196,7 @@
 					else if(res_obj.next){
 						if(res_obj.next == "session_ended"){
 							//TODO: Session Ended Page
-							window.location.href = "/session/session_ended";
+							window.location.href = "session_ended";
 						}
 						else{
 							alert("Unknown response from server");

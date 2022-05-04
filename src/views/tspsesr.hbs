@@ -1,0 +1,141 @@
+
+<section class='main-content' id='mainC'>
+	<div id='tr_btns'>
+		<button type='button' class='bigBtn' id='ticBtn'>Tic Detected</button><br>
+		<button type='button' class='bigBtn' id='endBtn'>End Session</button>
+	</div>
+	
+	<div style='padding: 1rem 0 0 10%;'>
+		Approximate Session Clock:
+		<div style='padding: 0 0 0 5%;' class='medCounter' id='clock'>
+			00:00
+		</div>
+	</div>
+	<div style='margin: 1rem 10% 0 10%;'>
+		Tic Log:
+		<div style='margin: 0 5% 0 5%; overflow:auto; height:6em' id='tic_log'>
+		</div>
+	</div>
+	
+</section>
+<!--TODO: TEST-->
+<script src="/scripts/req_settings.js"></script>
+<script>
+	var already_left = false;
+	var url = '/tsp/sest';
+	
+	window.onbeforeunload = endS;
+	window.onpagehide = endS;
+	
+	document.getElementById('ticBtn').addEventListener('click', tic);
+	document.getElementById('endBtn').addEventListener('click', endS);
+	onkeydown = key_press;
+	
+	var clock = document.getElementById('clock');
+	var tic_log = document.getElementById('tic_log');
+	
+	var ses_vars = {
+		"session_time" : 0//in seconds
+	};
+	
+	req_settings((err, res) => {
+		if(err){
+			window.location.href = "/error/"+err;
+			return;
+		}
+		ses_vars.session_length = res.tsp_len*60*1000;
+		start();
+	});
+	
+	function start(){
+		ses_vars.clock_timer = setInterval(advance_clock, 1000);
+		//+500ms is so that we rely first on the user's timer, which is more accurate.
+		ses_vars.end_timer = setTimeout(endS, ses_vars.session_length + 500);
+	}
+	function cleanup(){
+		//alert(JSON.stringify(ses_vars));
+		clearInterval(ses_vars.clock_timer);
+		clearTimeout(ses_vars.end_timer);
+		ses_vars = {};
+	}
+	function key_press(event){
+		var key = event.keyCode
+		//32=SPACE; 84=T; 69=E
+		if(key == 32 || key == 84){
+			tic();
+		}
+		else if(key == 69){
+			endS();
+		}
+	}
+	function time_string(){
+		var min = Math.floor(ses_vars.session_time / 60).toString().padStart(2,'0');
+		var sec = ( ses_vars.session_time % 60 ).toString().padStart(2,'0');
+		return min+":"+sec;
+	}
+	function advance_clock(){
+		ses_vars.session_time++;
+		clock.innerHTML = time_string();
+	}
+	function tic(){
+		var xhr = new XMLHttpRequest();
+		var reqBody = 'reqType=tic';
+		xhr.onreadystatechange = function(){
+			if(xhr.readyState == 4 && xhr.status == 200){//just check that everything is fine
+				let resParts = xhr.responseText.split("=");
+				switch(resParts[0]){
+					case "msg":
+						if(resParts[1] != "good")
+							alert("Unknown response from server");
+						break;
+					case "next":
+						if(resParts[1] == "session_ended")
+							window.location.href = "session_ended";
+						else
+							alert("Unknown response from server");
+						break;
+					case "err":
+						window.location.href = "/error/"+resParts[1];
+						break;
+					default:
+						alert("Unknown response from server");
+				}
+			}
+		};
+		xhr.open('POST', url, true);
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		xhr.send(reqBody);
+		
+		var tic_line = "Tic detected at "+time_string()+"<br>";
+		tic_log.innerHTML = tic_line + tic_log.innerHTML;
+  }
+  function endS(){
+		if(!already_left){
+			cleanup();
+			var xhr = new XMLHttpRequest();
+			var reqBody = 'reqType=end';
+			xhr.onreadystatechange = function(){
+				if(xhr.readyState == 4 && xhr.status == 200){//just check that everything is fine
+					let resParts = xhr.responseText.split("=");
+					switch(resParts[0]){
+						case "next":
+							if(resParts[1] == "session_ended")
+								window.location.href = "session_ended";
+							else
+								alert("Unknown response from server");
+							break;
+						case "err":
+							window.location.href = "/error/"+resParts[1];
+							break;
+						default:
+							alert("Unknown response from server");
+					}
+				}
+			};
+			xhr.open('POST', url, true);
+			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			xhr.send(reqBody);
+			already_left = true;
+		}
+  }
+</script>

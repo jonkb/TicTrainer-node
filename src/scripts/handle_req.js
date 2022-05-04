@@ -13,6 +13,7 @@ module.exports.check_login = check_login;
 module.exports.check_admin = check_admin;
 module.exports.check_lid = check_lid;
 module.exports.verify_account = verify_account;
+module.exports.log_req = log_req;
 // Handlers
 module.exports.root = root;
 module.exports.err_get = err_get;
@@ -35,12 +36,12 @@ module.exports.ss_get = ss_get;
 module.exports.sst = sst;
 module.exports.ssu = ssu;
 module.exports.ses_get = ses_get;
+module.exports.tspses_get = tspses_get;
 module.exports.sest = sest;
 module.exports.sesu = sesu;
 module.exports.session_ended_get = session_ended_get;
+module.exports.ses_again = ses_again;
 module.exports.new_tspses_get = new_tspses_get;
-module.exports.ssa = ssa;
-module.exports.tspsesa = tspsesa;
 module.exports.tspsesu = tspsesu;
 // Admin interface
 module.exports.MAA_LA = MAA_LA;
@@ -63,8 +64,9 @@ function slash_redirect(req, res, next){
 	*	redirect to that same url with the slash.
 	*	This helps relative urls to work more reliably.
 	*/
-	if(!req.url.endsWith("/")){
-		res.redirect(301, req.url + "/");
+	// console.log(66, req.path, req.path.endsWith("/"));
+	if(!req.path.endsWith("/")){
+		res.redirect(301, req.path + "/");
 	}
 	else{
 		next();
@@ -76,7 +78,9 @@ function check_login(req, res, next){
 	*	Check if logged in. If not, redirect to login page
 	*	However, does not re-verify the password
 	*/
+	
 	if(req.session && req.session.acc_obj){
+		// console.log(82, req.session.acc_obj);
 		next();
 	}
 	else{
@@ -90,7 +94,7 @@ function check_lid(req, res, next){
 	*	Check if the user is currently in a session
 	*		(Is there req.session.lid?)
 	*/
-	console.log(93, req.session.lid)
+	//console.log(93, req.session.lid)
 	if(req.session.lid){
 		next();
 	}
@@ -135,6 +139,17 @@ function verify_account(req, res, next){
 		next();
 	});
 	
+}
+
+function log_req(req, res, next){
+	/**
+	*	Print the request to the console for debugging
+	*/
+	console.log(req.method, " request for ", req.url);
+	console.log("\treq.body:", req.body);
+	console.log("\treq.session keys:", Object.keys(req.session));
+	// console.log("\treq.query:", req.query);
+	next();
 }
 
 // General handlers
@@ -500,7 +515,7 @@ function new_tspses_get(req, res){
 	let israter = acc_obj.id[0] == "a";
 	if(isuser){
 		// Go ahead and start waiting for rater
-		// TODO: Should this really use admin accounts? That lets them use /admin/
+		// TODO: Should this really use admin accounts?
 		req.session.lid = "a";
 		// Add uid to lnusers
 		let link_data = {
@@ -559,11 +574,21 @@ function new_session(req, res){
 	if(req.body.id[0] == "a"){
 		tid = "a";
 	}
+	// Validate ids
+	tid = aux.validate_id(tid, "at");
+	uid = aux.validate_id(uid, "u");
+	if(tid == "-" || uid == "-"){
+		ret_error(res, "ife");
+		return;
+	}
+	
+	// console.log(591);
 	let sesFile = aux.dbroot + "session/ongoing/" + tid + "-" + uid + ".ttsd";
 	// Note: is this really the right time to check for conses?
 	fs.stat(sesFile, function(err){
 		if(err){
 			if(err.code == "ENOENT"){ //Good.
+				// console.log(597);
 				// Save lid in the session
 				req.session.lid = req.body.lid;
 				if(isuser){
@@ -626,6 +651,7 @@ function llt(req, res){
 		uid: lid,
 		tid: id
 	};
+	console.log(659, link_data);
 	if(aux.ln_has(link_data)){
 		aux.ln_delete(link_data);
 		var sesFileName = aux.dbroot + "session/ongoing/"+ id + "-" + lid + ".ttsd";
@@ -691,7 +717,7 @@ function ss_get(req, res){
 	let id = req.session.acc_obj.id;
 	let lid = req.session.lid;
 	let isuser = id[0] == "u";
-	let israter = id[0] == "u";
+	let israter = id[0] == "a";
 	let hbs_data = {
 		layout: "simple",
 		title: "Link Successful",
@@ -701,7 +727,7 @@ function ss_get(req, res){
 	if(isuser)
 		res.render("ssu", hbs_data);
 	else if(israter)
-		res.render("ssa", hbs_data);
+		res.render("ssr", hbs_data);
 	else
 		res.render("sst", hbs_data);
 }
@@ -714,6 +740,8 @@ function sst(req, res){
 	*/
 	
 	let id = req.session.acc_obj.id;
+	if(id[0] == "a")
+		id = "a";
 	let lid = req.session.lid;
 	let sesFile = aux.dbroot + "session/ongoing/" + id + "-" + lid + ".ttsd";
 	//If aborting, delete the session file.
@@ -743,26 +771,24 @@ function sst(req, res){
 			}
 			else{//file exists
 				//Append "session started at"+time
-				//Show Tic Detected, Stop Session butttons
-				var sEntry = "session started|" + aux.time();
+				var sEntry = "";
+				if(id[0] == "a")
+					sEntry = "Research ID|?|"+req.body.stype+"\n";
+				// Also add a line for communicating ncr reward times if it's NCR mode
+				if(req.body.stype == "NCR" && typeof(req.body.rew_times) == "string"){
+					sEntry += "ncr reward times|" + req.body.rew_times+"\n";
+				}
+				sEntry += "session started|" + aux.time();
 				fs.appendFile(sesFile, sEntry, function(err){
 					if(err){
 						ret_error(res, "fe");
 						return;
 					}
 					res.redirect("sest");
-					//ret_session_t(res, req.body);
 				});
 			}
 		});
 	}
-}
-
-function ssa(req, res){
-	/**
-	*	Handle POST requests from "/tsp/ssa"
-	TODO
-	*/
 }
 
 function ssu(req, res){
@@ -839,7 +865,7 @@ function ses_get(req, res){
 		title: "Training Session"
 	};
 	if(isuser){
-		hbs_data.acc_obj = JSON.stringify(acc_obj),
+		hbs_data.acc_obj = JSON.stringify(acc_obj);
 		hbs_data.ncr = acc_obj.RS == "ncr";
 		hbs_data.none = acc_obj.RS == "none";
 		hbs_data.reg = acc_obj.RS == "reg";
@@ -847,6 +873,29 @@ function ses_get(req, res){
 	}
 	else
 		res.render("sest", hbs_data);
+}
+
+function tspses_get(req, res){
+	/**
+	*	Return either tsp-session-rater or tsp-session-user
+	*/
+	let acc_obj = req.session.acc_obj;
+	let id = acc_obj.id;
+	let lid = req.session.lid;
+	let isuser = id[0] == "u";
+	let hbs_data = {
+		layout: "simple",
+		title: "TicTimer Session"
+	};
+	if(isuser){
+		hbs_data.acc_obj = JSON.stringify(acc_obj);
+		// hbs_data.ncr = acc_obj.RS == "ncr";
+		// hbs_data.none = acc_obj.RS == "none";
+		// hbs_data.reg = acc_obj.RS == "reg";
+		res.render("tspsesu", hbs_data);
+	}
+	else
+		res.render("tspsesr", hbs_data);
 }
 
 function sest(req, res){
@@ -915,12 +964,6 @@ function sest(req, res){
 	}
 }
 
-function tspsesa(req, res){
-	/**
-	*	Handle POST requests from "/tsp/sest"
-	TODO
-	*/
-}
 function sesu(req, res){
 	/**
 	*	Handle POST requests from the Session-user page
@@ -929,7 +972,7 @@ function sesu(req, res){
 	let lid = req.session.lid;
 	let sesFile = aux.dbroot + "session/ongoing/" + lid + "-" + id + ".ttsd";
 	
-	console.log(748, req.body);
+	aux.db_log("975:" + req.body);
 	
 	switch(req.body.reqType){
 		case "check":
@@ -937,7 +980,7 @@ function sesu(req, res){
 			var oldL = req.body.sesL;
 			fs.readFile(sesFile, "utf8", function(err, data){
 				if(err){
-					console.log(756, err);
+					aux.db_log("983:" + err);
 					res.json({err: "fe"});
 					return;
 				}
@@ -981,7 +1024,6 @@ function sesu(req, res){
 			//End and archive session
 			fs.readFile(sesFile, "utf8", function(err, sData){
 				if(err){
-					console.log(809);
 					res.json({err: "fe"});
 					return;
 				}
@@ -990,13 +1032,11 @@ function sesu(req, res){
 					var eEntry = "\nsession ended|"+aux.time();
 					fs.appendFile(sesFile, eEntry, function(err){
 						if(err){
-							console.log(870);
 							res.json({err: "fe"});
 							return;
 						}
 						aux.archive_session(sesFile, function(err, report){
 							if(err){
-								console.log(875);
 								res.json({err: err});
 								return;
 							}
@@ -1007,11 +1047,9 @@ function sesu(req, res){
 				else{
 					aux.archive_session(sesFile, function(err, report){
 						if(err){
-							console.log(855);
 							res.json({err: err});
 							return;
 						}
-						// TODO: session ended page with report (xhr to load)
 						res.json({next: "session_ended"});
 					});
 				}
@@ -1062,9 +1100,160 @@ function sesu(req, res){
 function tspsesu(req, res){
 	/**
 	*	Handle POST requests from "/tsp/sesu"
-	TODO
 	*/
+	let id = req.session.acc_obj.id;
+	var sesFile = aux.dbroot + "session/ongoing/a-" + id + ".ttsd";
+	switch(req.body.reqType){
+		case "start":
+			fs.readFile(sesFile, "utf8", function(err, data){
+				if(err){
+					res.json({err: "fe"});
+					return;
+				}
+				var sliced_d = data.slice(data.indexOf("session started|"));
+				var end_s_i = sliced_d.indexOf("\n");
+				if (end_s_i == -1)
+					end_s_i = sliced_d.length;
+				var stime = sliced_d.slice(sliced_d.indexOf("|")+1, end_s_i);
+				sdate = new Date(stime);
+				var timesince = Date.now() - sdate.getTime();
+				let res_obj = {timesince: timesince.toString()};
+				if(data.indexOf("ncr reward times|") != -1){
+					let sliced_d = data.slice(data.indexOf("ncr reward times|"));
+					let end_ncr_i = sliced_d.indexOf("\n");
+					if (end_ncr_i == -1)
+						end_ncr_i = sliced_d.length;
+					let rtimes = sliced_d.slice(sliced_d.indexOf("|")+1, end_ncr_i);
+					res_obj.rew_times = rtimes;
+				}
+				// Read reward_scheme + insert user RID
+				var insertIndex = data.indexOf("Research ID|")+12;
+				var before = data.slice(0,insertIndex);
+				after = data.slice(insertIndex);
+					after = after.slice(after.indexOf('|'));
+				var stype = after.slice(1); // Read the session type / reward scheme
+					stype = stype.slice(0,stype.indexOf('\n'));
+				res_obj.stype = stype;
+				fs.writeFile(sesFile, before+req.session.acc_obj.RID+after, function(err){
+					if(err){
+						res.json({err: "fe"});
+						return;
+					}
+					console.log(1139);
+					res.json(res_obj);
+				});
+			});
+		break;
+		case "check": //TODO
+			fs.readFile(sesFile, "utf8", function(err, data){
+				if(err){
+					res.json({err: "fe"});
+					return;
+				}
+				var entries = data.split("\n");
+				var ttime = 0;//Last tic or s.start
+				var rtime = 0;
+				for(i = 1; i<entries.length; i++){//i=1 cut off first ""\n
+					var entryType = entries[i].split("|")[0];//First part
+					var entryVal = entries[i].split("|")[1];
+					switch(entryType){
+						case "session started":
+							ttime = entryVal;
+							rtime = entryVal;
+						break;
+						case "tic detected":
+							ttime = entryVal;
+						break;
+						case "session ended":
+							res.json({next: "end"});
+							return;
+						break;
+						case "reward dispensed":
+							rtime = entryVal;
+						break;
+						//default:
+						//	retMessage += "&?";
+						//break;
+					}
+				}
+				
+				const undershoot_ms = 50;
+				var msi = parseInt(req.body.msi);
+				var lasttic = new Date(ttime);
+				var lastrew = new Date(rtime);
+				var n = Math.max(Math.round((lastrew.getTime()-lasttic.getTime())/msi), 0) + 1;
+				var nextrew = new Date(lasttic.getTime() + n*msi);
+				var now = Date.now();
+				var torew = nextrew.getTime()-now;
+				aux.db_log("lt: "+lasttic.getTime()+", lr: "+lastrew.getTime()+", n: "+n
+					+", nextrew: "+nextrew.getTime()+", now: "+now +", torew: "+torew);
+				if(torew > undershoot_ms){
+					res.json({next: "wait", time: torew});
+				}
+				else{
+					res.json({next: "reward", time: torew+msi});
+					var rdentry = "\nreward dispensed|" +aux.time();
+					//Not done sequentially because I want it to reply fast
+					fs.appendFile(sesFile, rdentry, function(err){});
+				}
+			});
+		break;
+		case "logrew":
+			var rdentry = "\nreward dispensed|" +aux.time();
+			fs.readFile(sesFile, "utf8", function(err, data){
+				if(err){
+					res.json({err: "fe"});
+					return;
+				}
+				fs.appendFile(sesFile, rdentry, function(err){
+					if(err){
+						res.json({err: "fe"});
+						return;
+					}
+					res.json({});
+				});
+			});
+		break;
+		case "end":
+			req.session.last_lid = req.session.lid;
+			req.session.lid = null; // Blocks access to the active session pages
+			//End and archive session
+			fs.readFile(sesFile, "utf8", function(err, sData){
+				if(err){
+					res.json({err: "fe"});
+					return;
+				}
+				if(sData.indexOf("session ended") == -1){
+					//The session still needs to be ended
+					var eEntry = "\nsession ended|"+aux.time();
+					fs.appendFile(sesFile, eEntry, function(err){
+						if(err){
+							res.json({err: "fe"});
+							return;
+						}
+						aux.archive_session(sesFile, function(err, report){
+							if(err){
+								res.json({err: err});
+								return;
+							}
+							res.json({});
+						});
+					});
+				}
+				else{
+					aux.archive_session(sesFile, function(err, report){
+						if(err){
+							res.json({err: err});
+							return;
+						}
+						res.json({});
+					});
+				}
+			});
+		break;
+	}
 }
+
 function session_ended_get(req, res){
 	/**
 	*	Handle GET requests for the Session Ended page
@@ -1090,6 +1279,19 @@ function session_ended_get(req, res){
 		// This is the step where handlebars injects the data
 		res.render("session_ended", all_data);
 	});
+}
+
+function ses_again(req, res){
+	let acc_obj = req.session.acc_obj;
+	if(acc_obj.id[0] == "a" && req.query.lid){
+		req.body.id = "a";
+		req.body.lid = req.query.lid;
+		// Start new session and redirect to llt
+		new_session(req, res);
+		return;
+	}
+	// Go back to /session/ or /tsp/
+	res.redirect(".");
 }
 
 // Admin interface
@@ -1241,21 +1443,18 @@ function gj_recent_session(req, res){
 	/**
 	*	Attempt to load the report data for a recent session
 	*/
-	//console.log(973);
 	let tid = req.session.acc_obj.id;
 	let uid = req.query.lid;
+	let isuser = req.session.acc_obj.id[0] == "u";
+	if(isuser){
+		tid = req.query.lid;
+		uid = req.session.acc_obj.id;
+	}
 	if(!uid || uid.length < 2){
 		res.json({err: "ife"});
 		return;
 	}
-	let isuser = false;
-	if(req.session.acc_obj.id[0] == "u"){
-		isuser = true;
-		tid = req.query.lid;
-		uid = req.session.acc_obj.id;
-	}
 	aux.load_recent_report(tid, uid, (err, report) => {
-		//console.log(982, err, report);
 		if(err){
 			res.json({err: err});
 		}
@@ -1303,7 +1502,12 @@ function gj_archived_logs(req, res){
 	*	Follows check_admin and verify_account
 	*/
 	let uid = req.query.uid;
-	aux.list_archived_sessions(uid, (err, sessions) => {
+	if(req.session.lid){
+		// Should be used by /tsp/ssa
+		uid = uid || req.session.lid;
+	}
+	let stype = req.query.DRZ ? "DRZ" : null;
+	aux.list_archived_sessions(uid, stype, (err, sessions) => {
 		if(err){
 			res.json({err: err});
 			return;

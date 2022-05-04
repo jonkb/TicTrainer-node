@@ -27,3 +27,17 @@ function logout(e){
 	});
 	return false;
 }
+
+function validate_id(id, valid_initials = "tua"){
+	/* Check whether id is a valid id string.
+		valid_initials: combination of "t", "u", &/or "a" (lowercase)
+		returns a lowercase version of the given id or "-" if the id is invalid.
+	*/
+	
+	id = id.toLowerCase();
+	if(valid_initials.indexOf(id[0]) == -1)
+		return "-";
+	if(id[0] != "a" && id.length < 2)
+		return "-";
+	return id;
+}

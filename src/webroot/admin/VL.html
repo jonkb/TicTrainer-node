@@ -55,7 +55,7 @@
 			
 			function load_ses_files(){
 				var uid = document.getElementById('uid_input').value;
-				req_ses_list(uid, function(res){
+				req_ses_list(uid, false, function(res){
 					if(res.err){
 						alert("Error: "+res.err);
 						return;

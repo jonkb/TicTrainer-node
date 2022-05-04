@@ -2,17 +2,17 @@
 function req_settings(callback){
 	var xhr = new XMLHttpRequest();
 	xhr.open('GET', "/gj/settings.json", true);
-	xhr.setRequestHeader('Content-type', 'text/plain');
+	xhr.setRequestHeader('Content-type', 'application/json');
 	xhr.onreadystatechange = function(){
 		if(xhr.readyState == 4){
 			if(xhr.status == 200){
 				var res = xhr.responseText;
 				var settings = JSON.parse(res);
-				callback(xhr.status, settings);
+				callback(null, settings);
 			}
 			else{
 				var res = xhr.responseText;
-				callback(xhr.status, res);
+				callback(res);
 			}
 		}
 	};

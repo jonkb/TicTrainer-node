@@ -1,17 +1,57 @@
 //Functions related to requesting log files.
 
-function req_ses_list(uid, callback){
+function req_ses_list(uid, justDRZ, callback){
 	//Load a list of session log files. Needs active admin session.
 	var xhr = new XMLHttpRequest();
 	var url = "/gj/archived_logs";
-	if(uid.length > 1)
+	if(uid && uid.length > 1){
 		url += "?uid="+uid;
+		if(justDRZ)
+			url += "&DRZ=true";
+	}
+	else if(justDRZ){
+		url += "?DRZ=true";
+	}
 	xhr.open('GET', url, true);
 	xhr.onreadystatechange = function(){
 		if(xhr.readyState == 4){
 			if(xhr.status == 200){
 				var res = JSON.parse(xhr.responseText);
 				callback(res);
+			}
+		}
+	};
+	xhr.send();
+}
+
+function ses_rew_times(filename, callback){
+	/**
+	*	Request the full text of the given file and return a list of reward times. Used by NCR.
+	*	Needs active admin session
+	*/
+	var xhr = new XMLHttpRequest();
+	var url = "/admin/VL-log";
+	if(filename.length > 2)
+		url += "?file="+filename;
+	else
+		callback("Error: provide a filename");
+	xhr.open('GET', url, true);
+	xhr.onreadystatechange = function(){
+		if(xhr.readyState == 4){
+			if(xhr.status == 200){
+				var res = xhr.responseText;
+				var rew_times = [];
+				var sliced = res.slice(res.indexOf("session started|"));
+				var stime = new Date(sliced.slice(sliced.indexOf("|")+1, sliced.indexOf("\n")));
+				var entries = res.split("\n");
+				for(var i = 0; i<entries.length; i++){
+					var entryParts = entries[i].split("|");
+					if(entryParts[0] == "reward dispensed"){
+						var rew_time = new Date(entryParts[1]);
+						rew_times.push(rew_time - stime);//# of ms
+					}
+				}
+				callback(null, rew_times);
 			}
 		}
 	};

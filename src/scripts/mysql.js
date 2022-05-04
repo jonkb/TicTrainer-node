@@ -3,20 +3,20 @@
 */
 
 const mysql = require("mysql2");
+const fs = require("fs");
+const path = require("path");
+// Load keys
+const keys_path = path.join(__dirname, "/../../../keys.json");
+const keys = JSON.parse(fs.readFileSync(keys_path));
 
 module.exports.connect = connect;
 module.exports.esc = mysql.escape;
 
 // MySQL Connection details & credentials
-// Slightly more secure method: Ask for sql pw
-// const prompt = require('prompt-sync')();
-// pw = prompt("MySQL pw: ");
-// TEMP: We do not want the actual sql password in plain text
-pw = "tmp_nodepw";
 var con_details = {
 	host: 'localhost',
 	user: 'nodejs',
-	password: pw,
+	password: keys.sql,
 	database: 'tictrainer'
 };
 

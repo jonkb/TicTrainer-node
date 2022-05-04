@@ -35,6 +35,7 @@ const err_titles = {
 	conses: "Warning: Concurrent Session",
 	toe: "Timeout"
 };
+
 // Global Variables
 var lnusers = new Set();
 var lndata = {};
@@ -54,6 +55,7 @@ module.exports.directories = directories;
 /**
 *	Exported functions
 */
+module.exports.validate_id = validate_id;
 module.exports.time = time;
 module.exports.db_log = db_log;
 module.exports.log_error = log_error;
@@ -76,7 +78,23 @@ module.exports.archive_session = archive_session;
 module.exports.load_recent_report = load_recent_report;
 module.exports.list_archived_sessions = list_archived_sessions;
 
+//TODO: Check that we're using validate_id everywhere that it's appropriate
+function validate_id(id, valid_initials = "tua"){
+	/* Check whether id is a valid id string.
+		valid_initials: combination of "t", "u", &/or "a" (lowercase)
+		returns a lowercase version of the given id or "-" if the id is invalid.
+		Copied in account.js for client-side use.
+	*/
+	
+	id = id.toLowerCase();
+	if(valid_initials.indexOf(id[0]) == -1)
+		return "-";
+	if(id[0] != "a" && id.length < 2)
+		return "-";
+	return id;
+}
 
+// TODO: add case for "a" -> 0? Well, sometimes we want a3 -> 3 and sometimes a3 -> 0...
 function id_to_N(id){
 	var N36 = id.slice(1);
 	return parseInt(N36, 36);
@@ -338,6 +356,9 @@ function load_account(id, con, callback){
 		});
 		return;
 	}
+	
+	// Validate the id format
+	id = validate_id(id);
 	
 	let table = null;
 	switch(id[0]){
@@ -770,7 +791,8 @@ function archive_log(data, callback){
 			callback(err);
 			return;
 		}
-		let tidN = sql.esc(id_to_N(data.tid));
+		// If admin, store a 0
+		let tidN = data.tid[0] = "a" ? 0 : sql.esc(id_to_N(data.tid));
 		let uidN = sql.esc(id_to_N(data.uid));
 		let insert_cols = "(TID, UID, filename, end_ts, duration, levels, points, coins, tics, "
 		insert_cols += "longest_tfi, tens_tfis, is_tsp, tsp_stype, tsp_rewards, tt_version)";
@@ -904,7 +926,7 @@ function load_recent_report(tid, uid, callback){
 			callback(err);
 			return;
 		}
-		let tidN = sql.esc(id_to_N(tid));
+		let tidN = tid[0] = "a" ? 0 : sql.esc(id_to_N(tid));
 		let uidN = sql.esc(id_to_N(uid));
 		// Load all session files btw tid & uid that ended in the last 5 minutes
 		// Sorted so that the first one is the most recent
@@ -929,9 +951,10 @@ ORDER BY end_ts DESC`;
 	});
 }
 
-function list_archived_sessions(uid, callback){
+function list_archived_sessions(uid, stype, callback){
 	/**
 	*	Return a list of all session archives associated with the given user
+	*	If uid is undefined, then load all of them
 	*/
 	sql.connect((err, con) => {
 		if(err){
@@ -942,13 +965,24 @@ function list_archived_sessions(uid, callback){
 		// Sorted so that the first one is the most recent
 		let select_query = `SELECT *
 FROM session_archive_index`;
-		if(uid){
-			let uidN = sql.esc(id_to_N(uid));
+		if(uid || stype){
 			select_query += `
-WHERE UID=${uidN}`;
+WHERE `;
+			if(uid){
+				let uidN = sql.esc(id_to_N(uid));
+				select_query += `UID=${uidN}`;
+				if(stype)
+					select_query += `
+AND `;
+			}
+			if(stype){
+				select_query += `tsp_stype=${sql.esc(stype)}`;
+			}
 		}
+		
 		select_query += `
 ORDER BY end_ts DESC`;
+		db_log(select_query);
 		con.query(select_query, (err, result, fields) => {
 			if(err){
 				callback(err);

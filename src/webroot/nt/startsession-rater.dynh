@@ -6,15 +6,15 @@
 		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
 	</head>
 	<body>
-    <section class="page-header">
+		<section class="page-header">
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
 				<h1>Link Successful</h1>
 				<h2>Press Button To Start Session</h2>
 				<div style="clear: both;"></div>
 			</div>
-    </section>
-    <section class="main-content" id="st_bts_con">
+		</section>
+		<section class="main-content" id="st_bts_con">
 			Choose Session Type:
 			<div id='type_btns'>
 				<div class='bigBtn' id='bsln_btn'>Baseline</div>
@@ -22,7 +22,7 @@
 				<div class='bigBtn' id='drz_btn'>DRZ</div>
 				<div class='bigBtn' id='ncr_btn'>NCR</div>
 			</div>
-    </section>
+		</section>
 		<section class="main-content" id="choose_log_con" style="display: none;">
 			Session Logs: <select name="ses_file" id="ses_option">
 				<!--Filled in by script-->
