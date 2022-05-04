@@ -156,7 +156,8 @@ function log_req(req, res, next){
 
 function ret_error(res, err, retry){
 	/**
-	*	Return an error page
+	*	Return an error page, rendered dynamically with handlebars.
+	*	err should (usually) be one of the elements of aux.err_types
 	*/
 	
 	let default_retry = "/";
@@ -204,6 +205,7 @@ function err_get(req, res, next){
 		next();
 	}
 	else{
+		// Treat err as one of the error codes in aux.err_types
 		ret_error(res, err, retry);
 	}
 }

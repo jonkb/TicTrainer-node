@@ -1,0 +1,1 @@
+All of the html files that used to be here are not needed anymore because they are dynamically created by handlebars from the views folder.

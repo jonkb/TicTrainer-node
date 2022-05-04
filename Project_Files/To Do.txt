@@ -1,8 +1,11 @@
 To Do: (priority,difficulty) (0-5,0-5)
 IN PROGRESS:
 - Cannot POST /error/report.html
+- Store & leaderboard
 - Check that everything works
-- translation
+- See TODO tag in files.
+- Finish deleting unused html / dynh files
+- Translation
 
 FUNCTIONAL:
 -(3,2) Fix the log file report so it counts 10s intervals correctly

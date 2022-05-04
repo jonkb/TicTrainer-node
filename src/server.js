@@ -128,7 +128,8 @@ app.use(express.static("webroot"));
 // Handle get requests for files that are not found in webroot
 app.get("*", (req, res) => {
 	//TODO: Send 404 page
-	res.status(404).send("Error 404");
+	res.status(404).sendFile(aux.mainroot + "/webroot/error/404.html");
+	// res.status(404).send("Error 404");
 });
 
 // Start the server(s)
