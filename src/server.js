@@ -63,6 +63,10 @@ app.get("/account/manage", hrq.manage_get);
 app.post("/account/manage", hrq.verify_account);
 app.post("/account/manage", hrq.manage);
 // TODO: Store & Leaderboard
+app.all("/account/store", hrq.check_isuser);
+app.post("/account/store", hrq.verify_account);
+app.get("/account/store", hrq.store_get);
+app.post("/account/store", hrq.store);
 // Requests related to training sessions
 app.all("/session/*", hrq.check_login); // Must be logged in
 app.get("/session/", hrq.new_session_get); // New Training Session
@@ -102,7 +106,7 @@ app.post("/tsp/sest", hrq.sest);
 app.get("/tsp/sesu", hrq.tspses_get);
 app.post("/tsp/sesu", hrq.tspsesu);
 // Admin interface
-app.all("/admin/*", hrq.check_admin); // Must be logged in as admin
+app.all("/admin/*", hrq.check_isadmin); // Must be logged in as admin
 app.post("/admin/*", hrq.verify_account); // Verify admin password
 app.post("/admin/MAA-load_admin", hrq.MAA_LA);
 app.post("/admin/MAA-change_pw", hrq.MAA_CP);
@@ -116,7 +120,7 @@ app.get("/admin/VL-log", hrq.VL_log);
 app.get("/gj/settings.json", hrq.gj_settings);
 app.get("/gj/recent_session", hrq.check_login); // Must be logged in
 app.get("/gj/recent_session", hrq.gj_recent_session);
-app.get("/gj/archived_logs", hrq.check_admin); // Must be logged in as admin
+app.get("/gj/archived_logs", hrq.check_isadmin); // Must be logged in as admin
 app.get("/gj/archived_logs", hrq.verify_account);
 app.get("/gj/archived_logs", hrq.gj_archived_logs);
 app.get("/gj/leaderboard", hrq.gj_leaderboard);

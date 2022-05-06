@@ -6,12 +6,14 @@
 const fs = require("fs");
 const scriptsroot = __dirname;
 const aux = require(scriptsroot+"/auxiliary.js");
+const inventory = require(scriptsroot+"/../webroot/scripts/store.js").inv;
 
 // Middleware
 module.exports.slash_redirect = slash_redirect;
 module.exports.check_login = check_login;
-module.exports.check_admin = check_admin;
+module.exports.check_isadmin = check_isadmin;
 module.exports.check_lid = check_lid;
+module.exports.check_isuser = check_isuser;
 module.exports.verify_account = verify_account;
 module.exports.log_req = log_req;
 // Handlers
@@ -26,6 +28,8 @@ module.exports.register_user = register_user;
 module.exports.register_trainer = register_trainer;
 module.exports.manage_get = manage_get;
 module.exports.manage = manage;
+module.exports.store_get = store_get;
+module.exports.store = store;
 // Requests related to training sessions
 module.exports.new_session_get = new_session_get;
 module.exports.new_session = new_session;
@@ -105,7 +109,7 @@ function check_lid(req, res, next){
 	}
 }
 
-function check_admin(req, res, next){
+function check_isadmin(req, res, next){
 	/**
 	*	Same as check_login, but specific to admin
 	*	Must be logged in as admin
@@ -121,10 +125,26 @@ function check_admin(req, res, next){
 	}
 }
 
+function check_isuser(req, res, next){
+	/**
+	*	Same as check_login, but specific to user
+	*	Must be logged in as user
+	*	However, does not re-verify the password
+	*/
+	if(req.session && req.session.acc_obj && 
+		req.session.acc_obj.id[0] == "u"){
+		next();
+	}
+	else{
+		// Go to the login page
+		res.redirect("/account/login?redirect="+req.url);
+	}
+}
+
 function verify_account(req, res, next){
 	/**
 	*	Verify account password (also update session.acc_obj)
-	*	Should only be called after check_login or check_admin
+	*	Should only be called after check_login or check_isadmin
 	*/
 	let credentials = {
 		id: req.session.acc_obj.id,
@@ -477,6 +497,78 @@ function manage(req, res){
 		default:
 			ret_error(res, "ife");
 	}
+}
+
+function store_get(req, res){
+	/**
+	*	Handle GET requests for "/account/store"
+	*/
+	let acc_obj = req.session.acc_obj;
+	let hbs_data = {
+		layout: "main",
+		title: "TicTrainer Store",
+		acc_obj: JSON.stringify(acc_obj),
+		id: acc_obj.id
+	};
+	const lang = req.acceptsLanguages(...aux.languages);
+	aux.get_locale_data(lang, (err, locale_data) => {
+		if(err){
+			ret_error(res, "se");
+			return;
+		}
+		// Combine all the data into one object for Handlebars
+		var all_data = {...hbs_data, ...locale_data};
+		// This is the step where handlebars injects the data
+		res.render("store", all_data);
+	});
+}
+
+function store(req, res){
+	/**
+	*	Handle POST requests for "/account/store"
+	*/
+	
+	let acc_obj = req.session.acc_obj;
+	
+	if(req.body.source != "buy"){
+		// Currently "buy" is the only source from the store page
+		ret_error(res, "ife");
+		return;
+	}
+	
+	// Check that the user really has enough coins, then make the purchase
+	aux.load_account(req.body.id, req.sql_con, (err, acc_obj) => {
+		if(err){
+			ret_error(res, "se");
+			return;
+		}
+		// TODO: validate this
+		let price = inventory[req.body.item];
+		if(price > acc_obj.coins){
+			// In normal use, this should be impossible because the client checks
+			ret_error(res, "ife");
+			return;
+		}
+		let newcoins = acc_obj.coins - price;
+		let newitems = acc_obj.items + req.body.item;
+		let data = {
+			id: acc_obj.id,
+			edits: {
+				"coins": newcoins,
+				"items": newitems
+			}
+		}
+		aux.edit_account(data, req.sql_con, (err, acc_obj) => {
+			if(err){
+				ret_error(res, err);
+				return;
+			}
+			// Update the cookie to reflect the change
+			req.session.acc_obj = acc_obj;
+			// Reload the store
+			res.redirect("/account/store");
+		});
+	});
 }
 
 // Requests related to training sessions
@@ -1307,7 +1399,7 @@ function MAA_LA(req, res){
 	/**
 	*	Handle POST requests for /admin/MAA-load_admin
 	*		Verify the password for the specified admin account
-	*	Follows check_admin and verify_account
+	*	Follows check_isadmin and verify_account
 	*/
 	let credentials = {
 		id: req.body.id,
@@ -1327,7 +1419,7 @@ function MAA_CP(req, res){
 	*	Handle POST requests for /admin/MAA-change_pw
 	*		Verify the password for the specified admin account
 	*		Change the password
-	*	Follows check_admin and verify_account
+	*	Follows check_isadmin and verify_account
 	*/
 	let credentials = {
 		id: req.body.id,
@@ -1357,7 +1449,7 @@ function MAA_CP(req, res){
 function MAA_CA(req, res){
 	/**
 	*	Handle POST requests for /admin/MAA-create_admin
-	*	Follows check_admin and verify_account
+	*	Follows check_isadmin and verify_account
 	*/
 	aux.register_admin(req.body, req.sql_con, (err, body) => {
 		if(err){
@@ -1371,7 +1463,7 @@ function MAA_CA(req, res){
 function MRU_LA(req, res){
 	/**
 	*	Handle POST requests for /admin/MRU-load_acc
-	*	Follows check_admin and verify_account
+	*	Follows check_isadmin and verify_account
 	*/
 	aux.load_account(req.body.id, req.sql_con, (err, acc_obj) => {
 		if(err){
@@ -1385,7 +1477,7 @@ function MRU_LA(req, res){
 function MRU_EA(req, res){
 	/**
 	*	Handle POST requests for /admin/MRU-edit_acc
-	*	Follows check_admin and verify_account
+	*	Follows check_isadmin and verify_account
 	*/
 	let data = {
 		id: req.body.id,
@@ -1421,7 +1513,7 @@ function VL_log(req, res){
 	*	Handle GET requests for /admin/VL-log
 	*	If query.file is one of the three system logs, return that specified log.
 	*	Otherwise, assume it's an archived session log filename
-	*	Follows check_admin and verify_account
+	*	Follows check_isadmin and verify_account
 	*/
 	let filename = req.query.file;
 	if(!filename){
@@ -1506,7 +1598,7 @@ function gj_archived_logs(req, res){
 	/**
 	*	Return a list of log files associated with the given user
 	*	This is used by /admin/VL and /tsp/ (NCR)
-	*	Follows check_admin and verify_account
+	*	Follows check_isadmin and verify_account
 	*/
 	let uid = req.query.uid;
 	if(req.session.lid){

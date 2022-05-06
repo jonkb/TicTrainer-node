@@ -1,0 +1,78 @@
+
+<section class='main-content' id='mainC'>
+	<h2>{{id}} - Coins: <span id="disp_coins"></span></h2>
+	<div>
+		<div class='store-item'>
+			Bronze Medal<br>
+			<img src="/media/bronze.svg" alt="Bronze" height="150px"><br>
+			Price: <span id="price-b">?</span> coins
+			<form method="POST" name="buyB" onsubmit="return validate_buy('b');">
+				<input type="hidden" name="source" value="buy">
+				<input type="hidden" name="item" value="b">
+				<input type="submit" value="Buy" class="btn">
+			</form>
+		</div>
+		<div class='store-item'>
+			Silver Medal<br>
+			<img src="/media/silver.svg" alt="Silver" height="150px"><br>
+			Price: <span id="price-s">?</span> coins
+			<form method="POST" name="buyS" onsubmit="return validate_buy('s');">
+				<input type="hidden" name="source" value="buy">
+				<input type="hidden" name="item" value="s">
+				<input type="submit" value="Buy" class="btn">
+			</form>
+		</div>
+		<div class='store-item'>
+			Gold Medal<br>
+			<img src="/media/gold.svg" alt="Gold" height="150px"><br>
+			Price: <span id="price-g">?</span> coins
+			<form method="POST" name="buyG" onsubmit="return validate_buy('g');">
+				<input type="hidden" name="source" value="buy">
+				<input type="hidden" name="item" value="g">
+				<input type="submit" value="Buy" class="btn">
+			</form>
+		</div>
+	</div>
+	<fieldset>
+		<legend>Your Items</legend>
+		<div id="heap">
+		</div>
+	</fieldset>
+	<a href='/index.html' class='btn'>Return to Home</a>
+</section>
+<script src="/scripts/store.js"></script>
+<script>
+	$(document).ready(init);
+	
+	var acc_obj = {{{acc_obj}}};
+	
+	function init(){
+		// logout() and account_init() are from account.js
+		$("#logoutbtn").click(logout);
+		account_init(acc_obj);
+		
+		genHeap(acc_obj.items);
+		
+		$("#storebtn").hide();
+		
+		fill_display();
+	}
+	
+	function fill_display(){
+		//$("#disp_id").text(acc_obj.id);
+		$("#disp_coins").text(acc_obj.coins);
+		// Write the prices
+		$("#price-b").text(inventory["b"]);
+		$("#price-s").text(inventory["s"]);
+		$("#price-g").text(inventory["g"]);
+	}
+	
+	function validate_buy(item){
+		var price = inventory[item];
+		if(price > acc_obj.coins){
+			alert("You don't have enough coins to buy that");
+			return false;
+		}
+		return true;
+	}
+</script>

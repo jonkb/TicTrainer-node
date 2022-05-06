@@ -59,10 +59,10 @@
 		<div id="heap">
 		</div>
 	</fieldset>
-	<script src="/scripts/store.js"></script>
 	{{/if}}
 	<a href='/index.html' class='btn'>Return to Home</a>
 </section>
+<script src="/scripts/store.js"></script>
 <script>
 	$(document).ready(init);
 	
@@ -78,7 +78,7 @@
 			//genheap() is from store.js
 			genHeap(acc_obj.items);
 		}
-		$("#actmng").hide();
+		$("#mngbtn").hide();
 		
 		fill_display();
 	}
