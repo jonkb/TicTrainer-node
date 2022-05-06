@@ -82,7 +82,7 @@ app.get("/session/sest", hrq.ses_get); // Active Session
 app.post("/session/sest", hrq.sest);
 app.get("/session/sesu", hrq.ses_get);
 app.post("/session/sesu", hrq.sesu);
-// TSP sessions TODO
+// TSP sessions
 app.all("/tsp/*", hrq.check_login); // Must be logged in
 app.get("/tsp/", hrq.new_tspses_get);
 app.post("/tsp/", hrq.new_session);
@@ -120,16 +120,14 @@ app.get("/gj/archived_logs", hrq.check_admin); // Must be logged in as admin
 app.get("/gj/archived_logs", hrq.verify_account);
 app.get("/gj/archived_logs", hrq.gj_archived_logs);
 
-//TODO: Double-check that sql threads are closed when done...
+// TEST_TODO: Double-check that sql threads are closed when done...
 
 // Everything else should be loaded normally
 app.use(express.static("webroot"));
 
 // Handle get requests for files that are not found in webroot
 app.get("*", (req, res) => {
-	//TODO: Send 404 page
 	res.status(404).sendFile(aux.mainroot + "/webroot/error/404.html");
-	// res.status(404).send("Error 404");
 });
 
 // Start the server(s)

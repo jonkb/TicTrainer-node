@@ -610,3 +610,413 @@ GET  request for  /stylesheets/bgStyle.css
 GET  request for  /stylesheets/normalize.css
 	req.body: {}
 	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /admin/
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /admin/VL.html
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /scripts/req_logs.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /templates/precompiled.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /gj/archived_logs
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+SELECT *
+FROM session_archive_index
+ORDER BY end_ts DESC
+GET  request for  /media/loading.gif
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /tsp/again?lid=u1
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /tsp/llt
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /media/loading.gif
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /session/llt
+	req.body: { reqType: 'lnuser' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+659 { uid: 'u1', tid: 'a' }
+POST  request for  /session/llt
+	req.body: { reqType: 'lnuser' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+659 { uid: 'u1', tid: 'a' }
+POST  request for  /session/llt
+	req.body: { reqType: 'lnuser' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+659 { uid: 'u1', tid: 'a' }
+GET  request for  /tsp/again?lid=a
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /tsp/
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /tsp/llu
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /media/loading.gif
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /session/llu
+	req.body: { reqType: 'exists' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /favicon.ico
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /session/llt
+	req.body: { reqType: 'lnuser' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+659 { uid: 'u1', tid: 'a' }
+GET  request for  /tsp/sst
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /scripts/req_logs.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /session/llu
+	req.body: { reqType: 'exists' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /tsp/ssu
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /media/loading.gif
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /session/ssu
+	req.body: { reqType: 'started' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /favicon.ico
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /gj/archived_logs?DRZ=true
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+SELECT *
+FROM session_archive_index
+WHERE UID=1
+AND tsp_stype='DRZ'
+ORDER BY end_ts DESC
+POST  request for  /session/ssu
+	req.body: { reqType: 'started' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /session/ssu
+	req.body: { reqType: 'started' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /session/ssu
+	req.body: { reqType: 'started' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /session/ssu
+	req.body: { reqType: 'started' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /session/ssu
+	req.body: { reqType: 'started' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /admin/VL-log?file=a-u1_20220506-034729_DRZ.ttsd
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /tsp/sst
+	req.body: {
+  reqType: 'start',
+  stype: 'NCR',
+  rew_times: '15669,25657,35676,45657,55666,65661,75663,85668,95669,105673,115659,125670,147758,157750,167744,177767,187746,197755,207751,217745,227760,237742,247746,257752,267761,277758,287750,297755'
+}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /tsp/sest
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /scripts/req_settings.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /gj/settings.json
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /session/ssu
+	req.body: { reqType: 'started' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /tsp/sesu
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /scripts/req_settings.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /media/bike-bell.mp3
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /gj/settings.json
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /favicon.ico
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /tsp/sesu
+	req.body: { reqType: 'start' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+1139
+POST  request for  /tsp/sest
+	req.body: { reqType: 'tic' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+672 { reqType: 'tic' }
+POST  request for  /tsp/sest
+	req.body: { reqType: 'tic' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+672 { reqType: 'tic' }
+POST  request for  /tsp/sest
+	req.body: { reqType: 'tic' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+672 { reqType: 'tic' }
+POST  request for  /tsp/sesu
+	req.body: { reqType: 'logrew' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /media/coin.svg
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /favicon.ico
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /tsp/sest
+	req.body: { reqType: 'tic' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+672 { reqType: 'tic' }
+POST  request for  /tsp/sest
+	req.body: { reqType: 'tic' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+672 { reqType: 'tic' }
+POST  request for  /tsp/sesu
+	req.body: { reqType: 'logrew' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /tsp/sest
+	req.body: { reqType: 'tic' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+672 { reqType: 'tic' }
+POST  request for  /tsp/sest
+	req.body: { reqType: 'tic' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+672 { reqType: 'tic' }
+POST  request for  /tsp/sesu
+	req.body: { reqType: 'logrew' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /tsp/sest
+	req.body: { reqType: 'tic' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+672 { reqType: 'tic' }
+POST  request for  /tsp/sest
+	req.body: { reqType: 'tic' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+672 { reqType: 'tic' }
+POST  request for  /tsp/sest
+	req.body: { reqType: 'tic' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+672 { reqType: 'tic' }
+POST  request for  /tsp/sest
+	req.body: { reqType: 'tic' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+672 { reqType: 'tic' }
+POST  request for  /tsp/sesu
+	req.body: { reqType: 'logrew' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /tsp/sest
+	req.body: { reqType: 'end' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+672 { reqType: 'end' }
+SE-T
+586
+GET  request for  /tsp/session_ended
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /scripts/account.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /media/loading.gif
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /scripts/req_logs.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /templates/precompiled.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /tsp/sesu
+	req.body: { reqType: 'logrew' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /gj/recent_session?lid=u1
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /gj/recent_session?lid=u1
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+POST  request for  /tsp/sesu
+	req.body: { reqType: 'end' }
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+730 [ 'a', 'u1.ttsd' ]
+GET  request for  /
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+706 INSERT INTO session_archive_index (TID, UID, filename, end_ts, duration, levels, points, coins, tics, longest_tfi, tens_tfis, is_tsp, tsp_stype, tsp_rewards, tt_version)
+VALUES (0, 1, 'a-u1_20220506-041609_NCR.ttsd', '2022-05-06T04:16:09.500Z',
+54717, 0,
+0, 0,
+11, 13120,
+1, true,
+'NCR', 5,
+'2021.08.14')
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /scripts/account.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /favicon.ico
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /gj/recent_session?lid=u1
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /tsp/session_ended
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /favicon.ico
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /favicon.ico
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /scripts/account.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /media/loading.gif
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /scripts/req_logs.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /templates/precompiled.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /favicon.ico
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /gj/recent_session?lid=a
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /gj/archived_logs?uid=u1
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /media/loading.gif
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+SELECT *
+FROM session_archive_index
+WHERE UID=1
+ORDER BY end_ts DESC
+GET  request for  /admin/VL-log?file=console_log
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /media/loading.gif
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /scripts/account.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/bgStyle.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /stylesheets/normalize.css
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /scripts/account.js
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]
+GET  request for  /favicon.ico
+	req.body: {}
+	req.session keys: [ '_ctx', 'acc_obj', 'lid', 'last_lid' ]

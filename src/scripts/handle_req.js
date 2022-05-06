@@ -189,7 +189,7 @@ function ret_error(res, err, retry){
 	else{
 		aux.db_log("54: "+err);
 		res.render("error", hbs_data);
-		//TODO: Handle other errors better
+		// IMPROVEMENT_TODO: Handle other errors better
 	}
 }
 
@@ -219,7 +219,7 @@ function ghses(req, res){
 		id: req.body.tid,
 		pw: req.body.pw
 	}
-	// TODO: Use the new login session system?
+	// IMPROVEMENT_TODO: Use the new login session system?
 	aux.login(credentials, null, (err, acc_obj, con) => {
 		if(err){
 			ret_error(res, err);
@@ -387,7 +387,7 @@ function manage_get(req, res){
 	
 	aux.get_links(acc_obj, null, (err, lids) => {
 		if(err){
-			ret_error(res, "se"); //TODO
+			ret_error(res, "se"); // IMPROVEMENT_TODO: better error pages
 			return;
 		}
 		let isuser = acc_obj.id[0] == "u";
@@ -421,11 +421,11 @@ function manage(req, res){
 	*		- addL
 	*		- editP
 	*/
-	// Do admins use this portal? TODO
+	
 	let acc_obj = req.session.acc_obj;
 	switch(req.body.source){
 		case "addL":
-			// TODO_IMPROVEMENT: This would be a good candidate for XHR instead of
+			// IMPROVEMENT_TODO: This would be a good candidate for XHR instead of
 			// constantly redirecting back to the same page.
 			let link_data = {
 				id: acc_obj.id,
@@ -487,7 +487,7 @@ function new_session_get(req, res){
 	let acc_obj = req.session.acc_obj;
 	aux.get_links(acc_obj, null, (err, lids) => {
 		if(err){
-			ret_error(res, "se"); //TODO
+			ret_error(res, "se");
 			return;
 		}
 		//let isuser = acc_obj.id[0] == "u";
@@ -521,7 +521,7 @@ function new_tspses_get(req, res){
 	let israter = acc_obj.id[0] == "a";
 	if(isuser){
 		// Go ahead and start waiting for rater
-		// TODO: Should this really use admin accounts?
+		// MAYBE_TODO: Should this really use admin accounts?
 		req.session.lid = "a";
 		// Add uid to lnusers
 		let link_data = {
@@ -676,9 +676,9 @@ function llt(req, res){
 	else{
 		res.send("msg=wait");
 	}
-	// TODO: since there's no beforepageunload here, the trainer could leave this page
-	//		with session.lid intact and then go to one of the ongoing session pages,
-	//		leading to an error.
+	// TODO: since there's no beforepageunload here, the trainer 
+	// 	could leave this page with session.lid intact and then go to one of 
+	//		the ongoing session pages, leading to an error.
 }
 
 function llu(req, res){
@@ -1150,7 +1150,7 @@ function tspsesu(req, res){
 				});
 			});
 		break;
-		case "check": //TODO
+		case "check": // TEST_TODO
 			fs.readFile(sesFile, "utf8", function(err, data){
 				if(err){
 					res.json({err: "fe"});

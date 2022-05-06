@@ -78,7 +78,7 @@ module.exports.archive_session = archive_session;
 module.exports.load_recent_report = load_recent_report;
 module.exports.list_archived_sessions = list_archived_sessions;
 
-//TODO: Check that we're using validate_id everywhere that it's appropriate
+// TODO: Check that we're using validate_id everywhere that it's appropriate
 function validate_id(id, valid_initials = "tua"){
 	/* Check whether id is a valid id string.
 		valid_initials: combination of "t", "u", &/or "a" (lowercase)
@@ -94,7 +94,7 @@ function validate_id(id, valid_initials = "tua"){
 	return id;
 }
 
-// TODO: add case for "a" -> 0? Well, sometimes we want a3 -> 3 and sometimes a3 -> 0...
+// MAYBE_TODO: add case for "a" -> 0? Well, sometimes we want a3 -> 3 and sometimes a3 -> 0...
 function id_to_N(id){
 	var N36 = id.slice(1);
 	return parseInt(N36, 36);
@@ -151,7 +151,7 @@ function log_error(error_type, message){
 	message = message || "-";
 	// Escape special characters for the .ttd format
 	// It would be much better as a csv or something standard...
-	// TODO: Switch to csv or SQL table
+	// IMPROVEMENT_TODO: Switch to csv or SQL table
 	const open_char = "<";
 	const open_char_description = "[L.T. chevron]";
 	const close_char = ">";
@@ -487,7 +487,6 @@ function edit_account(data, con, callback){
 		return;
 	}
 	
-	//TODO: refactor for editing mutiple values at once. data.edits = {k1:v1, k2:v2, ...}
 	let editable_fields, table;
 	switch(data.id[0]){
 		case "u":

@@ -59,11 +59,15 @@ function ses_rew_times(filename, callback){
 }
 
 function txt_to_HTML(data){
+	/**
+	Convert the line breaks in a txt file to <br>
+	*/
 	return data.replace(/\n/g,"<br>");
 }
 
 function ttd_to_HTML(data){
-	/**Parse plain text from a .ttd file to a table.
+	/** STIL IN USE by VL
+	Parse plain text from a .ttd file to a table.
 		.ttd files are organized like this: <~;~>\n<~;~;~>
 		See the leaderboard scripts.
 	*/
@@ -95,7 +99,7 @@ function ttd_to_HTML(data){
 }
 
 function ttsd_to_HTML(data){
-	/**
+	/** OLD -- I'm using handlebars for this now. I THINK.
 	Parse plain text from a .ttsd file to a table.
 		.ttsd files are organized like this: 
 			~|~
@@ -126,7 +130,7 @@ function ttsd_to_HTML(data){
 }
 
 function report_to_HTML(type, report){
-	/**
+	/** OLD -- I'm using handlebars for this now
 	*	Turn a report object into HTML to be injected
 	*		example report object: 
 	*		{
@@ -156,7 +160,7 @@ function report_to_HTML(type, report){
 	*			???: ???
 	*		}
 	*/
-	//TODO:Personal best not yet implemented server-side, so it's not included yet
+	// Personal best was not yet implemented server-side when I made this
 	var html = "<b>User status after session:</b>\n<table style='table-layout: auto;'>\n";
 	html += "<tr><td>Level:</td> <td>"+report.endl+"</td></tr>\n";
 	html += "<tr><td>Points:</td> <td>"+report.endp+"</td></tr>\n";
