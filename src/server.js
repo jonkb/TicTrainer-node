@@ -119,8 +119,9 @@ app.get("/gj/recent_session", hrq.gj_recent_session);
 app.get("/gj/archived_logs", hrq.check_admin); // Must be logged in as admin
 app.get("/gj/archived_logs", hrq.verify_account);
 app.get("/gj/archived_logs", hrq.gj_archived_logs);
+app.get("/gj/leaderboard", hrq.gj_leaderboard);
 
-// TEST_TODO: Double-check that sql threads are closed when done...
+// TODO: Close the sql threads better...
 
 // Everything else should be loaded normally
 app.use(express.static("webroot"));

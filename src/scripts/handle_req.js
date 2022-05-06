@@ -55,6 +55,7 @@ module.exports.VL_log = VL_log;
 module.exports.gj_recent_session = gj_recent_session;
 module.exports.gj_settings = gj_settings;
 module.exports.gj_archived_logs = gj_archived_logs;
+module.exports.gj_leaderboard = gj_leaderboard;
 
 // Middleware
 
@@ -1518,6 +1519,19 @@ function gj_archived_logs(req, res){
 			res.json({err: err});
 			return;
 		}
-		res.json(sessions)
+		res.json(sessions);
+	});
+}
+
+function gj_leaderboard(req, res){
+	/**
+	*	Return the sorted list of the top 100 users.
+	*/
+	aux.list_top_users(null, (err, users) => {
+		if(err){
+			res.json({err: err});
+			return;
+		}
+		res.json(users);
 	});
 }

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<title>TicTrainer Leaderboard</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+		<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+		<style>
+			th {
+				text-align: left;
+			}
+		</style>
+	</head>
+	<body>
+		<section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>TicTrainer Leaderboard</h1>
+				<div style="clear: both;"></div>
+			</div>
+		</section>
+		<section class="main-content">
+			<div id="board">
+			</div>
+			<button type="button" class="btn" onclick="refresh()">Refresh</button>
+		</section>
+		<script src="/scripts/math-ext.js"></script>
+		<script src="/templates/precompiled.js"></script>
+		<script>
+const url = '/gj/leaderboard';
+const t_minrefresh = 2000;
+var lastLoaded = 0;
+load();
+function load(){
+	document.getElementById("board").innerHTML = "<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>"; //Show Loading on reload
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function(){
+		if(xhr.readyState == 4 && xhr.status == 200){
+			lastLoaded = new Date().getTime();
+			var res = JSON.parse(xhr.responseText);
+			if(res.err){
+				alert(res.err);
+				return;
+			}
+			let hbs_data = {
+				users: res
+				// Maybe include the user's own ID to highlight that line with an #if
+			};
+			let template_board = Handlebars.templates["leaderboard.hbs"];
+			let board_html = template_board(hbs_data);
+			document.getElementById("board").innerHTML = board_html;
+		}
+	}
+	xhr.open('GET', url, true);
+	xhr.send();
+}
+function refresh(){
+	var time = new Date().getTime();
+	if(time - lastLoaded > t_minrefresh)
+		load();
+}
+		</script>
+	</body>
+</html>

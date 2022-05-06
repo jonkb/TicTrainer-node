@@ -3,6 +3,7 @@ IN PROGRESS:
 - See TODO tag in files
 - Cannot POST /error/report.html
 - Store & leaderboard
+- Close SQL threads
 - Double-check that everything works
 - server cert auto-updating & ip redirection thing
 - Translation

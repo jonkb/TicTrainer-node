@@ -77,6 +77,7 @@ module.exports.gen_report_txt = gen_report_txt;
 module.exports.archive_session = archive_session;
 module.exports.load_recent_report = load_recent_report;
 module.exports.list_archived_sessions = list_archived_sessions;
+module.exports.list_top_users = list_top_users;
 
 // TODO: Check that we're using validate_id everywhere that it's appropriate
 function validate_id(id, valid_initials = "tua"){
@@ -989,6 +990,45 @@ ORDER BY end_ts DESC`;
 				return;
 			}
 			callback(null, result);
+		});
+	});
+}
+
+function list_top_users(N=100, callback){
+	/**
+	*	Return a list of the top N users, ranked by level and point
+	*	Each array entry: [rank, uid, level, points]
+	*/
+	
+	console.log(1002, N);
+	
+	// Make sure N is an integer
+	N = Number.isInteger(N) ? N : 100;
+	
+	sql.connect((err, con) => {
+		if(err){
+			callback(err);
+			return;
+		}
+		// Sort by level, then by points
+		// TEST_TODO
+		let select_query = `SELECT *
+FROM users
+ORDER BY level DESC, points DESC
+LIMIT ${N}`;
+		db_log(select_query);
+		con.query(select_query, (err, result, fields) => {
+			if(err){
+				callback(err);
+				return;
+			}
+			let users = result.map((user, i) => {
+				// IMPROVEMENT_TODO: Switch this out with handlebars math to minimize unnecessary traffic
+				return [i+1, N_to_id(user.ID, "u"), user.level, user.points];
+			});
+			// List comprehension is experimental and not supported by node.js :(
+			// let users = [for (user of result) [N_to_id(user.ID), user.level, user.points]];
+			callback(null, users);
 		});
 	});
 }
