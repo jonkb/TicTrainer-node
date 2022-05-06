@@ -8,15 +8,15 @@ const fs = require("fs");
 const path = require("path");
 const mainroot = path.join(__dirname, "/..");
 const scriptsroot = __dirname;
-const dbroot = mainroot + "/db/";
+const logroot = mainroot + "/logs/";
 const settings = JSON.parse(fs.readFileSync(mainroot+"/settings.json"));
 // Functions for reading and writing to the database
 const sql = require(scriptsroot+"/mysql.js")
 // Other constants
 const localeroot = "./locales/";
 const languages = ["en", "pt"];
-const console_log_file = path.join(mainroot, "/../Project_Files/log.txt");
-const err_log_file = path.join(dbroot, "/err_log.ttd");
+const console_log_file = path.join(logroot, "log.txt");
+const err_log_file = path.join(logroot, "err_log.ttd");
 const user_editable_fields = ["password", "birth_date", "sex", "level", 
 	"points", "coins", "best_tfi", "items", "RID", "RSTATE", "AITI", "SMPR",
 	"PTIR", "FLASH"];
@@ -49,7 +49,7 @@ module.exports.console_log_file = console_log_file;
 module.exports.err_log_file = err_log_file;
 module.exports.err_types = err_types;
 module.exports.err_titles = err_titles;
-module.exports.dbroot = dbroot;
+module.exports.logroot = logroot;
 module.exports.mainroot = mainroot;
 module.exports.directories = directories;
 /**
@@ -146,14 +146,15 @@ function time(type, date){
 
 function log_error(error_type, message){
 	/**
-	*	Writes an error to the error log (./db/err_log.ttd)
+	*	Writes an error to the error log (./logs/err_log.ttd)
 	*/
 	message = message || "-";
 	// Escape special characters for the .ttd format
-	// It would be much better as a csv or something standard... TODO
+	// It would be much better as a csv or something standard...
+	// TODO: Switch to csv or SQL table
 	const open_char = "<";
 	const open_char_description = "[L.T. chevron]";
-	const close_char = "<";
+	const close_char = ">";
 	const close_char_description = "[G.T. chevron]";
 	const division_char = ";";
 	const division_char_description = "[semicolon]";
@@ -878,7 +879,7 @@ function archive_session(sesFile, callback){
 			sesFile2 += "_"+report_obj.tsp_stype;
 		sesFile2 += ".ttsd";
 		let filename = sesFile2; // Grab just the filename, after the path
-		sesFile2 = dbroot + "session/archive/" + sesFile2;
+		sesFile2 = logroot + "session/archive/" + sesFile2;
 		fs.appendFile(sesFile, report_txt, function(err){
 			if(err){
 				callback("fe");

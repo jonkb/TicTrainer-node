@@ -58,6 +58,10 @@ function ses_rew_times(filename, callback){
 	xhr.send();
 }
 
+function txt_to_HTML(data){
+	return data.replace(/\n/g,"<br>");
+}
+
 function ttd_to_HTML(data){
 	/**Parse plain text from a .ttd file to a table.
 		.ttd files are organized like this: <~;~>\n<~;~;~>
@@ -66,7 +70,7 @@ function ttd_to_HTML(data){
 	//Or I could say: if the first line is "Started at ..."
 	if(data.indexOf("<") < 0 && data.indexOf(">") < 0){
 		//This is probably .txt
-		return data.replace(/\n/g,"<br>");
+		return txt_to_HTML(data);
 	}
 	var html = "\n<table style='table-layout: auto;'>\n";
 	for(var i = 0; i< data.length; i++){

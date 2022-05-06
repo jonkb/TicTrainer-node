@@ -105,6 +105,8 @@
 								let loghtml;
 								if(logfile == "err_log")
 									loghtml = ttd_to_HTML(xhr.responseText);
+								else if(logfile == "console_log")
+									loghtml = txt_to_HTML(xhr.responseText);
 								else
 									loghtml = xhr.responseText;
 								document.getElementById("log_content").innerHTML = loghtml;

@@ -90,7 +90,7 @@ app.get("/tsp/session_ended", hrq.session_ended_get);
 app.get("/tsp/again", hrq.ses_again);
 app.all("/tsp/*", hrq.check_lid); // Must be in an ongoing session from here on
 app.get("/tsp/llt", hrq.ll_get); // Link Loading
-// app.post("/tsp/llt", hrq.llt);
+// app.post("/tsp/llt", hrq.llt); // Currently these requests go to /session/llt
 app.get("/tsp/llu", hrq.ll_get);
 // app.post("/tsp/llu", hrq.llu);
 app.get("/tsp/sst", hrq.ss_get); // Start Session

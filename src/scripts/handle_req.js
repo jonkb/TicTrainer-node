@@ -229,7 +229,7 @@ function ghses(req, res){
 		if(tid[0] == 'a'){
 			tid = 'a';
 		}
-		var sesFile = aux.dbroot + "session/ongoing/"+ tid + "-" + req.body.uid + ".ttsd";
+		var sesFile = aux.logroot + "session/ongoing/"+ tid + "-" + req.body.uid + ".ttsd";
 		fs.stat(sesFile, function(err){
 			if(err){
 				if(err.code == "ENOENT"){//already deleted
@@ -425,6 +425,8 @@ function manage(req, res){
 	let acc_obj = req.session.acc_obj;
 	switch(req.body.source){
 		case "addL":
+			// TODO_IMPROVEMENT: This would be a good candidate for XHR instead of
+			// constantly redirecting back to the same page.
 			let link_data = {
 				id: acc_obj.id,
 				lid: req.body.lid
@@ -436,12 +438,14 @@ function manage(req, res){
 						aux.db_log("Link already exists");
 						res.redirect("/account/manage");
 					}
-					else if(err.code == "ER_NO_REFERENCED_ROW_2"){
+					else if(err.code == "ER_NO_REFERENCED_ROW" ||
+						err.code == "ER_NO_REFERENCED_ROW_2"){
 						// Account does not exist
 						aux.db_log("That account does not exist");
 						res.redirect("/account/manage");
 					}
 					else{
+						aux.db_log(err.code);
 						ret_error(res, err);
 					}
 					return;
@@ -585,7 +589,7 @@ function new_session(req, res){
 	}
 	
 	// console.log(591);
-	let sesFile = aux.dbroot + "session/ongoing/" + tid + "-" + uid + ".ttsd";
+	let sesFile = aux.logroot + "session/ongoing/" + tid + "-" + uid + ".ttsd";
 	// Note: is this really the right time to check for conses?
 	fs.stat(sesFile, function(err){
 		if(err){
@@ -656,7 +660,7 @@ function llt(req, res){
 	console.log(659, link_data);
 	if(aux.ln_has(link_data)){
 		aux.ln_delete(link_data);
-		var sesFileName = aux.dbroot + "session/ongoing/"+ id + "-" + lid + ".ttsd";
+		var sesFileName = aux.logroot + "session/ongoing/"+ id + "-" + lid + ".ttsd";
 		/*make a session file - this should only exist for the duration of the session.
 			when the session ends, rename and copy the file to an archive: db/session/archive
 		*/
@@ -699,7 +703,7 @@ function llu(req, res){
 		return;
 	}
 	// See if the session file exists
-	var searchFile = aux.dbroot + "session/ongoing/"+ lid + "-" + id + ".ttsd";
+	var searchFile = aux.logroot + "session/ongoing/"+ lid + "-" + id + ".ttsd";
 	fs.stat(searchFile, function(err, stats){
 		if(err == null){//File exists
 			res.send("next=ssu");
@@ -745,7 +749,7 @@ function sst(req, res){
 	if(id[0] == "a")
 		id = "a";
 	let lid = req.session.lid;
-	let sesFile = aux.dbroot + "session/ongoing/" + id + "-" + lid + ".ttsd";
+	let sesFile = aux.logroot + "session/ongoing/" + id + "-" + lid + ".ttsd";
 	//If aborting, delete the session file.
 	//don't bother with archive because it hasn't even started yet
 	if(req.body.reqType == 'leave'){
@@ -801,7 +805,7 @@ function ssu(req, res){
 	*/
 	let id = req.session.acc_obj.id;
 	let lid = req.session.lid;
-	let sesFile = aux.dbroot + "session/ongoing/" + lid + "-" + id + ".ttsd";
+	let sesFile = aux.logroot + "session/ongoing/" + lid + "-" + id + ".ttsd";
 	
 	//end session - it has not started yet, so just delete it
 	if(req.body.reqType == 'leave' || req.body.reqType == 'timeout'){
@@ -908,7 +912,7 @@ function sest(req, res){
 	if(id[0] == "a")
 		id = "a";
 	let lid = req.session.lid;
-	let sesFile = aux.dbroot + "session/ongoing/" + id + "-" + lid + ".ttsd";
+	let sesFile = aux.logroot + "session/ongoing/" + id + "-" + lid + ".ttsd";
 	
 	console.log(672, req.body);
 	
@@ -972,7 +976,7 @@ function sesu(req, res){
 	*/
 	let id = req.session.acc_obj.id;
 	let lid = req.session.lid;
-	let sesFile = aux.dbroot + "session/ongoing/" + lid + "-" + id + ".ttsd";
+	let sesFile = aux.logroot + "session/ongoing/" + lid + "-" + id + ".ttsd";
 	
 	aux.db_log("975:" + req.body);
 	
@@ -1104,7 +1108,7 @@ function tspsesu(req, res){
 	*	Handle POST requests from "/tsp/sesu"
 	*/
 	let id = req.session.acc_obj.id;
-	var sesFile = aux.dbroot + "session/ongoing/a-" + id + ".ttsd";
+	var sesFile = aux.logroot + "session/ongoing/a-" + id + ".ttsd";
 	switch(req.body.reqType){
 		case "start":
 			fs.readFile(sesFile, "utf8", function(err, data){
@@ -1434,7 +1438,7 @@ function VL_log(req, res){
 			res.json(aux.ln_list());
 			break;
 		default:
-			let path = aux.dbroot + "session/archive/" + filename;
+			let path = aux.logroot + "session/archive/" + filename;
 			res.sendFile(path);
 	}
 }
