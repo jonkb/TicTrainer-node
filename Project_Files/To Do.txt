@@ -1,10 +1,10 @@
 To Do: (priority,difficulty) (0-5,0-5)
 IN PROGRESS:
+- See TODO tag in files
 - Cannot POST /error/report.html
 - Store & leaderboard
-- Check that everything works
-- See TODO tag in files.
-- Finish deleting unused html / dynh files
+- Double-check that everything works
+- server cert auto-updating & ip redirection thing
 - Translation
 
 FUNCTIONAL:

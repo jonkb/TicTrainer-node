@@ -1,3 +1,7 @@
+/**
+Precompile a .hbs file to a .js file
+*/
+
 const path = require("path");
 const hbs = require("handlebars");
 const fs = require("fs");
@@ -8,4 +12,3 @@ console.log(ifname);
 let template = fs.readFileSync(ifname, {encoding:'utf8'});
 let compiled = hbs.precompile(template);
 fs.writeFileSync(ofname, compiled);
-
