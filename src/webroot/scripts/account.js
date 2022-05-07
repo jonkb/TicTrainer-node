@@ -7,7 +7,8 @@ function account_init(acc_obj){
 	}
 	else{
 		$("#logoutbtn").hide();
-		$("#actmng").hide();
+		$("#mngbtn").hide();
+		$("#storebtn").hide();
 	}
 }
 
@@ -17,7 +18,8 @@ function logout(e){
 		$("#loginbtn").show();
 		$("#registerbtn").show();
 		$("#logoutbtn").hide();
-		$("#actmng").hide();
+		$("#mngbtn").hide();
+		$("#storebtn").hide();
 		$("#actname").html("");
 		// Redirect to home page only after logging out
 		location.assign("/");

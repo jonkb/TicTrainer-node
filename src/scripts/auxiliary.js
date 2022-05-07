@@ -261,24 +261,18 @@ function register_user(body, callback){
 	}
 	var birth = sql.esc(body.birth);
 	
-	sql.connect((err, con) => {
+	// Create a new account for the user
+	var insert_cols = "(password_hash, birth_date, sex)";
+	var insert_query = `INSERT INTO users ${insert_cols}
+VALUES (UNHEX(SHA2("${pw}", 256)), ${birth}, ${sex})`;
+	sql.pool.query(insert_query, (err, result) => {
 		if(err){
 			callback(err);
 			return;
 		}
-		// Create a new account for the user
-		var insert_cols = "(password_hash, birth_date, sex)";
-		var insert_query = `INSERT INTO users ${insert_cols}
-VALUES (UNHEX(SHA2("${pw}", 256)), ${birth}, ${sex})`;
-		con.query(insert_query, (err, result) => {
-			if(err){
-				callback(err);
-				return;
-			}
-			db_log("Record inserted. ID: " + result.insertId);
-			body.id = N_to_id(result.insertId, "u");
-			callback(null, body);
-		});
+		db_log("Record inserted. ID: " + result.insertId);
+		body.id = N_to_id(result.insertId, "u");
+		callback(null, body);
 	});
 }
 
@@ -290,49 +284,32 @@ function register_trainer(body, callback){
 	let pw = sql.esc(body.pw);
 	let birth = sql.esc(body.birth);
 	
-	sql.connect((err, con) => {
+	// Create a new account for the trainer
+	let insert_cols = "(password_hash, birth_year)";
+	let insert_query = `INSERT INTO trainers ${insert_cols}
+VALUES (UNHEX(SHA2("${pw}", 256)), ${birth})`;
+	sql.pool.query(insert_query, (err, result) => {
 		if(err){
 			callback(err);
 			return;
 		}
-		// Create a new account for the trainer
-		let insert_cols = "(password_hash, birth_year)";
-		let insert_query = `INSERT INTO trainers ${insert_cols}
-VALUES (UNHEX(SHA2("${pw}", 256)), ${birth})`;
-		con.query(insert_query, (err, result) => {
-			if(err){
-				callback(err);
-				return;
-			}
-			db_log("Record inserted. ID: " + result.insertId);
-			body.id = N_to_id(result.insertId, "t");
-			callback(null, body);
-		});
+		db_log("Record inserted. ID: " + result.insertId);
+		body.id = N_to_id(result.insertId, "t");
+		callback(null, body);
 	});
 }
 
-function register_admin(body, con, callback){
+function register_admin(body, callback){
 	/**
 	*	Create a new admin account
 	*/
-	if(!con){
-		// Create a connection if none was provided
-		sql.connect((err, con) => {
-			if(err){
-				callback(err);
-				return;
-			}
-			register_admin(body, con, callback);
-		});
-		return;
-	}
 	
 	let pw = sql.esc(body.pw);
 	
 	// Create a new account
 	let insert_query = `INSERT INTO admins (password_hash)
 VALUES (UNHEX(SHA2("${pw}", 256)))`;
-	con.query(insert_query, (err, result) => {
+	sql.pool.query(insert_query, (err, result) => {
 		if(err){
 			callback(err);
 			return;
@@ -343,21 +320,10 @@ VALUES (UNHEX(SHA2("${pw}", 256)))`;
 	});
 }
 
-function load_account(id, con, callback){
+function load_account(id, callback){
 	/**
 	*	Load an account's data
 	*/
-	if(!con){
-		// Create a connection if none was provided
-		sql.connect((err, con) => {
-			if(err){
-				callback(err);
-				return;
-			}
-			load_account(id, con, callback);
-		});
-		return;
-	}
 	
 	// Validate the id format
 	id = validate_id(id);
@@ -381,7 +347,7 @@ function load_account(id, con, callback){
 	
 	let select_query = `SELECT *
 FROM ${table} WHERE ID=${idN}`;
-	con.query(select_query, (err, result, fields) => {
+	sql.pool.query(select_query, (err, result, fields) => {
 		if(err){
 			callback(err);
 			return;
@@ -411,7 +377,7 @@ FROM ${table} WHERE ID=${idN}`;
 			else if(table == "trainers"){
 				acc_obj.birth_year = result[0].birth_year;
 			}
-			callback(null, acc_obj, con);
+			callback(null, acc_obj);
 		}
 		else{
 			// Account does not exist
@@ -420,23 +386,12 @@ FROM ${table} WHERE ID=${idN}`;
 	});
 }
 
-function login(body, con, callback){
+function login(body, callback){
 	/**
 	*	Verify account
 	*		body.id = uid / tid / aid
 	*		body.pw = pw || body.pwh = pwh
 	*/
-	if(!con){
-		// Create a connection if none was provided
-		sql.connect((err, con) => {
-			if(err){
-				callback(err);
-				return;
-			}
-			login(body, con, callback);
-		});
-		return;
-	}
 	
 	let pwh = null;
 	if(body.pw){
@@ -448,7 +403,7 @@ function login(body, con, callback){
 		pwh = Buffer.from(body.pwh.data);
 	}
 	
-	load_account(body.id, null, (err, acc_obj, con) => {
+	load_account(body.id, (err, acc_obj) => {
 		if(err){
 			callback(err);
 			return;
@@ -457,36 +412,25 @@ function login(body, con, callback){
 		existing_pwh = acc_obj.pwh;
 		if(Buffer.compare(pwh, existing_pwh) === 0){
 			// Password Verified
-			callback(null, acc_obj, con);
+			callback(null, acc_obj);
 		}
 		else{
 			callback("pce");
 		}
 	});
 }
-
-function edit_account(data, con, callback){
+// TODO: Some of these maybe should verify login first bc they used to while getting con
+function edit_account(data, callback){
 	/**
 	*	Edit an account
 	*		data.id = uid
 	*		data.edits = {key1:val1, key2:val2, ...}
 	*			key = field name (e.g. is_coder) Must be in editable_fields
 	*			val = new value
-	*		con = sql connection (from login)
-	*		data.pw = pw || data.pwh = pwh (if no con)
+	*		data.pw = pw || data.pwh = pwh
 	*/
 	
-	if(!con){
-		// Create a connection if none was provided
-		login(data, null, (err, acc_obj, con) => {
-			if(err){
-				callback(err);
-				return;
-			}
-			edit_account(data, con, callback);
-		});
-		return;
-	}
+	// MAYBE_TODO: Should we verify password again here?
 	
 	let editable_fields, table;
 	switch(data.id[0]){
@@ -527,13 +471,13 @@ SET`;
 	update_query += ` WHERE ID = ${idN}`;
 	db_log(update_query);
 	
-	con.query(update_query, (err, result) => {
+	sql.pool.query(update_query, (err, result) => {
 		if(err){
 			callback(err);
 			return;
 		}
 		// Load and return the updated acc_obj
-		load_account(data.id, con, (err, acc_obj, con) => {
+		load_account(data.id, (err, acc_obj) => {
 			if(err){
 				callback(err);
 				return;
@@ -543,24 +487,12 @@ SET`;
 	});
 }
 
-function get_links(data, con, callback){
+function get_links(data, callback){
 	/**
 	*	Get the links associated with this account.
 	*		data.id = uid
-	*		data.pw = pw || data.pwh = pwh (if no con)
+	*		data.pw = pw || data.pwh = pwh
 	*/
-	
-	if(!con){
-		// Create a connection if none was provided
-		login(data, null, (err, acc_obj, con) => {
-			if(err){
-				callback(err);
-				return;
-			}
-			get_links(data, con, callback);
-		});
-		return;
-	}
 	
 	let isuser = data.id[0] == "u";
 	let lid_type = isuser ? "t" : "u";
@@ -580,7 +512,7 @@ function get_links(data, con, callback){
 	let select_query = `SELECT * 
 FROM ${table} WHERE ${IDcol} = ${id}
 ORDER BY ${LIDcol}`;
-	con.query(select_query, (err, result, fields) => {
+	sql.pool.query(select_query, (err, result, fields) => {
 		if(err){
 			callback(err);
 			return;
@@ -596,23 +528,11 @@ ORDER BY ${LIDcol}`;
 	});
 }
 
-function add_link(data, con, callback){
+function add_link(data, callback){
 	/**
 	*	Add a link btw trainer & user
 	*	data should have id & lid
 	*/
-	
-	if(!con){
-		// Create a connection if none was provided
-		sql.connect((err, con) => {
-			if(err){
-				callback(err);
-				return;
-			}
-			add_link(data, con, callback);
-		});
-		return;
-	}
 	
 	let isuser = data.id[0] == "u";
 	let table, tid, uid;
@@ -630,7 +550,7 @@ function add_link(data, con, callback){
 	let uidN = sql.esc(id_to_N(uid));
 	let insert_query = `INSERT INTO ${table} (TID, UID)
 VALUES (${tidN}, ${uidN})`;
-	con.query(insert_query, (err, result) => {
+	sql.pool.query(insert_query, (err, result) => {
 		if(err){
 			callback(err);
 			return;
@@ -786,18 +706,12 @@ function archive_log(data, callback){
 	*	Store the session object in the database
 	*	data = {tid, uid, end_ts, report_obj}
 	*/
-	sql.connect((err, con) => {
-		if(err){
-			console.log(690);
-			callback(err);
-			return;
-		}
-		// If admin, store a 0
-		let tidN = data.tid[0] = "a" ? 0 : sql.esc(id_to_N(data.tid));
-		let uidN = sql.esc(id_to_N(data.uid));
-		let insert_cols = "(TID, UID, filename, end_ts, duration, levels, points, coins, tics, "
-		insert_cols += "longest_tfi, tens_tfis, is_tsp, tsp_stype, tsp_rewards, tt_version)";
-		let insert_query = `INSERT INTO session_archive_index ${insert_cols}
+	// If admin, store a 0
+	let tidN = data.tid[0] = "a" ? 0 : sql.esc(id_to_N(data.tid));
+	let uidN = sql.esc(id_to_N(data.uid));
+	let insert_cols = "(TID, UID, filename, end_ts, duration, levels, points, coins, tics, "
+	insert_cols += "longest_tfi, tens_tfis, is_tsp, tsp_stype, tsp_rewards, tt_version)";
+	let insert_query = `INSERT INTO session_archive_index ${insert_cols}
 VALUES (${tidN}, ${uidN}, ${sql.esc(data.filename)}, ${sql.esc(data.end_ts)},
 ${sql.esc(data.report_obj.duration)}, ${sql.esc(data.report_obj.levels)},
 ${sql.esc(data.report_obj.points)}, ${sql.esc(data.report_obj.coins)},
@@ -805,15 +719,14 @@ ${sql.esc(data.report_obj.tics)}, ${sql.esc(data.report_obj.longest_tfi)},
 ${sql.esc(data.report_obj.tens_tfis)}, ${sql.esc(data.report_obj.is_tsp)},
 ${sql.esc(data.report_obj.tsp_stype)}, ${sql.esc(data.report_obj.tsp_rewards)},
 ${sql.esc(data.report_obj.tt_version)})`;
-		console.log(706, insert_query)
-		con.query(insert_query, (err, result) => {
-			if(err){
-				console.log(708, err);
-				callback(err);
-				return;
-			}
-			callback();
-		});
+	console.log(706, insert_query)
+	sql.pool.query(insert_query, (err, result) => {
+		if(err){
+			console.log(708, err);
+			callback(err);
+			return;
+		}
+		callback();
 	});
 }
 
@@ -825,23 +738,16 @@ function update_best_tfi(uid, tfi_time, callback){
 	*/
 	let idN = sql.esc(id_to_N(uid));
 	let tfi = parseInt(sql.esc(tfi_time));
-	sql.connect((err, con) => {
+	let update_query = `UPDATE users
+SET best_tfi = GREATEST(best_tfi, ${tfi})
+WHERE ID = ${idN}`;
+	sql.pool.query(update_query, (err, result) => {
 		if(err){
-			console.log(730);
+			console.log(735, err);
 			callback(err);
 			return;
 		}
-		let update_query = `UPDATE users
-SET best_tfi = GREATEST(best_tfi, ${tfi})
-WHERE ID = ${idN}`;
-		con.query(update_query, (err, result) => {
-			if(err){
-				console.log(735, err);
-				callback(err);
-				return;
-			}
-			callback();
-		});
+		callback();
 	});
 }
 
@@ -922,33 +828,27 @@ function load_recent_report(tid, uid, callback){
 	*	Search the session archive for a recently completed session btw tid & uid
 	*	Then (if found) load that report and return it as an object
 	*/
-	sql.connect((err, con) => {
-		if(err){
-			callback(err);
-			return;
-		}
-		let tidN = tid[0] = "a" ? 0 : sql.esc(id_to_N(tid));
-		let uidN = sql.esc(id_to_N(uid));
-		// Load all session files btw tid & uid that ended in the last 5 minutes
-		// Sorted so that the first one is the most recent
-		let select_query = `SELECT *
+	let tidN = tid[0] = "a" ? 0 : sql.esc(id_to_N(tid));
+	let uidN = sql.esc(id_to_N(uid));
+	// Load all session files btw tid & uid that ended in the last 5 minutes
+	// Sorted so that the first one is the most recent
+	let select_query = `SELECT *
 FROM session_archive_index 
 WHERE TID=${tidN} AND UID=${uidN}
 AND TIMEDIFF( UTC_TIMESTAMP(), STR_TO_DATE(end_ts, "%Y-%m-%dT%T.%fZ") ) < TIME("00:05:00")
 ORDER BY end_ts DESC`;
-		con.query(select_query, (err, result, fields) => {
-			if(err){
-				callback(err);
-				return;
-			}
-			if(result.length > 0){
-				callback(null, result[0]);
-			}
-			else{
-				// No error, no report
-				callback(null);
-			}
-		});
+	sql.pool.query(select_query, (err, result, fields) => {
+		if(err){
+			callback(err);
+			return;
+		}
+		if(result.length > 0){
+			callback(null, result[0]);
+		}
+		else{
+			// No error, no report
+			callback(null);
+		}
 	});
 }
 
@@ -957,40 +857,34 @@ function list_archived_sessions(uid, stype, callback){
 	*	Return a list of all session archives associated with the given user
 	*	If uid is undefined, then load all of them
 	*/
-	sql.connect((err, con) => {
+	// Load all session files w/ uid
+	// Sorted so that the first one is the most recent
+	let select_query = `SELECT *
+FROM session_archive_index`;
+	if(uid || stype){
+		select_query += `
+WHERE `;
+		if(uid){
+			let uidN = sql.esc(id_to_N(uid));
+			select_query += `UID=${uidN}`;
+			if(stype)
+				select_query += `
+AND `;
+		}
+		if(stype){
+			select_query += `tsp_stype=${sql.esc(stype)}`;
+		}
+	}
+	
+	select_query += `
+ORDER BY end_ts DESC`;
+	db_log(select_query);
+	sql.pool.query(select_query, (err, result, fields) => {
 		if(err){
 			callback(err);
 			return;
 		}
-		// Load all session files w/ uid
-		// Sorted so that the first one is the most recent
-		let select_query = `SELECT *
-FROM session_archive_index`;
-		if(uid || stype){
-			select_query += `
-WHERE `;
-			if(uid){
-				let uidN = sql.esc(id_to_N(uid));
-				select_query += `UID=${uidN}`;
-				if(stype)
-					select_query += `
-AND `;
-			}
-			if(stype){
-				select_query += `tsp_stype=${sql.esc(stype)}`;
-			}
-		}
-		
-		select_query += `
-ORDER BY end_ts DESC`;
-		db_log(select_query);
-		con.query(select_query, (err, result, fields) => {
-			if(err){
-				callback(err);
-				return;
-			}
-			callback(null, result);
-		});
+		callback(null, result);
 	});
 }
 
@@ -1005,30 +899,24 @@ function list_top_users(N=100, callback){
 	// Make sure N is an integer
 	N = Number.isInteger(N) ? N : 100;
 	
-	sql.connect((err, con) => {
+	// Sort by level, then by points
+	// TEST_TODO
+	let select_query = `SELECT *
+FROM users
+ORDER BY level DESC, points DESC
+LIMIT ${N}`;
+	db_log(select_query);
+	sql.pool.query(select_query, (err, result, fields) => {
 		if(err){
 			callback(err);
 			return;
 		}
-		// Sort by level, then by points
-		// TEST_TODO
-		let select_query = `SELECT *
-FROM users
-ORDER BY level DESC, points DESC
-LIMIT ${N}`;
-		db_log(select_query);
-		con.query(select_query, (err, result, fields) => {
-			if(err){
-				callback(err);
-				return;
-			}
-			let users = result.map((user, i) => {
-				// IMPROVEMENT_TODO: Switch this out with handlebars math to minimize unnecessary traffic
-				return [i+1, N_to_id(user.ID, "u"), user.level, user.points];
-			});
-			// List comprehension is experimental and not supported by node.js :(
-			// let users = [for (user of result) [N_to_id(user.ID), user.level, user.points]];
-			callback(null, users);
+		let users = result.map((user, i) => {
+			// IMPROVEMENT_TODO: Switch this out with handlebars math to minimize unnecessary traffic
+			return [i+1, N_to_id(user.ID, "u"), user.level, user.points];
 		});
+		// List comprehension is experimental and not supported by node.js :(
+		// let users = [for (user of result) [N_to_id(user.ID), user.level, user.points]];
+		callback(null, users);
 	});
 }

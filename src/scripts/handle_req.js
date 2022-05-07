@@ -150,12 +150,11 @@ function verify_account(req, res, next){
 		id: req.session.acc_obj.id,
 		pwh: req.session.acc_obj.pwh
 	};
-	aux.login(credentials, null, (err, acc_obj, con) => {
+	aux.login(credentials, (err, acc_obj) => {
 		if(err){
 			ret_error(res, err);
 			return;
 		}
-		req.sql_con = con;
 		req.session.acc_obj = acc_obj;
 		next();
 	});
@@ -241,7 +240,7 @@ function ghses(req, res){
 		pw: req.body.pw
 	}
 	// IMPROVEMENT_TODO: Use the new login session system?
-	aux.login(credentials, null, (err, acc_obj, con) => {
+	aux.login(credentials, (err, acc_obj) => {
 		if(err){
 			ret_error(res, err);
 			return;
@@ -328,12 +327,11 @@ function login(req, res){
 	*	Handle POST requests for "/account/login"
 	*	Log the user in and redirect them to where they were trying to go.
 	*/
-	aux.login(req.body, null, (err, acc_obj, con) => {
+	aux.login(req.body, (err, acc_obj) => {
 		if(err){
 			ret_error(res, err, "/account/login");
 			return;
 		}
-		con.end(); // Close the sql connection, since we're done with it
 		// Save login id & hash in cookie
 		req.session.acc_obj = acc_obj;
 		res.redirect(req.body.redirect);
@@ -406,7 +404,7 @@ function manage_get(req, res){
 		return;
 	}
 	
-	aux.get_links(acc_obj, null, (err, lids) => {
+	aux.get_links(acc_obj, (err, lids) => {
 		if(err){
 			ret_error(res, "se"); // IMPROVEMENT_TODO: better error pages
 			return;
@@ -452,7 +450,7 @@ function manage(req, res){
 				id: acc_obj.id,
 				lid: req.body.lid
 			};
-			aux.add_link(link_data, req.sql_con, (err) => {
+			aux.add_link(link_data, (err) => {
 				if(err){
 					if(err.code == "ER_DUP_ENTRY"){
 						// Link already exists
@@ -482,7 +480,7 @@ function manage(req, res){
 					"password": req.body.pw
 				}
 			}
-			aux.edit_account(data, req.sql_con, (err, acc_obj) => {
+			aux.edit_account(data, (err, acc_obj) => {
 				if(err){
 					ret_error(res, err);
 					return;
@@ -537,7 +535,7 @@ function store(req, res){
 	}
 	
 	// Check that the user really has enough coins, then make the purchase
-	aux.load_account(acc_obj.id, req.sql_con, (err, acc_obj) => {
+	aux.load_account(acc_obj.id, (err, acc_obj) => {
 		if(err){
 			ret_error(res, "se");
 			return;
@@ -558,7 +556,7 @@ function store(req, res){
 				"items": newitems
 			}
 		}
-		aux.edit_account(data, req.sql_con, (err, acc_obj) => {
+		aux.edit_account(data, (err, acc_obj) => {
 			if(err){
 				ret_error(res, err);
 				return;
@@ -578,7 +576,7 @@ function new_session_get(req, res){
 	*	Return the page for starting a new session
 	*/
 	let acc_obj = req.session.acc_obj;
-	aux.get_links(acc_obj, null, (err, lids) => {
+	aux.get_links(acc_obj, (err, lids) => {
 		if(err){
 			ret_error(res, "se");
 			return;
@@ -1180,7 +1178,7 @@ function sesu(req, res){
 							"coins": req.body.coins
 						}
 					}
-					aux.edit_account(data, null, (err, acc_obj) => {
+					aux.edit_account(data, (err, acc_obj) => {
 						if(err){
 							console.log(875, err); // This is happening
 							res.json({err: err});
@@ -1405,7 +1403,7 @@ function MAA_LA(req, res){
 		id: req.body.id,
 		pw: req.body.pw
 	};
-	aux.login(credentials, req.sql_con, (err, acc_obj) => {
+	aux.login(credentials, (err, acc_obj) => {
 		if(err){
 			res.json({err: err});
 			return;
@@ -1425,7 +1423,7 @@ function MAA_CP(req, res){
 		id: req.body.id,
 		pw: req.body.pw
 	};
-	aux.login(credentials, req.sql_con, (err, acc_obj, con) => {
+	aux.login(credentials, (err, acc_obj) => {
 		if(err){
 			res.json({err: err});
 			return;
@@ -1436,7 +1434,7 @@ function MAA_CP(req, res){
 				password: req.body.new_pw
 			}
 		};
-		aux.edit_account(data, con, (err) => {
+		aux.edit_account(data, (err) => {
 			if(err){
 				res.json({err: err});
 				return;
@@ -1451,7 +1449,7 @@ function MAA_CA(req, res){
 	*	Handle POST requests for /admin/MAA-create_admin
 	*	Follows check_isadmin and verify_account
 	*/
-	aux.register_admin(req.body, req.sql_con, (err, body) => {
+	aux.register_admin(req.body, (err, body) => {
 		if(err){
 			ret_error(res, err);
 			return;
@@ -1465,7 +1463,7 @@ function MRU_LA(req, res){
 	*	Handle POST requests for /admin/MRU-load_acc
 	*	Follows check_isadmin and verify_account
 	*/
-	aux.load_account(req.body.id, req.sql_con, (err, acc_obj) => {
+	aux.load_account(req.body.id, (err, acc_obj) => {
 		if(err){
 			res.json({err: err});
 			return;
@@ -1499,7 +1497,7 @@ function MRU_EA(req, res){
 		data.edits.SMPR = req.body.SMPR;
 	if(req.body.PTIR)
 		data.edits.PTIR = req.body.PTIR;
-	aux.edit_account(data, req.sql_con, (err) => {
+	aux.edit_account(data, (err) => {
 		if(err){
 			res.json({err: err});
 			return;
@@ -1563,7 +1561,7 @@ function gj_recent_session(req, res){
 				report: report
 			};
 			// Load updated info about the user
-			aux.load_account(uid, null, (err, acc_obj) => {
+			aux.load_account(uid, (err, acc_obj) => {
 				if(err){
 					res.json({err: err});
 					return;

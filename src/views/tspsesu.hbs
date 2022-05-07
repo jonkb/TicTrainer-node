@@ -63,6 +63,8 @@
 				ses_vars.reward_scheme = res_obj.stype;
 				var top_lbl = document.getElementById("top_lbl");
 				var tokens_lbl = document.getElementById("tokens_lbl");
+				// IMPROVEMENT_TODO: even on baseline & verbal, check with the server every 
+				//		once in a while to see if the trainer ended the session early.
 				if(ses_vars.reward_scheme == "baseline"){
 					top_lbl.innerHTML = "OK to tic";
 					if(ses_vars.lbl_bgc)
