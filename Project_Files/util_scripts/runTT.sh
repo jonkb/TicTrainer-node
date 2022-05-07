@@ -13,6 +13,6 @@ exit 0
 fi
 
 #cd and start the server
-cd /home/ec2-user/src/TicTrainer-node/root
-nohup node server.js &> ../Project_Files/log.txt &
+cd /home/ec2-user/src/TicTrainer-node/src
+nohup node server.js &> logs/log.txt &
 

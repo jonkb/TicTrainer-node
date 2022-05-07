@@ -4,6 +4,9 @@ function account_init(acc_obj){
 		$("#loginbtn").hide();
 		$("#registerbtn").hide();
 		$("#actname").text(": "+acc_obj.id);
+		// Admins and trainers don't use the store
+		if("at".indexOf(acc_obj.id[0]) != -1)
+			$("#storebtn").hide();
 	}
 	else{
 		$("#logoutbtn").hide();
