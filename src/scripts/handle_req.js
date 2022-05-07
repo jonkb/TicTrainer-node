@@ -537,7 +537,7 @@ function store(req, res){
 	}
 	
 	// Check that the user really has enough coins, then make the purchase
-	aux.load_account(req.body.id, req.sql_con, (err, acc_obj) => {
+	aux.load_account(acc_obj.id, req.sql_con, (err, acc_obj) => {
 		if(err){
 			ret_error(res, "se");
 			return;
