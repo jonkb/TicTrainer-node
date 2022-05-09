@@ -41,6 +41,7 @@ function connect(callback){
 	*	callback arguments: (err, connection)
 	*	CAUTION: Remember to close this connection with con.end()
 	*/
+	alert("DEPRICATED. Use pool instead. Be sure to close this connection!");
 	var connection = mysql.createConnection(con_details);
 	connection.connect((err) => {
 	  if (err) {

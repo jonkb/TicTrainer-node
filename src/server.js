@@ -51,6 +51,7 @@ if(aux.settings.testing)
 app.get("/", hrq.root);
 app.get("/error/*", hrq.err_get);
 app.post("/error/ghses.html", hrq.ghses);
+app.post("/error/report.html", hrq.bug_report);
 // Requests related to accounts (registration, login, manage account)
 app.post("/register/user.html", hrq.register_user);
 app.post("/register/trainer.html", hrq.register_trainer);

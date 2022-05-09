@@ -20,6 +20,7 @@ module.exports.log_req = log_req;
 module.exports.root = root;
 module.exports.err_get = err_get;
 module.exports.ghses = ghses;
+module.exports.bug_report = bug_report;
 // Requests related to accounts (registration, login, manage account)
 module.exports.login_get = login_get;
 module.exports.login = login;
@@ -271,6 +272,24 @@ function ghses(req, res){
 			}
 		});
 	});
+}
+
+function bug_report(req, res){
+	/**
+	*	Handle POST requests from the Bug Report page
+	*/
+	// Build the string to be saved in the log file
+	let message = `FROM:${req.body.fName}
+EMAIL:${req.body.email}
+MSG:${req.body.message}`;
+	aux.log_error("bug_report", message);
+	// Return report sent
+	var hbs_data = {
+		layout: "simple",
+		title: "Report Sent",
+		fn: req.body.fName
+	};
+	res.render("report_sent", hbs_data);
 }
 
 function root(req, res){

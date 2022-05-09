@@ -159,6 +159,7 @@ function log_error(error_type, message){
 	const close_char_description = "[G.T. chevron]";
 	const division_char = ";";
 	const division_char_description = "[semicolon]";
+	// Escape the special characters
 	message = message.replace(open_char, open_char_description);
 	message = message.replace(close_char, close_char_description);
 	message = message.replace(division_char, division_char_description);
