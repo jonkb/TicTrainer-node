@@ -266,8 +266,14 @@ function ghses(req, res){
 						ret_error(res, err);
 						return;
 					}
-					res.redirect("/session/");
-					aux.log_error("ghost session", "ghost session archived between "+tid+" and "+req.body.uid);
+					let message = "ghost session archived between "+tid+" and "+req.body.uid;
+					aux.log_error("ghost session", message, (err) => {
+						if(err){
+							ret_error(res, err);
+							return;
+						}
+						res.redirect("/session/");
+					});
 				});
 			}
 		});
@@ -282,14 +288,19 @@ function bug_report(req, res){
 	let message = `FROM:${req.body.fName}
 EMAIL:${req.body.email}
 MSG:${req.body.message}`;
-	aux.log_error("bug_report", message);
-	// Return report sent
-	var hbs_data = {
-		layout: "simple",
-		title: "Report Sent",
-		fn: req.body.fName
-	};
-	res.render("report_sent", hbs_data);
+	aux.log_error("bug_report", message, (err) => {
+		if(err){
+			ret_error(res, err);
+			return;
+		}
+		// Return report sent
+		var hbs_data = {
+			layout: "simple",
+			title: "Report Sent",
+			fn: req.body.fName
+		};
+		res.render("report_sent", hbs_data);
+	});
 }
 
 function root(req, res){
@@ -1544,7 +1555,6 @@ function VL_log(req, res){
 			res.sendFile(aux.err_log_file);
 			break;
 		case "lnusers":
-			console.log(1189, aux.ln_list());
 			res.json(aux.ln_list());
 			break;
 		default:

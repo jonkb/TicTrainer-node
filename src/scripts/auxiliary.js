@@ -16,7 +16,7 @@ const sql = require(scriptsroot+"/mysql.js")
 const localeroot = "./locales/";
 const languages = ["en", "pt"];
 const console_log_file = path.join(logroot, "log.txt");
-const err_log_file = path.join(logroot, "err_log.ttd");
+const err_log_file = path.join(logroot, "err_log.csv");
 const user_editable_fields = ["password", "birth_date", "sex", "level", 
 	"points", "coins", "best_tfi", "items", "RID", "RSTATE", "AITI", "SMPR",
 	"PTIR", "FLASH"];
@@ -57,6 +57,7 @@ module.exports.directories = directories;
 */
 module.exports.validate_id = validate_id;
 module.exports.time = time;
+module.exports.csv_append = csv_append;
 module.exports.db_log = db_log;
 module.exports.log_error = log_error;
 module.exports.ln_add = ln_add;
@@ -78,6 +79,7 @@ module.exports.archive_session = archive_session;
 module.exports.load_recent_report = load_recent_report;
 module.exports.list_archived_sessions = list_archived_sessions;
 module.exports.list_top_users = list_top_users;
+
 
 // TODO: Check that we're using validate_id everywhere that it's appropriate
 function validate_id(id, valid_initials = "tua"){
@@ -145,27 +147,38 @@ function time(type, date){
 	}
 }
 
-function log_error(error_type, message){
+function csv_append(filename, row, callback){
 	/**
-	*	Writes an error to the error log (./logs/err_log.ttd)
+	*	Write a single row to a csv file
+	*		row is expected to be an array
+	*/
+	
+	let row_str = "";
+	for(let entry of row){
+		// Replace " with ""
+		let entry_esc = entry.replace(/"/g, "\"\"");
+		// Encase whole thing in double quotes
+		entry_esc = "\"" + entry_esc + "\"";
+		row_str += entry_esc + ",";
+	}
+	// Remove last "," and add a newline
+	row_str = row_str.slice(0,-1) + "\n";
+	fs.appendFile(filename, row_str, function(err){
+		if(err){
+			callback(err);
+			return;
+		}
+		callback();
+	});
+}
+
+function log_error(error_type, message, callback){
+	/**
+	*	Writes an error to the error log (./logs/err_log.csv)
 	*/
 	message = message || "-";
-	// Escape special characters for the .ttd format
-	// It would be much better as a csv or something standard...
-	// IMPROVEMENT_TODO: Switch to csv or SQL table
-	const open_char = "<";
-	const open_char_description = "[L.T. chevron]";
-	const close_char = ">";
-	const close_char_description = "[G.T. chevron]";
-	const division_char = ";";
-	const division_char_description = "[semicolon]";
-	// Escape the special characters
-	message = message.replace(open_char, open_char_description);
-	message = message.replace(close_char, close_char_description);
-	message = message.replace(division_char, division_char_description);
-	var eEntry = open_char+error_type+division_char+time()+
-		division_char+message+close_char+"\n";
-	fs.appendFile(err_log_file, eEntry, function(err){});
+	let row = [error_type, time(), message];
+	csv_append(err_log_file, row, callback);
 }
 
 function db_log(message, depth){

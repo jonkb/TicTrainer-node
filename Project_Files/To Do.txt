@@ -4,6 +4,7 @@ IN PROGRESS:
 - Double-check that everything works
 - server cert auto-updating & ip redirection thing
 - Translation
+- Escape query strings in URLs
 
 FUNCTIONAL:
 -(3,2) Fix the log file report so it counts 10s intervals correctly

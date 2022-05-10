@@ -65,35 +65,76 @@ function txt_to_HTML(data){
 	return data.replace(/\n/g,"<br>");
 }
 
-function ttd_to_HTML(data){
-	/** STIL IN USE by VL
-	Parse plain text from a .ttd file to a table.
-		.ttd files are organized like this: <~;~>\n<~;~;~>
-		See the leaderboard scripts.
+function csv_to_array(data){
+	/**
+	Convert the text of a csv file to an array.
+	Assumes format:
+		"abc","def","gh""quote""i","jkl"
+		"mno","pqr" ...
 	*/
-	//Or I could say: if the first line is "Started at ..."
-	if(data.indexOf("<") < 0 && data.indexOf(">") < 0){
-		//This is probably .txt
-		return txt_to_HTML(data);
-	}
-	var html = "\n<table style='table-layout: auto;'>\n";
-	for(var i = 0; i< data.length; i++){
-		var character = data[i];
-		switch(character){
-			case "<":
-				html += "<tr>\n<td>";
-			break;
-			case ">":
-				html += "</td>\n</tr>\n";
-			break;
-			case ";":
-				html += "</td>\n<td>";
-			break;
-			default:
-				html += character;
+	// Uses a smidge of extra memory, but whatever.
+	let subdata = data;
+	let entry = "";
+	let i_entry_start, i_entry_end, i_newline;
+	let rows = [];
+	let row = [];
+	while(subdata.length > 0){
+		i_entry_start = subdata.indexOf("\"")+1;
+		// This next loop searches for the end of the entry
+		i_entry_end = i_entry_start;
+		while(true){
+			console.log(85, i_entry_end);
+			// Distance to next " after the current index
+			i_entry_end = subdata.indexOf("\"", i_entry_end);
+			if(i_entry_end == -1){
+				i_entry_end = subdata.length-1;
+				break;
+			}
+			if(subdata[i_entry_end+1] == "\""){
+				i_entry_end += 2; // Skip "" and keep looking
+			}
+			else{
+				// Found the end of the entry
+				break;
+			}
+			// TODO: Check that this can't infinite loop.
+		}
+		entry = subdata.slice(i_entry_start, i_entry_end);
+		entry = entry.replace(/""/g, "\""); // Unescape quotes
+		row.push(entry);
+		subdata = subdata.slice(i_entry_end+1);
+		// At this point, the next " will be the start of the next entry
+		i_nextentry = subdata.indexOf("\"");
+		if(i_nextentry == -1){
+			// EOF
+			rows.push(row);
 			break;
 		}
-	}//For each character
+		i_newline = subdata.indexOf("\n");
+		if(i_newline < i_nextentry && i_newline > -1){
+			// End of row
+			rows.push(row);
+			row = [];
+		}
+	}
+	return rows;
+}
+
+function csv_to_HTML(data){
+	/** USED by VL
+	Parse plain text from a .csv file to a table.
+		See the leaderboard scripts.
+	*/
+	
+	let html = "\n<table style='table-layout: auto;'>\n";
+	rows = csv_to_array(data);
+	for(row of rows){
+		html += "<tr>";
+		for(entry of row){
+			html += "<td>" + entry + "</td>";
+		}
+		html += "</tr>\n";
+	}
 	html += "</table>\n";
 	return html;
 }

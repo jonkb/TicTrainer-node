@@ -27,4 +27,5 @@ REFERENCES users(ID)
 /*
 	Note: These are 2 separate tables because the links are one-directional.
 	Alternatively I could combine them and just include an "owner" field: T/U.
+	Or... make it so that only one needs to link, then the link is made?
 */
