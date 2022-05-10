@@ -63,11 +63,16 @@ app.all("/account/manage", hrq.check_login);
 app.get("/account/manage", hrq.manage_get);
 app.post("/account/manage", hrq.verify_account);
 app.post("/account/manage", hrq.manage);
-// TODO: Store & Leaderboard
+// Store & Leaderboard (Leaderboard is all static and gj)
 app.all("/account/store", hrq.check_isuser);
 app.post("/account/store", hrq.verify_account);
 app.get("/account/store", hrq.store_get);
 app.post("/account/store", hrq.store);
+// Requests related to surveys
+app.get("/survey/*", hrq.survey_get);
+app.post("/survey/consent", hrq.survey_consent);
+app.post("/survey/initial", hrq.survey_initial);
+app.post("/survey/weekly", hrq.survey_weekly);
 // Requests related to training sessions
 app.all("/session/*", hrq.check_login); // Must be logged in
 app.get("/session/", hrq.new_session_get); // New Training Session

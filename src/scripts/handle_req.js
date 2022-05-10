@@ -31,6 +31,11 @@ module.exports.manage_get = manage_get;
 module.exports.manage = manage;
 module.exports.store_get = store_get;
 module.exports.store = store;
+// Requests related to surveys
+module.exports.survey_get = survey_get;
+module.exports.survey_consent = survey_consent;
+module.exports.survey_initial = survey_initial;
+module.exports.survey_weekly = survey_weekly;
 // Requests related to training sessions
 module.exports.new_session_get = new_session_get;
 module.exports.new_session = new_session;
@@ -282,13 +287,13 @@ function ghses(req, res){
 
 function bug_report(req, res){
 	/**
-	*	Handle POST requests from the Bug Report page
+	*	Handle POST requests from the Bug Report / Feedback page
 	*/
 	// Build the string to be saved in the log file
 	let message = `FROM:${req.body.fName}
 EMAIL:${req.body.email}
 MSG:${req.body.message}`;
-	aux.log_error("bug_report", message, (err) => {
+	aux.log_feedback(req.body, (err) => {
 		if(err){
 			ret_error(res, err);
 			return;
@@ -334,11 +339,9 @@ function login_get(req, res){
 	/**
 	*	Handle GET requests for "/account/login"
 	*/
-	let redirect = req.query.redirect || "/";
 	let hbs_data = {
 		layout: "simple",
-		title: "Log in",
-		redirect: redirect
+		title: "Log in"
 	};
 	const lang = req.acceptsLanguages(...aux.languages);
 	aux.get_locale_data(lang, (err, locale_data) => {
@@ -364,7 +367,7 @@ function login(req, res){
 		}
 		// Save login id & hash in cookie
 		req.session.acc_obj = acc_obj;
-		res.redirect(req.body.redirect);
+		res.redirect(req.query.redirect);
 	});
 }
 
@@ -599,6 +602,107 @@ function store(req, res){
 	});
 }
 
+// Requests related to surveys
+
+function survey_get(req, res){
+	/** 
+	*	Handle GET requests for "/survey/*"
+	*/
+	const lang = req.acceptsLanguages(...aux.languages);
+	aux.get_locale_data(lang, (err, locale_data) => {
+		if(err){
+			ret_error(res, "se");
+			return;
+		}
+		// Combine all the data into one object for Handlebars
+		var all_data = {layout: "simple", ...locale_data};
+		switch(req.path){
+			case "/survey/consent":
+				all_data.title = "Survey Consent";
+				res.render("survey_consent", all_data);
+				break;
+			case "/survey/initial":
+				all_data.title = "Initial Survey";
+				res.render("survey_initial", all_data);
+				break;
+			case "/survey/weekly":
+				all_data.title = "Weekly Survey";
+				res.render("survey_weekly", all_data);
+				break;
+		}
+	});
+}
+
+function survey_consent(req, res){
+	/**
+	*	Handle POST requests for "/survey/consent"
+	*	body: consent_state, redirect (MAYBE_TODO: make the login redirect in the query too?)
+	*/
+	let consent_state = req.body.consent == "Y" ? aux.consent_yes : aux.consent_no;
+	let data = {
+		tid: req.session.acc_obj.id,
+		uid: req.session.lid,
+		consent_state: consent_state
+	};
+	let next_url = "/";
+	aux.log_survey("consent", data, (err) => {
+		if(err){
+			ret_error(res, err);
+			return;
+		}
+		// query.redirect is the final destination, after finishing the whole survey
+		//		Could be manage account or llt
+		if(req.body.consent == "Y"){
+			next_url = "/survey/initial?redirect=" + req.query.redirect;
+		}
+		else if(req.query.redirect){
+			// Go straight to the final redirect, without taking the survey first
+			next_url = req.query.redirect;
+		}
+		res.redirect(next_url);
+	});
+}
+
+function survey_initial(req, res){
+	/**
+	*	Handle POST requests for "/survey/initial"
+	*	Questions asked just the first time
+	*	req.body should be entirely survey answers
+	*/
+	let data = {
+		tid: req.session.acc_obj.id,
+		uid: req.session.lid,
+		answers: req.body
+	};
+	aux.log_survey("initial", data, (err) => {
+		if(err){
+			ret_error(res, err);
+			return;
+		}
+		res.redirect(req.query.redirect);
+	});
+}
+
+function survey_weekly(req, res){
+	/**
+	*	Handle POST requests for "/survey/weekly"
+	*	req.body should be entirely survey answers
+	*	MAYBE_TODO: Consolidate with survey_initial
+	*/
+	let data = {
+		tid: req.session.acc_obj.id,
+		uid: req.session.lid,
+		answers: req.body
+	};
+	aux.log_survey("weekly", data, (err) => {
+		if(err){
+			ret_error(res, err);
+			return;
+		}
+		res.redirect(req.query.redirect);
+	});
+}
+
 // Requests related to training sessions
 
 function new_session_get(req, res){
@@ -709,15 +813,10 @@ function new_session(req, res){
 		return;
 	}
 	
-	// console.log(591);
 	let sesFile = aux.logroot + "session/ongoing/" + tid + "-" + uid + ".ttsd";
-	// Note: is this really the right time to check for conses?
 	fs.stat(sesFile, function(err){
 		if(err){
 			if(err.code == "ENOENT"){ //Good.
-				// console.log(597);
-				// Save lid in the session
-				req.session.lid = req.body.lid;
 				if(isuser){
 					//Now add uid to lnusers
 					let link_data = {
@@ -726,14 +825,39 @@ function new_session(req, res){
 						ts: Date.now()
 					};
 					aux.ln_add(link_data);
+					// Save lid in the session & go to link loading.
+					req.session.lid = tid;
 					res.redirect("llu");
 				}
-				else{
+				else if(tid[0] == "a"){
+					// No need for surveys for admins
+					// Save lid in the session
+					req.session.lid = uid;
 					res.redirect("llt");
+				}
+				else{
+					// Before continuing to llt, check the survey state
+					aux.survey_check({tid: tid, uid: uid}, (err, next) => {
+						if(err){
+							ret_error(res, err);
+							return;
+						}
+						// Save lid in the session
+						req.session.lid = uid;
+						if(next == "skip"){
+							res.redirect("llt");// Skip the survey
+						}
+						else{
+							// next should be "consent" or "weekly" (consent forwards to "initial")
+							let redirect_url = req.path.slice(0,req.path.lastIndexOf("/")) + "/llt";
+							let next_url = `/survey/${next}?redirect=${redirect_url}`;
+							res.redirect(next_url);
+						}
+					});
 				}
 			}
 			else{
-				ret_error(res, "fe", "/");//Why? Some weird error.
+				ret_error(res, "fe");//Why? Some weird error.
 			}
 		}
 		else{//There is a concurrent (or 'ghost') session

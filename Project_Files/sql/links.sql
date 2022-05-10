@@ -26,6 +26,9 @@ REFERENCES users(ID)
 
 /*
 	Note: These are 2 separate tables because the links are one-directional.
-	Alternatively I could combine them and just include an "owner" field: T/U.
-	Or... make it so that only one needs to link, then the link is made?
+		Alternatively I could combine them and just include an "owner" field: T/U.
+		Or... make it so that only one needs to link, then the link is made?
+	
+	Note: Using the composite key makes it impossible to duplicate entries.
+		I think... I'm no pro.
 */

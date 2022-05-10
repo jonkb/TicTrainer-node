@@ -17,6 +17,9 @@ const localeroot = "./locales/";
 const languages = ["en", "pt"];
 const console_log_file = path.join(logroot, "log.txt");
 const err_log_file = path.join(logroot, "err_log.csv");
+const feedback_file = path.join(logroot, "feedback.csv");
+const survey_init_file = path.join(logroot, "survey_initial.csv");
+const survey_weekly_file = path.join(logroot, "survey_weekly.csv");
 const user_editable_fields = ["password", "birth_date", "sex", "level", 
 	"points", "coins", "best_tfi", "items", "RID", "RSTATE", "AITI", "SMPR",
 	"PTIR", "FLASH"];
@@ -35,6 +38,9 @@ const err_titles = {
 	conses: "Warning: Concurrent Session",
 	toe: "Timeout"
 };
+const consent_notasked = Buffer.from([0b00]);
+const consent_yes = Buffer.from([0b01]);
+const consent_no = Buffer.from([0b10]);
 
 // Global Variables
 var lnusers = new Set();
@@ -52,6 +58,9 @@ module.exports.err_titles = err_titles;
 module.exports.logroot = logroot;
 module.exports.mainroot = mainroot;
 module.exports.directories = directories;
+module.exports.consent_notasked = consent_notasked;
+module.exports.consent_yes = consent_yes;
+module.exports.consent_no = consent_no;
 /**
 *	Exported functions
 */
@@ -60,6 +69,8 @@ module.exports.time = time;
 module.exports.csv_append = csv_append;
 module.exports.db_log = db_log;
 module.exports.log_error = log_error;
+module.exports.log_feedback = log_feedback;
+module.exports.log_survey = log_survey;
 module.exports.ln_add = ln_add;
 module.exports.ln_has = ln_has;
 module.exports.ln_delete = ln_delete;
@@ -73,6 +84,7 @@ module.exports.login = login;
 module.exports.edit_account = edit_account;
 module.exports.get_links = get_links;
 module.exports.add_link = add_link;
+module.exports.survey_check = survey_check;
 module.exports.gen_report_obj = gen_report_obj;
 module.exports.gen_report_txt = gen_report_txt;
 module.exports.archive_session = archive_session;
@@ -147,6 +159,17 @@ function time(type, date){
 	}
 }
 
+function ts_diff(ts1, ts2){
+	/**
+	*	Calculate the difference ts1 - ts2 in days.
+	*	ts1 format is ISO: YYYY-MM-DDThh:mm:ss.sssZ
+	*/
+	let d1 = new Date(ts1);
+	let d2 = new Date(ts2);
+	let millis = d1 - d2;
+	return millis / 1000 / 3600 / 24;
+}
+
 function csv_append(filename, row, callback){
 	/**
 	*	Write a single row to a csv file
@@ -155,7 +178,7 @@ function csv_append(filename, row, callback){
 	
 	let row_str = "";
 	for(let entry of row){
-		// Replace " with ""
+		// Replace each " with ""
 		let entry_esc = entry.replace(/"/g, "\"\"");
 		// Encase whole thing in double quotes
 		entry_esc = "\"" + entry_esc + "\"";
@@ -179,6 +202,95 @@ function log_error(error_type, message, callback){
 	message = message || "-";
 	let row = [error_type, time(), message];
 	csv_append(err_log_file, row, callback);
+}
+
+function log_feedback(data, callback){
+	/**
+	*	Writes submissions from the Bug Report / Feedback page
+	*	Since the columns are different from err_log, I made it its own file
+	*/
+	let row = [time(), data.fName, data.email, data.message];
+	csv_append(feedback_file, row, callback);
+}
+
+function log_survey(type, data, callback){
+	/**
+	*	Records the answers to the survey questions.
+	*	For "initial" and "weekly", this means to a csv log file.
+	*	For "consent", this means to the SQL database
+	*		data.consent_state must be consent_yes or consent_no, defined above
+	*	type: "consent", "initial", "weekly"
+	*/
+	let tid = sql.esc(id_to_N(validate_id(data.tid, "t")));
+	let uid = sql.esc(id_to_N(validate_id(data.uid, "u")));
+	let ts = sql.esc(time("ISO"));
+	if(type == "consent"){
+		let new_state = data.consent_state;
+		if(new_state != consent_yes && new_state != consent_no){
+			// new_state isn't valid
+			callback("ife");
+			return;
+		}
+		new_state = new_state.toString("hex");
+		// Will insert or update, whichever is needed
+		let adaptive_query = `INSERT INTO survey_state 
+(TID, UID, consent_state, consent_ts)
+VALUES (${tid}, ${uid}, UNHEX(${new_state}), ${ts})
+ON DUPLICATE KEY UPDATE
+consent_state = UNHEX(${new_state}), 
+consent_ts = ${ts}`;
+		sql.pool.query(adaptive_query, (err, result) => {
+			if(err){
+				callback(err);
+				return;
+			}
+			callback();
+		});
+		return;
+	}
+	if(type != "initial" && type != "weekly"){
+		callback("se");
+		return;
+	}
+	// Load the consent info
+	let select_query = `SELECT * 
+FROM survey_state 
+WHERE TID = ${tid} AND UID = ${uid}`;
+	sql.pool.query(select_query, (err, result) => {
+		if(err){
+			callback(err);
+			return;
+		}
+		if(result.length != 1){
+			// Something's wrong... These kinds of surveys should only be sent for links that already consented
+			callback("se");
+			return;
+		}
+		let consent_state = result[0].consent_state.toString("hex");
+		// Build entry for csv file
+		let row = [tid, uid, ts, consent_state, result[0].consent_ts];
+		// Add on every survey question to the same row
+		row = row.concat(Object.values(data.answers));
+		let log_file = (type == "initial") ? survey_init_file : survey_weekly_file;
+		csv_append(log_file, row, (err) => {
+			if(err){
+				callback(err);
+				return;
+			}
+			// Update last_survey_ts
+			let update_query = `UPDATE survey_state
+SET last_survey_ts = ${ts}
+WHERE TID = ${tid}
+AND UID = ${uid}`;
+			sql.pool.query(update_query, (err, result) => {
+				if(err){
+					callback(err);
+					return;
+				}
+				callback();
+			});
+		});
+	});
 }
 
 function db_log(message, depth){
@@ -571,6 +683,58 @@ VALUES (${tidN}, ${uidN})`;
 		}
 		//db_log("Link insert result: " + result.toString());
 		callback();
+	});
+}
+
+function survey_check(data, callback){
+	/**
+	*	Check to see if we should send the trainer a survey
+	*	callback(err, next)
+	*		next: "skip", "weekly", "consent"
+	*		(consent forwards to "initial" at the end)
+	*/
+	let tid = sql.esc(id_to_N(data.tid));
+	let uid = sql.esc(id_to_N(data.uid));
+	// Load survey state data for this link
+	let select_query = `SELECT * 
+FROM survey_state 
+WHERE TID = ${tid} AND UID = ${uid}`;
+	sql.pool.query(select_query, (err, result, fields) => {
+		if(err){
+			callback(err);
+			return;
+		}
+		if(result.length == 0){
+			// Make the entry and return consent survey
+			// (FOR NOW) Leave everything else DEFAULT
+			let insert_query = `INSERT INTO survey_state 
+(TID, UID)
+VALUES (${tid}, ${uid})`;
+			sql.pool.query(insert_query, (err, result) => {
+				if(err){
+					callback(err);
+					return;
+				}
+				callback(null, "consent");
+			});
+		}
+		else if(consent_notasked.equals(result[0].consent_state)){
+			// This could happen if someone aborts the consent survey and returns
+			callback(null, "consent");
+		}
+		else if(consent_yes.equals(result[0].consent_state)){
+			// Has it been a week? (6.5 days)
+			ts_diff(time(), result[0].last_survey_ts)
+			if(ts_diff(time(), result[0].last_survey_ts) > 6.5){
+				callback(null, "weekly");
+			}
+			else{
+				callback(null, "skip");
+			}
+		}
+		else{ // They opted out
+			callback(null, "skip");
+		}
 	});
 }
 
