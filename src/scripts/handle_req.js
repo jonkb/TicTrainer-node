@@ -368,7 +368,8 @@ function login(req, res){
 		}
 		// Save login id & hash in cookie
 		req.session.acc_obj = acc_obj;
-		res.redirect(req.query.redirect);
+		let next = req.query.redirect || "/";
+		res.redirect(next);
 	});
 }
 
@@ -711,6 +712,12 @@ function new_session_get(req, res){
 	*	Return the page for starting a new session
 	*/
 	let acc_obj = req.session.acc_obj;
+	if(acc_obj.id[0] == "a"){
+		// Admins don't use regular sessions
+		res.redirect("/tsp/");
+		return;
+	}
+	
 	aux.get_links(acc_obj, (err, lids) => {
 		if(err){
 			ret_error(res, "se");
