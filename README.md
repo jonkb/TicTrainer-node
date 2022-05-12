@@ -43,14 +43,21 @@ keys.json:
 	2. The constant "testing" should be set as *false* for the server to use the normal ports (80 and 443). 
 		Otherwise, it will run on port 8888.
 	3. Be sure to keep the proper formatting of the json file.
-4. Hosting-specific things (this is how we did it) 
-	1. Set up certbot for Let's Encrypt
-		1. https://dade2.net/kb/how-to-install-and-configure-certbot-on-apache-centos/
-		2. `$ sudo crontab -e` `32 04 3 1,3,5,7,9,11 * /home/ec2-user/TicTrainer-node/util_scripts/renew_cert.sh`
-		3. This is for if your IP address is changing unpredictably.
-	2. FreeDNS
-		1. `$ crontab -e` `3,8,13,18,23,28,33,38,43,48,53,58 * * * * sleep 22 ; curl -s http://sync.afraid.org/u/xRVpcm1UCjJvfgRsjJsTHT37/ >> /tmp/freedns_tictrainer_mooo_com.log 2>/dev/null`
-			This is for if the IP address of the server is likely to change unpredictably
+4. Hosting-specific things (This is not generalizable, but this is how we did it)
+	1. Set up certbot for Let's Encrypt. Guide [here](https://dade2.net/kb/how-to-install-and-configure-certbot-on-apache-centos/), but don't follow whole thing
+		1. `$ yum install epel-release`
+		2. `$ yum install certbot`
+	2. Get certificate from Let's Encrypt.
+		1. `sudo certbot certonly --force-renewal -d tictrainer.com -d www.tictrainer.com --standalone --cert-name tictrainer.com --preferred-challenges http`
+		2. Port 80 needs to be free (i.e. don't have the server running)
+		3. The domain name needs to be set up to redirect to the server.
+	3. Create crontab jobs
+		1. Let's Encrypt auto-renewing certificate: `$ sudo crontab -e` 
+			1. `32 04 3 1,3,5,7,9,11 * /home/ec2-user/TicTrainer-node/util_scripts/renew_cert.sh`
+			2. This auto-renews the certificate every odd month. On the inside, this script runs the same command from 4.ii.a
+		2. FreeDNS update IP: `$ crontab -e`
+			1. If your server IP address is changing unpredictably: `3,8,13,18,23,28,33,38,43,48,53,58 * * * * sleep 22 ; curl -s http://sync.afraid.org/u/xRVpcm1UCjJvfgRsjJsTHT37/ >> /tmp/freedns_tictrainer_mooo_com.log 2>/dev/null`
+			2. If your server IP address is more stable: `21 2,14 * * * sleep 17; curl -s http://sync.afraid.org/u/xRVpcm1UCjJvfgRsjJsTHT37/ >> /tmp/freedns_tictrainer_mooo_com.log 2>/dev/null`
 
 ## Running the server
 Run the script /util_scripts/runTT.sh (making sure that the pathnames are correct there)

@@ -1,4 +1,4 @@
-BTW, don't move certbot-auto. It's used there by a cron task.
+(OLD) BTW, don't move certbot-auto. It's used there by a cron task.
 
 What I did (see https branch on github) (see also https://certbot.eff.org/#pip-other):
 1. Download certbot-auto

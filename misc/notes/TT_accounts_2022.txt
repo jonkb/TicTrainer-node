@@ -1,0 +1,27 @@
+On 2022-05-11
+
+
+Non-tsp sessions this year (from top-ranking users)
+
+t3eu77_20220425-002909.ttsd
+t3eu77_20220425-002600.ttsd
+t2mu77_20220422-144826.ttsd
+t2mu77_20220422-144545.ttsd
+t3fu7d_20220421-202859.ttsd
+t3cu75_20220409-170338.ttsd
+t3bu73_20220405-115635.ttsd
+t39u6y_20220321-050348.ttsd
+t38u6x_20220314-062119.ttsd
+t37u6u_20220305-011051.ttsd
+t33u6g_20220117-021019.ttsd
+t33u6g_20220117-020326.ttsd
+
+
+u77 seems legit. lpc 1,260,0
+u7d " lpc 1,4,0
+u73 " lpc 2,74,1 (APR 5, 1 session)
+u6y " lpc 1,25,0
+u6u " lpc 1,42,0
+u6g " lpc 2,14,1 (JAN 17, 2 sessions)
+
+2 ppl lvl 2 this year
