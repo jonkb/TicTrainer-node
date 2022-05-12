@@ -15,9 +15,17 @@
 			<input type="submit" value="Log in" class="btn">
 		</fieldset>
 	</form>
-	<p>
-		{{login_p_cookie}}
-	</p>
+	<!-- TODO: locales -->
+	<h3>Notices</h3>
+	<ul style='font-size:75%'>
+		<li>{{login_p_cookie}}</li>
+		<li>
+			If you made an account with TicTrainer before the major May 2022 update, your account was
+			deleted. We're sorry for the inconvenience. If you're concerned about your lost progress, feel 
+			free to email us here 
+			[<a href="mailto:TicTrainer@theblacks.us?subject=TicTrainer(TM)%20legacy%20account">{{_link}}</a>].
+		</li>
+	</ul>
 </section>
 
 <script src="/scripts/account.js"></script>

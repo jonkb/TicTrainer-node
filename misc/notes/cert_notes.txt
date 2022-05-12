@@ -1,0 +1,33 @@
+BTW, don't move certbot-auto. It's used there by a cron task.
+
+What I did (see https branch on github) (see also https://certbot.eff.org/#pip-other):
+1. Download certbot-auto
+	Certbot with yum - https://dade2.net/kb/how-to-install-and-configure-certbot-on-apache-centos/
+2. Get a certificate by running $ sudo certbot certonly --force-renewal -d tictrainer.com -d www.tictrainer.com --standalone --cert-name tictrainer.com --preferred-challenges http
+	Not sure how that works
+3. Switch to the https node module and add the paths for the cert and key to an options object
+4. Set up the renewal cron job
+
+
+Used to be a comment in server.js
+	/*Open with options object. 
+		See https://www.namecheap.com/support/knowledgebase/article.aspx/9705//installing-a-ssl-certificate-on-nodejs
+		ca, key, cert
+
+		
+		[ec2-user@ip-172-31-59-125 Tt20170518]$ sudo ls /etc/letsencrypt/live/tictrainer.com
+		cert.pem  chain.pem  fullchain.pem  privkey.pem  README
+		[ec2-user@ip-172-31-59-125 Tt20170518]$ sudo cat /etc/letsencrypt/live/tictrainer.com/README
+		This directory contains your keys and certificates.
+
+		`privkey.pem`  : the private key for your certificate.
+		`fullchain.pem`: the certificate file used in most server software.
+		`chain.pem`    : used for OCSP stapling in Nginx >=1.3.7.
+		`cert.pem`     : will break many server configurations, and should not be used
+	                 without reading further documentation (see link below).
+
+		We recommend not moving these files. For more information, see the Certbot
+		User Guide at https://certbot.eff.org/docs/using.html#where-are-my-certificates.
+
+	*/
+

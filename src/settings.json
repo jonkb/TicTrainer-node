@@ -2,6 +2,7 @@
 	"tt_version" : "2021.08.14",
 	"debugging" : 2,
 	"testing" : true,
+	"enable_surveys": false,
 	"points_to_first_level" : 300,
 	"tsp_lbl_bgc" : true,
 	"tsp_len" : 5

@@ -7,6 +7,7 @@ const fs = require("fs");
 const scriptsroot = __dirname;
 const aux = require(scriptsroot+"/auxiliary.js");
 const inventory = require(scriptsroot+"/../webroot/scripts/store.js").inv;
+const settings = JSON.parse(fs.readFileSync(__dirname+"/../settings.json"));
 
 // Middleware
 module.exports.slash_redirect = slash_redirect;
@@ -837,6 +838,11 @@ function new_session(req, res){
 				}
 				else{
 					// Before continuing to llt, check the survey state
+					if(!settings.enable_surveys){
+						req.session.lid = uid;
+						res.redirect("llt");
+						return;
+					}
 					aux.survey_check({tid: tid, uid: uid}, (err, next) => {
 						if(err){
 							ret_error(res, err);
