@@ -2,10 +2,8 @@
 To Do: (priority,difficulty) (0-5,0-5)
 IN PROGRESS:
 - Update howto page
-- DOWNLOAD ALL THE OLD DATA
-- Double-check that everything works
+- Surveys
 - Translation
-- Escape query strings in URLs
 
 FUNCTIONAL:
 -(3,2) Fix the log file report so it counts 10s intervals correctly

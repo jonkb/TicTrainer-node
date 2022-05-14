@@ -97,7 +97,7 @@ function check_login(req, res, next){
 	}
 	else{
 		// Go to the login page
-		res.redirect("/account/login?redirect="+req.url);
+		res.redirect("/account/login?redirect="+encodeURIComponent(req.url));
 	}
 }
 
@@ -128,7 +128,7 @@ function check_isadmin(req, res, next){
 	}
 	else{
 		// Go to the login page
-		res.redirect("/account/login?redirect="+req.url);
+		res.redirect("/account/login?redirect="+encodeURIComponent(req.url));
 	}
 }
 
@@ -144,7 +144,7 @@ function check_isuser(req, res, next){
 	}
 	else{
 		// Go to the login page
-		res.redirect("/account/login?redirect="+req.url);
+		res.redirect("/account/login?redirect="+encodeURIComponent(req.url));
 	}
 }
 
@@ -175,7 +175,7 @@ function log_req(req, res, next){
 	console.log(req.method, " request for ", req.url);
 	console.log("\treq.body:", req.body);
 	console.log("\treq.session keys:", Object.keys(req.session));
-	// console.log("\treq.query:", req.query);
+	console.log("\treq.query:", req.query);
 	next();
 }
 
@@ -652,10 +652,10 @@ function survey_consent(req, res){
 			ret_error(res, err);
 			return;
 		}
-		// query.redirect is the final destination, after finishing the whole survey
+		// query.redirect is the final destination (encoded), after finishing the whole survey
 		//		Could be manage account or llt
 		if(req.body.consent == "Y"){
-			next_url = "/survey/initial?redirect=" + req.query.redirect;
+			next_url = "/survey/initial?redirect="+encodeURIComponent(req.query.redirect);
 		}
 		else if(req.query.redirect){
 			// Go straight to the final redirect, without taking the survey first
@@ -863,7 +863,7 @@ function new_session(req, res){
 						else{
 							// next should be "consent" or "weekly" (consent forwards to "initial")
 							let redirect_url = req.path.slice(0,req.path.lastIndexOf("/")) + "/llt";
-							let next_url = `/survey/${next}?redirect=${redirect_url}`;
+							let next_url = `/survey/${next}?redirect=${encodeURIComponent(redirect_url)}`;
 							res.redirect(next_url);
 						}
 					});
