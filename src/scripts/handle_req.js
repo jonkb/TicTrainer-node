@@ -638,7 +638,7 @@ function survey_get(req, res){
 function survey_consent(req, res){
 	/**
 	*	Handle POST requests for "/survey/consent"
-	*	body: consent_state, redirect (MAYBE_TODO: make the login redirect in the query too?)
+	*	body: consent_state, redirect
 	*/
 	let consent_state = req.body.consent == "Y" ? aux.consent_yes : aux.consent_no;
 	let data = {
@@ -956,7 +956,7 @@ function llu(req, res){
 			tid: lid
 		};
 		aux.ln_delete(link_data);
-		req.session.lid = null;
+		delete req.session.lid;
 		res.end();
 		return;
 	}
@@ -1017,7 +1017,7 @@ function sst(req, res){
 				ret_error(res, "fe");
 				return;
 			}
-			req.session.lid = null;
+			delete req.session.lid;
 			res.end();
 		});
 	}
@@ -1076,7 +1076,7 @@ function ssu(req, res){
 				res.redirect("/session/session_ended");
 				//ret_ended(res, req.body);
 			}*/
-			req.session.lid = null;
+			delete req.session.lid;
 			res.end();
 		});
 	}
@@ -1172,7 +1172,7 @@ function sest(req, res){
 	let lid = req.session.lid;
 	let sesFile = aux.logroot + "session/ongoing/" + id + "-" + lid + ".ttsd";
 	
-	console.log(672, req.body);
+	aux.db_log("672:" + req.body);
 	
 	switch(req.body.reqType){
 		case "tic":
@@ -1199,7 +1199,7 @@ function sest(req, res){
 		case "end":
 			aux.db_log("SE-T");
 			req.session.last_lid = req.session.lid;
-			req.session.lid = null; // Blocks access to the active session pages
+			delete req.session.lid; // Blocks access to the active session pages
 			var eEntry = "\nsession ended|"+aux.time();
 			fs.stat(sesFile, function(err, stats){
 				if(err == null){//File exists
@@ -1284,7 +1284,7 @@ function sesu(req, res){
 			// Shouldn't actually change user lpc, since that's saved whenever it's changed
 			aux.db_log("977: SE-U");
 			req.session.last_lid = req.session.lid;
-			req.session.lid = null; // Blocks access to the active session pages
+			delete req.session.lid; // Blocks access to the active session pages
 			//End and archive session
 			fs.readFile(sesFile, "utf8", function(err, sData){
 				if(err){
@@ -1480,7 +1480,7 @@ function tspsesu(req, res){
 		break;
 		case "end":
 			req.session.last_lid = req.session.lid;
-			req.session.lid = null; // Blocks access to the active session pages
+			delete req.session.lid; // Blocks access to the active session pages
 			//End and archive session
 			fs.readFile(sesFile, "utf8", function(err, sData){
 				if(err){
