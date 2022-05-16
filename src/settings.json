@@ -1,8 +1,8 @@
 {
-	"tt_version" : "2022.05.11",
+	"tt_version" : "2022.05.16",
 	"debugging" : 2,
 	"testing" : true,
-	"enable_surveys": true,
+	"enable_surveys": false,
 	"points_to_first_level" : 300,
 	"tsp_lbl_bgc" : true,
 	"tsp_len" : 5
