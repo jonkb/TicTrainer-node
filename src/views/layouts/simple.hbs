@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+		<title>TicTrainer: {{title}}</title>
+		<!--<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">-->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+	</head>
+	<body>
+		<section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>{{title}}</h1>
+				<div style="clear: both;"></div>
+			</div>
+		</section>
+		{{{body}}}
+	</body>
+</html>

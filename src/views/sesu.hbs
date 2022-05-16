@@ -1,0 +1,255 @@
+
+<section class='main-content' id='mainC'>
+
+	<div id='counter_panel'>
+		<div>
+			<div id='rCounter' class='supCounter'>+0</div>
+			<div id='pCounter' class='bigCounter'></div>
+		</div>
+		<div>
+			Level: 
+			<span id='lCounter' class='medCounter'></span>
+			(<span id='lUp'></span> points to level up)
+		</div>
+		<div>
+			Coins: 
+			<span id='cCounter' class='medCounter'></span>
+		</div>
+	</div>
+
+	<div id="heap">
+	</div>
+
+</section>
+<script src="/scripts/req_settings.js"></script>
+<!--For genHeap-->
+<script src="/scripts/store.js"></script>
+<script>
+	var url = "/session/sesu";
+	var already_left = false;
+
+	window.onbeforeunload = endS;
+	window.onpagehide = endS;
+	//document.addEventListener('visibilitychange', function(){if(document.hidden){endS();}}, false);
+
+	$(document).ready(() => {
+		req_settings((err, res) => {
+			if(err){
+				alert(err);
+				endS(err);
+				return;
+			}
+			ses_vars.points_to_first_level = res.points_to_first_level;
+			start();
+		});
+	});
+
+	var acc_obj = {{{acc_obj}}};
+	
+	var ses_vars = {
+		"level" : acc_obj.level,
+		"points" : acc_obj.points,
+		"coins" : acc_obj.coins,
+		//REWARD SETTINGS
+		"flash_red" : acc_obj.FLASH,
+		"starting_ms_per_reward" : acc_obj.SMPR,
+		"period_to_increment_rate" : acc_obj.PTIR,
+		"points_to_first_level" : 300,
+		"mspf" : 500,//ms per frame. fps=2.
+		"framesSince" : 0,
+		"rewards_since_increment" : 0,
+		//Last recorded length of the session file. Used to determine if the file has changed.
+		"lastL" : 0
+	};
+
+
+{{#if ncr}}
+	/*Number of reward periods between random ncr tics on avg.
+		At level one, the unit is seconds, because reward periods occur once per second,
+		but it scales linearly at higher levels.
+	*/
+	ses_vars.avg_intertic_interval = acc_obj.AITI; 
+	//Return true every once in a while, randomly.
+	function ncr_tic(){
+		//On average, how many frames pass between tics
+		//The 10 means people make it to the cap on avg
+		var avg_period = ses_vars.avg_intertic_interval*ses_vars.level/ses_vars.mspf;
+		//(1-t_c)^a_p = .5 --> avg period == a_p
+		var tic_chance = 1 - Math.pow(0.50, 1/avg_period);
+		return Math.random() < tic_chance;
+	}
+{{/if}}
+
+	function start(){
+		// Initialize variables
+		if(ses_vars.level == 0){
+			ses_vars.level = 1;
+			//First time spiel
+			alert("It appears to be your first session. Try not to tic.");
+		}
+		ses_vars.nextLevel = ses_vars.points_to_first_level*ses_vars.level*ses_vars.level;
+		ses_vars.cap = 10*ses_vars.level*ses_vars.level;
+		ses_vars.rate = ses_vars.level*ses_vars.level;
+		
+		update_display();
+		frame();
+		ses_vars.frame_timer = setInterval(frame, ses_vars.mspf);
+		genHeap(acc_obj.items);
+	}
+	function frame(){
+		var xhr = new XMLHttpRequest();
+		//Needed: reqType, id, lid, sesL
+		var reqBody = 'reqType=check&sesL='+ses_vars.lastL;
+		xhr.open('POST', url, true);
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		xhr.onreadystatechange = function(){
+			if(xhr.readyState == 4 && xhr.status == 200){//4: request finished & response ready - readystate codes:http://www.w3schools.com/ajax/ajax_xmlhttprequest_onreadystatechange.asp
+				let res_obj = JSON.parse(xhr.responseText);
+				if(res_obj.err){
+					cleanup();
+					already_left = true;
+					window.location.href = "/error/"+res_obj.err;
+				}
+				else if(res_obj.end){
+					endS();
+				}
+				else{
+					ses_vars.lastL = res_obj.newL;
+{{#unless none}} //If reward scheme is none, delete this block of code
+{{#if ncr}}
+					//Alternative reward scheme
+					//Uses the random ticcer
+					if(!ncr_tic())
+{{else}}
+					//Standard reward scheme
+					if(res_obj.tics == 0)
+{{/if}}
+					{
+						ses_vars.framesSince++;
+						if(ses_vars.framesSince >= (ses_vars.level * ses_vars.starting_ms_per_reward / ses_vars.mspf)){
+							// Now, (level) seconds have passed since the last reward/tic, so it is time to give reward
+							ses_vars.framesSince = 0;
+							if(ses_vars.rewards_since_increment >= ses_vars.period_to_increment_rate){
+								ses_vars.rewards_since_increment = 0;
+								if(ses_vars.rate < ses_vars.cap){
+									ses_vars.rate += ses_vars.level*ses_vars.level;
+									if(ses_vars.rate > ses_vars.cap)//Overshot
+										ses_vars.rate = ses_vars.cap;
+								}
+							}
+							ses_vars.points += ses_vars.rate;
+							ses_vars.rewards_since_increment++;
+							
+							if(ses_vars.points > ses_vars.nextLevel)
+								levelUp();
+							loglpc();//record the new points (it changed)
+							update_display();
+						}
+					}
+					else{
+						ticTrigger();
+						update_display();
+					}
+{{/unless}}
+				}
+			}
+		};
+		xhr.send(reqBody);
+	}
+	function ticTrigger(){
+		//Add the right amount of hiccough time
+		clearTimeout(ses_vars.frame_timer);
+		ses_vars.frame_timer = setInterval(frame, ses_vars.mspf);
+		
+		ses_vars.framesSince = 0;
+		ses_vars.rate = ses_vars.level*ses_vars.level;
+		ses_vars.rewards_since_increment = 0;
+		
+{{#if reg}}
+		if(ses_vars.flash_red){
+			flash_cp("red");
+		}
+{{/if}}
+	}
+	function flash_cp(color){
+		var c_p = document.getElementById('counter_panel');
+		c_p.style.backgroundColor = color;
+		ses_vars.cp_timer = setTimeout(function(){
+			c_p.style.backgroundColor = "transparent";
+		}, 1000);
+	}
+	function endS(err_page){
+		if(!already_left){
+			already_left = true;
+			var xhr = new XMLHttpRequest();
+			var reqBody = 'reqType=end&level='+ses_vars.level+'&points=';
+			reqBody += ses_vars.points+'&coins='+ses_vars.coins;
+			cleanup();
+			xhr.open('POST', url, true);
+			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			xhr.onreadystatechange = function(){
+				if(xhr.readyState == 4 && xhr.status == 200){
+					let res_obj = JSON.parse(xhr.responseText);
+					if(res_obj.err){
+						window.location.href = "/error/"+res_obj.err;
+					}
+					else if(res_obj.next){
+						if(res_obj.next == "session_ended"){
+							window.location.href = "session_ended";
+						}
+						else{
+							alert("Unknown response from server");
+						}
+					}
+				}
+			}
+			xhr.send(reqBody);
+		}
+	}
+	function levelUp(){
+		ses_vars.level++;
+		ses_vars.points -= ses_vars.nextLevel;
+		ses_vars.coins += ses_vars.nextLevel/ses_vars.points_to_first_level;
+		//loglpc(); //- Already logs immediately after
+		ses_vars.nextLevel = ses_vars.points_to_first_level*ses_vars.level*ses_vars.level;
+		ses_vars.cap = 10*ses_vars.level*ses_vars.level;
+		//Flash green (this green is 10% lighter than the green in the page header)
+		flash_cp("#1fe080");
+	}
+	function update_display(){
+		document.getElementById('pCounter').innerHTML = ses_vars.points;
+		document.getElementById('rCounter').innerHTML = '+'+ses_vars.rate;
+		document.getElementById('lCounter').innerHTML = ses_vars.level;
+		document.getElementById('cCounter').innerHTML = ses_vars.coins;
+		document.getElementById('lUp').innerHTML = ses_vars.nextLevel;
+	}
+	/*Make an entry in the session file
+		And save progress to the user's account
+	*/
+	function loglpc(){
+		var xhr = new XMLHttpRequest();
+		//Needed: reqType, l, p, c
+		var reqBody = 'reqType=loglpc&level='+ses_vars.level+'&points=';
+		reqBody += ses_vars.points+'&coins='+ses_vars.coins;
+		xhr.open('POST', url, true);
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		xhr.onreadystatechange = function(){
+			if(xhr.readyState == 4 && xhr.status == 200){
+				let res_obj = JSON.parse(xhr.responseText);
+				if(res_obj.err){
+					cleanup();
+					already_left = true;
+					window.location.href = "/error/"+res_obj.err;
+				}
+			}
+		}
+		xhr.send(reqBody);
+	}
+	function cleanup(){
+		if(ses_vars.frame_timer)
+			clearTimeout(ses_vars.frame_timer);
+		if(ses_vars.cp_timer)
+			clearTimeout(ses_vars.cp_timer);
+		ses_vars = {};
+	}
+</script>

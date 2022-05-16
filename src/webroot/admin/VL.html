@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<title>View TicTrainer Logs</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+		<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+	</head>
+	<body>
+		<section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>View TicTrainer Logs</h1>
+				<div style="clear: both;"></div>
+			</div>
+		</section>
+		<section class="main-content">
+			<form method="POST" name="PickLog" onsubmit="return false;">
+				<fieldset>
+					<legend>Choose a Log File to Load</legend>
+					<div class="subform">
+						System Logs: <select name="sys_file" id="sys_option">
+							<option value="-">Pick one</option>
+							<!--Note: If debugging is high, the console log has user passwords in plain text-->
+							<option value="console_log">Console Log</option>
+							<option value="err_log">Tt Error Log</option>
+							<option value="lnusers">Current Linking Users</option>
+						</select>
+						<button class="btn" style="margin-top: 0;" onclick="reqLog('sys');">Reload</button>
+					</div>
+					<div class="subform">
+						Session Logs: <select name="ses_file" id="ses_option">
+							<!--Filled in by script-->
+						</select>
+						For User: <input type="text" name="uid" id="uid_input" placeholder="u0000" size="6">
+						<button class="btn" style="margin-top: 0;" onclick="load_ses_files(); reqLog('ses');">Reload</button>
+					</div>
+				</fieldset>
+			</form>
+			<div id="log_content">
+				<!--Filled in by script-->
+			</div>
+			<div id="ses_dl_msg" style="display:none">
+				The full session log file has more information and can be downloaded here:
+			</div>
+			<div id="download_link">
+				<!--Filled in by script-->
+			</div>
+		</section>
+		<script src="/scripts/req_logs.js"></script>
+		<script src="/templates/precompiled.js"></script>
+		<script>
+			var report_list = [];
+			
+			function load_ses_files(){
+				var uid = document.getElementById('uid_input').value;
+				req_ses_list(uid, false, function(res){
+					if(res.err){
+						alert("Error: "+res.err);
+						return;
+					}
+					report_list = res; // Save the reports for later
+					//text to fill ses_option
+					var optionHTML = "<option value='-'>Pick one</option>\n";
+					for(var i=0; i<res.length; i++){
+						let filename = res[i].filename;
+						optionHTML += "<option value='"+filename+"'>"+filename+"</option>";
+					}
+					document.getElementById('ses_option').innerHTML = optionHTML;
+				});
+			}
+			
+			/*To be used to request a log file from the server.
+				type: "ses" or "sys" (for session or system)
+			*/
+			function reqLog(type){
+				var logfile;
+				if(type == "sys")
+					logfile = document.getElementById('sys_option').value;
+				else if(type == "ses")
+					logfile = document.getElementById('ses_option').value;
+				else
+					return "error";
+				
+				if(!logfile){
+					//This happens the first time
+					return false;
+				}
+				if(logfile == "-"){
+					return false;
+				}
+				
+				//Show Loading animation
+				document.getElementById("log_content").innerHTML = "<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>";
+				
+				if(type == "sys"){
+					//Ask the server for the log file and display it
+					var xhr = new XMLHttpRequest();
+					var url = '/admin/VL-log?file='+logfile;
+					xhr.open('GET', url, true);
+					xhr.onreadystatechange = function(){
+						if(xhr.readyState == 4){
+							if(xhr.status == 200){
+								let loghtml;
+								if(logfile == "err_log")
+									loghtml = csv_to_HTML(xhr.responseText);
+								else if(logfile == "console_log")
+									loghtml = txt_to_HTML(xhr.responseText);
+								else
+									loghtml = xhr.responseText;
+								document.getElementById("log_content").innerHTML = loghtml;
+								
+								//Make download link
+								var log_href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(xhr.responseText);
+								document.getElementById("download_link").innerHTML = "<a href='"+log_href+"' class='btn' download='"+logfile+"'>Download Log File<\a>";
+							}
+						}
+					};
+					xhr.send();
+					document.getElementById("ses_dl_msg").style.display = "none";
+				}
+				else if(type == "ses"){
+					// We already have the report object saved from when we got the filename list
+					let report_obj = {};
+					for(report of report_list){
+						if(report.filename == logfile){
+							report_obj = report;
+							break;
+						}
+					}
+					let hbs_data = {
+						is_tsp: (report_obj.is_tsp?true:false),
+						tsp_stype: report_obj.tsp_stype,
+						tsp_rewards: report_obj.tsp_rewards,
+						ses_levels: report_obj.levels,
+						ses_points: report_obj.points, // Clear up the ambiguity here
+						ses_coins: report_obj.coins,
+						tics: report_obj.tics,
+						longest_tfi: report_obj.longest_tfi / 1000,
+						tens_tfis: report_obj.tens_tfis,
+						end_ts: report_obj.end_ts,
+						duration: report_obj.duration / 1000,
+						tt_version: report_obj.tt_version
+					};
+					let template_ra = Handlebars.templates["report_admin.hbs"];
+					let report_html = template_ra(hbs_data);
+					document.getElementById("log_content").innerHTML = report_html;
+					
+					//Make download link
+					var log_href = "/admin/VL-log?file="+logfile;
+					document.getElementById("download_link").innerHTML = "<a href='"+log_href+"' class='btn' download='"+logfile+"'>Download Log File<\a>";
+					document.getElementById("ses_dl_msg").style.display = "block";
+				}
+				return false;
+			}
+			
+			load_ses_files();
+			//Instead of using a submit button, 
+			//Send the request as soon as they pick an option.
+			document.getElementById('sys_option').onchange = function(){reqLog("sys");};
+			document.getElementById('ses_option').onchange = function(){reqLog("ses");};
+		</script>
+	</body>
+</html>

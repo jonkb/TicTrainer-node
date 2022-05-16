@@ -1,0 +1,45 @@
+
+<section class="main-content">
+	<!--FORM-->
+	<form method="POST" name="login" id="loginForm" onsubmit="return validate();">
+		<fieldset>
+			<legend>{{ac_login}}</legend>
+			<div>
+				<label for="id">ID:</label>
+				<input type="text" name="id" id="id" placeholder="uXXXX" maxlength="9" required>
+			</div>
+			<div>
+				<label for="pw">{{_Password}}:</label>
+				<input type="password" name="pw" id="pw" maxlength="255" required>
+			</div>
+			<input type="submit" value="Log in" class="btn">
+		</fieldset>
+	</form>
+	<!-- TODO: locales -->
+	<h3>Notices</h3>
+	<ul style='font-size:75%'>
+		<li>{{login_p_cookie}}</li>
+		<li>
+			If you made an account with TicTrainer before the major May 2022 update, your account was
+			deleted. We're sorry for the inconvenience. If you're concerned about your lost progress, feel 
+			free to email us here 
+			[<a href="mailto:TicTrainer@theblacks.us?subject=TicTrainer(TM)%20legacy%20account">{{_link}}</a>].
+		</li>
+	</ul>
+	<h3>Don't have an account?</h3>
+	<a href="/register/index.html" class="btn">Create New Account</a>
+</section>
+
+<script src="/scripts/account.js"></script>
+<script>
+	// Client-side validate id
+	function validate(){
+		let id = $("#id").val();
+		// validate_id is from account.js
+		if(validate_id(id) == "-"){
+			alert("Invalid ID");
+			return false;
+		}
+		return true;
+	}
+</script>

@@ -1,0 +1,34 @@
+
+<section class='main-content' id='mainC'>
+	<h2>Press Button To Start Session</h2>
+	<form id='startButton' method='POST' action="/session/sst" onsubmit="return before_submit();" style='width: 100%; text-align:center;'>
+		<input type='hidden' name='reqType' value='start'>
+		<input type='submit' class='bigBtn' value='START'>
+	</form>
+</section>
+<script>
+	var already_left = false;
+	var submitted = false;
+
+	window.onbeforeunload = leave;
+	window.onpagehide = leave;
+	//document.addEventListener('visibilitychange', function(){if(document.hidden){leave();}}, false);
+	//document.getElementById('startButton').addEventListener('click', function(){submitted = true;});
+
+	function before_submit(){
+		submitted = true;
+		return true;
+	}
+
+	function leave(){
+		if(!(submitted || already_left)){
+			var xhr = new XMLHttpRequest();
+			var url = '/session/sst';
+			var reqBody = 'reqType=leave';
+			xhr.open('POST', url, true);
+			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			xhr.send(reqBody);
+			already_left = true;
+		}
+	}
+</script>

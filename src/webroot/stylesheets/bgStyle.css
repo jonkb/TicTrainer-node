@@ -1,10 +1,10 @@
 body {
-  padding: 0;
-  margin: 0;
-  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  /*font-size: 16px;*/
-  line-height: 1.5;
-  color: #2f3537; /*Darker*/
+	padding: 0;
+	margin: 0;
+	font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	/*font-size: 16px;*/
+	line-height: 1.5;
+	color: #2f3537; /*Darker*/
 	background-color: #fff;
 }
 
@@ -13,37 +13,41 @@ p, ul{
 }
 
 a {
-  color: #1d66af;
-  text-decoration: none; }
-  a:hover {
-    text-decoration: underline; }
+	color: #1d66af;
+	text-decoration: none; }
+	a:hover {
+		text-decoration: underline;
+}
 
 button {
 	cursor: -webkit-pointer;
-  cursor: -khtml-pointer;
-  cursor: -moz-pointer;
+	cursor: -khtml-pointer;
+	cursor: -moz-pointer;
 	cursor: pointer;
 }
-		
+
 footer {
-  padding-top: 2rem;
-  margin-top: 4rem;
-  border-top: solid 1px #cccccc;
+	padding-top: 2rem;
+	margin-top: 4rem;
+	border-top: solid 1px #cccccc;
 	text-align: center;
 }
 
 .page-header {
-  color: #fff;
-  text-align: center;
-  text-shadow: .01em .01em .05em #444;
-  /*Slightly lighter than original*/
-  background-color: #18b466;
-  background-image: linear-gradient(120deg, #1866b4, #18b466); 
-  padding: 1rem 1rem;
+	color: #fff;
+	text-align: center;
+	text-shadow: .01em .01em .05em #444;
+	/*Slightly lighter than original*/
+	background-color: #18b466;
+	background-image: linear-gradient(120deg, #1866b4, #18b466); 
+	padding: 1rem 1rem;
 }
 .page-header h1, .page-header h2, .page-header h3 {
-  margin-top: 0;
-  margin-bottom: .2rem;
+	margin-top: 0;
+	margin-bottom: .2rem;
+	margin-left: auto; /*This makes it actually centered*/
+	margin-right: auto;
+	width: fit-content;
 }
 .header-navbar{
 	text-align: left;
@@ -52,10 +56,10 @@ footer {
 	float: left;
 	overflow: hidden;
 	color: #fff;
-  border-style: solid;
+	border-style: solid;
 	border-color: #fff;
-  border-width: 1px;
-  border-radius: .2rem;
+	border-width: 1px;
+	border-radius: .2rem;
 	margin: 0 .5rem 0 0;
 	transition: background-color 0.3s;
 }
@@ -68,18 +72,18 @@ footer {
 }
 
 .main-content h1, .main-content h2, .main-content h3 {
-  margin: 0;
-  color: #18b466;
+	margin: 0;
+	color: #18b466;
 }
 
 .main-content .alertText {
 	display: block;
 	margin: 0;
 	padding-left: 2rem;
-  color: #18b466;
+	color: #18b466;
 	font-style: oblique;
 	font-size: 2rem;
-  font-weight: bold;
+	font-weight: bold;
 }
 
 .med_lbl {
@@ -94,50 +98,105 @@ footer {
 
 .main-content .btn {
 	-webkit-user-select: none;/*You can't select the text in the btn label*/
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  user-select: none; 
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	user-select: none; 
 	cursor: -webkit-pointer;
-  cursor: -khtml-pointer;
-  cursor: -moz-pointer;
+	cursor: -khtml-pointer;
+	cursor: -moz-pointer;
 	cursor: pointer;
 	
-  margin-bottom: .3rem;
-  text-align: center;
+	margin-bottom: .3rem;
+	text-align: center;
 	color: #fff;
-  background-color: #1866b4;
-  background-image: linear-gradient(120deg, #1866b4, #18b466); 
-  border-color: #1fe080;
-  border-style: solid;
-  border-width: 0.0625rem;
-  border-radius: 0.3rem;
-  transition: background-image 0.3s, background-color 0.3s, border-color 0.3s; 
-	}
+	background-color: #1866b4;
+	background-image: linear-gradient(120deg, #1866b4, #18b466); 
+	border-color: #1fe080;
+	border-style: solid;
+	border-width: 0.0625rem;
+	border-radius: 0.3rem;
+	transition: background-image 0.3s, background-color 0.3s, border-color 0.3s; 
+}
 .main-content .btn:hover {
 	text-decoration: none;
-  background-color: #18b466;
-  background-image: linear-gradient(300deg, #1866b4, #18b466); 
-  border-color: #4be799;
-  }
+	background-color: #18b466;
+	background-image: linear-gradient(300deg, #1866b4, #18b466); 
+	border-color: #4be799;
+}
 .page-header .btn {
 	-webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  user-select: none; 
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	user-select: none; 
 	
-  margin: .25rem;
+	margin: .25rem;
 	color: #fff;
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.8);
-  border-style: solid;
-  border-width: 1px;
-  border-radius: 0.3rem;
-  transition: background-color 0.3s, border-color 0.3s; 
+	background-color: rgba(255, 255, 255, 0.08);
+	border-color: rgba(255, 255, 255, 0.8);
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 0.3rem;
+	transition: background-color 0.3s, border-color 0.3s; 
 }
 .page-header .btn:hover {
 	text-decoration: none;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.9); }	
+	background-color: rgba(255, 255, 255, 0.2);
+	border-color: rgba(255, 255, 255, 0.9);
+}
+
+.page-header .menubtn {
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	user-select: none;
+	/*Note: Figure out how to change this on mobile*/
+	display: block;
+	margin: .125rem;
+	color: #fff;
+	background-color: rgba(255, 255, 255, 0.08);
+	border-color: rgba(255, 255, 255, 0.8);
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 0.2rem;
+	transition: background-color 0.2s, border-color 0.2s; 
+}
+.page-header .menubtn:hover {
+	text-decoration: none;
+	background-color: rgba(255, 255, 255, 0.2);
+	border-color: rgba(255, 255, 255, 0.9);
+}
+
+.dropdown-btn {
+	min-width: 128px;
+	border-color: rgba(255, 255, 255, 0.8);
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 0.2rem;
+}
+
+.dropdown-hover {
+	float: right;
+	cursor: pointer;
+}
+
+.dropdown-hover .menubtn {
+	margin: 0;
+}
+
+.dropdown-content{
+	min-width: 130px;
+	background-color: rgba(100, 100, 100, 0.8);
+	cursor: auto;
+	display: none;
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	z-index: 1;
+}
+
+.dropdown-hover:hover .dropdown-content {
+	display: block;
+}
 
 .main-content form .btn {
 	margin: .5rem 0 0 0; 
@@ -145,33 +204,43 @@ footer {
 	padding: .3rem .5rem;
 }
 
+.main-content .subform {
+	display: inline-block;
+	margin: .25rem;
+	padding: .5rem;
+	border-width: 1px;
+	border-style: dashed;
+	border-color: #666;
+}
+
 .bigBtn {
 	-webkit-user-select: none;/*You can't select the text in the btn label*/
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  user-select: none; 
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	user-select: none; 
 	cursor: -webkit-pointer;
-  cursor: -khtml-pointer;
-  cursor: -moz-pointer;
+	cursor: -khtml-pointer;
+	cursor: -moz-pointer;
 	cursor: pointer;
 	
-  margin: .25rem auto;
-  text-align: center;
-  color: #fff;
-  background-color: #1866b4;
-  background-image: linear-gradient(120deg, #1866b4, #18b466); 
-  border-color: #1fe080;
-  border-style: solid;
-  border-width: 1px;
-  border-radius: 0.5rem;
+	display: block;
+	margin: .25rem auto;
+	text-align: center;
+	color: #fff;
+	background-color: #1866b4;
+	background-image: linear-gradient(120deg, #1866b4, #18b466); 
+	border-color: #1fe080;
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 0.5rem;
 	transition: background-image 0.5s, background-color 0.5s, border-color 0.5s;
 }
 
 .bigBtn:hover {
 	text-decoration: none;
-  background-color: #18b466;
-  background-image: linear-gradient(300deg, #1866b4, #18b466); 
-  border-color: #4be799;
+	background-color: #18b466;
+	background-image: linear-gradient(300deg, #1866b4, #18b466); 
+	border-color: #4be799;
  }
 	
 .store-item {
@@ -180,9 +249,9 @@ footer {
 	padding: 1rem;
 	width: 140px;
 	border-color: #1fe080;
-  border-style: solid;
-  border-width: 2px;
-  border-radius: 0.5rem;
+	border-style: solid;
+	border-width: 2px;
+	border-radius: 0.5rem;
 	background-color: #e6e6e6;
 	
 	text-align: center;
@@ -194,9 +263,9 @@ footer {
 	margin: .25rem;
 	padding: .5rem;
 	border-color: #1fe080;
-  border-style: solid;
-  border-width: 2px;
-  border-radius: 0.5rem;
+	border-style: solid;
+	border-width: 2px;
+	border-radius: 0.5rem;
 	background-color: #f2f2f2;
 }
 
@@ -217,11 +286,11 @@ footer {
 #paying_attention {
 	width: 100%;
 	border: 1px solid #000;
-  border-radius: 0.3rem;
+	border-radius: 0.3rem;
 	padding: 0rem;
 }
 #tr_btns{
-  text-align: center;
+	text-align: center;
 	margin: 0 auto .25rem auto;
 }
 #pCounter{
@@ -234,18 +303,18 @@ footer {
 	
 /*Conditional on screen size:*/
 @media (min-width: 1000px){/*60rem) {/*BIG*/
-  .page-header h1{ font-size: 3.25rem; }
-  .page-header h2{ font-size: 1.5rem; }
-  .main-content {
-    max-width: 60em;
-    padding: 2rem 4rem;/*: top-bottom left-right;*/
-    margin: 0 auto; } 
-  .btn{
-    display: inline-block;
-    padding: .7rem 1.2rem;
-  }
+	.page-header h1{ font-size: 3.25rem; }
+	.page-header h2{ font-size: 1.5rem; }
+	.main-content {
+		max-width: 60em;
+		padding: 2rem 4rem;/*: top-bottom left-right;*/
+		margin: 0 auto; } 
+	.btn{
+		display: inline-block;
+		padding: .7rem 1.2rem;
+	}
 	.bigBtn{
-    padding: 1rem 1.5rem;
+		padding: 1rem 1.5rem;
 		font-size: 3.5rem;
 		line-height: 5.25rem;
 		width: 85%;
@@ -276,17 +345,17 @@ footer {
 }
 
 @media (min-width: 500px) and (max-width: 1000px){/*30rem) and (max-width: 60rem) {/*MED*/
-  .page-header h1{ font-size: 2.25rem; }
-  .page-header h2{ font-size: 1.2rem; }
-  .main-content {
-    padding: 1.5rem 2rem;
-  }
-  .btn{
-    display: inline-block;
-    padding: .5rem .8rem;
-  }
+	.page-header h1{ font-size: 2.25rem; }
+	.page-header h2{ font-size: 1.2rem; }
+	.main-content {
+		padding: 1.5rem 2rem;
+	}
+	.btn{
+		display: inline-block;
+		padding: .5rem .8rem;
+	}
 	.bigBtn{
-    padding: .7rem 1.2rem;
+		padding: .7rem 1.2rem;
 		font-size: 2.5rem;
 		line-height: 3.75rem;
 		width: 90%;
@@ -317,17 +386,17 @@ footer {
 }
 
 @media (max-width: 500px) {/*Phone*/
-  .page-header h1{ font-size: 1.75rem; }
-  .page-header h2{ font-size: 1rem; }
-  .main-content {
-    padding: 1rem 1rem;
-  }
-  .btn{
-    display: block;
-    padding: .4rem;
-  }
+	.page-header h1{ font-size: 1.75rem; }
+	.page-header h2{ font-size: 1rem; }
+	.main-content {
+		padding: 1rem 1rem;
+	}
+	.btn{
+		display: block;
+		padding: .4rem;
+	}
 	.bigBtn{
-    padding: .5rem .8rem;
+		padding: .5rem .8rem;
 		font-size: 1.5rem;
 		line-height: 2.25rem;
 		width: 95%;
@@ -360,23 +429,23 @@ footer {
 /*I should make this conditional on screen size, too, but for now ...:*/
 /* thanks https://stackoverflow.com/questions/41654751/html-table-column-width-percentage */
 table {
-  width: 100%;
-  table-layout: fixed;
-  /* border: 1px solid rgb(100, 100, 100); */
-  border: 0px;
-  vertical-align: top;  /* deprecated? */
+	width: 100%;
+	table-layout: fixed;
+	/* border: 1px solid rgb(100, 100, 100); */
+	border: 0px;
+	vertical-align: top;	/* deprecated? */
 }
 td,
 th {
 	border: 0px;
-    text-align: left;
+		text-align: left;
 }
 td {
 	vertical-align: top; 
 }
 .helppix {
-  width: 48%;
+	width: 48%;
 }
 .helpgap {
-  width: 4%;
+	width: 4%;
 }

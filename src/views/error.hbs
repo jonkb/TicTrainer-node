@@ -1,0 +1,32 @@
+
+<section class='main-content'>
+	{{#if anle}}
+		<p>Please <strong>enter a different account</strong></p>
+	{{/if}}
+	{{#if conses}}
+		<p>
+			Either a session is already in progress between these two accounts,
+			or the previous session was not ended properly. 
+			You can wait for the previous session to end and try again,
+			or, if you believe there is no session currently in progress, visit the 
+			Ghost Session Termination page to abort the unfinished session.
+		</p>
+	{{/if}}
+	{{#if e500}}
+		<!--Something horrible and surprising happened on our servers. We are very sorry.<br>-->
+		An error occurred on our servers. We are very sorry.<br>
+	{{/if}}
+	{{#if ife}}
+		<p>Please finish the form.</p>
+	{{/if}}
+	
+	<p><a href='{{retry}}' class='{{retry_cls}}'>Try Again</a></p>
+	
+	{{#if anle}}
+		<p>or <strong>link the account to yours</strong> at Account Management</p>
+		<p><a href='/account/manage' class='bigBtn'>Manage Account</a></p>
+	{{/if}}
+	{{#if conses}}
+		<p><a href='/error/ghses.html' class='bigBtn'>Terminate Ghost Session</a></p>
+	{{/if}}
+</section>

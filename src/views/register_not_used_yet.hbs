@@ -1,0 +1,52 @@
+
+<section class="main-content">
+	<!--FORM-->
+	<form method="POST" name="registerForm" id="registerForm">
+		<fieldset>
+			<legend id="accountFormLegend">Register Account</legend>
+			<div>
+				<label for="uname">Username:</label>
+				<input type="text" name="uname" id="uname" placeholder="username" maxlength="255" required>
+			</div>
+			<div>
+				<label for="email">Email:</label>
+				<input type="text" name="email" id="email" placeholder="your@email.com" maxlength="255" required>
+			</div>
+			<div>
+				<label for="pw">Password:</label>
+				<input type="password" name="pw" id="pw" maxlength="255" required>
+			</div>
+			<div>
+				<label for="pwc">Confirm Password:</label>
+				<input type="password" name="pwc" id="pwc" required>
+			</div>
+			<input type="submit" value="Create Job" class="btn">
+		</fieldset>
+	</form>
+</section>
+<script>
+	$(document).ready(init);
+	
+	function init(){
+		$("#registerForm").submit(checkForm);
+	}
+	function checkForm(e){
+		// Validate form
+		// Check that passwords match
+		pw = $("#pw").val()
+		pwc = $("#pwc").val()
+		if(pw != pwc){
+			alert("Passwords do not match");
+			e.preventDefault(); // Do not submit
+			return;
+		}
+		// Check email format
+		email = $("#email").val();
+		parts = email.split("@");
+		if(parts.length != 2 || parts[1].indexOf(".") == -1){
+			alert("Invalid email");
+			e.preventDefault(); // Do not submit
+			return;
+		}
+	}
+</script>

@@ -1,0 +1,20 @@
+<p><b>Session Details:</b></p>
+<table style="table-layout: auto;">
+	<tbody>
+		<tr><td>Is TSP Session?:</td> <td>{{is_tsp}}</td></tr>
+{{#if is_tsp}}
+		<tr><td>TSP Session Type:</td> <td>{{tsp_stype}}</td></tr>
+		<tr><td>TSP Rewards:</td> <td>{{tsp_rewards}}</td></tr>
+{{else}}
+		<tr><td>Levels Gained:</td> <td>{{ses_levels}}</td></tr>
+		<tr><td>Points Earned:</td> <td>{{ses_points}}</td></tr>
+		<tr><td>Coins Earned:</td> <td>{{ses_coins}}</td></tr>
+{{/if}}
+		<tr><td>Number of Tics:</td> <td>{{tics}}</td></tr>
+		<tr><td>Longest Tic-free Interval:</td> <td>{{longest_tfi}}</td></tr>
+		<tr><td>Number of 10s Tic-Free Intervals:</td> <td>{{tens_tfis}}</td></tr>
+		<tr><td>End Time:</td> <td>{{end_ts}}</td></tr>
+		<tr><td>Session Duration:</td> <td>{{duration}}</td></tr>
+		<tr><td>TicTrainer Version:</td> <td>{{tt_version}}</td></tr>
+	</tbody>
+</table>

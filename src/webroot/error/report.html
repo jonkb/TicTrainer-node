@@ -40,6 +40,11 @@
 							return false;
 					}
 				}
+				var m = document.forms["report"]["message"].value;
+				if(m == ""){
+					alert("Message field is empty");
+					return false;
+				}
 			}
 		</script>
   </body>

@@ -1,0 +1,52 @@
+
+<section class='main-content' id='mainC'>
+	<!--Dropdown with linked accounts to choose from-->
+	<form method="POST" name="newSession" id="newSessionForm" onsubmit="return checkForm();">
+		<input type="hidden" name="id" id="id">
+		<fieldset>
+			<legend>New Session</legend>
+			ID to link to:
+{{#if israter}}
+			<!--This is how TSP sessions start. Raters have no links.-->
+			<input type="text" name="lid" id="lid" placeholder="uXXXX" maxlength="9" required>
+{{else}}
+			<select name="lid" id="lid">
+				{{#each linked_accounts}}
+				<option value="{{this}}">{{this}}</option>
+				{{/each}}
+			</select><br>
+{{/if}}
+			<input type="submit" value="Link" class="btn">
+		</fieldset>
+	</form>
+	<div id="no_links" style="display:none">
+		<p>
+		It appears that your account is not linked to any other accounts.
+		Link to other accounts at Account Management:
+		</p>
+		<a href="/account/manage" id="mngbtn" class="bigBtn">Manage Account</a>
+	</div>
+</section>
+<script src="/scripts/account.js"></script>
+<script>
+	$(document).ready(init);
+	
+	var acc_obj = {{{acc_obj}}};
+	
+	function init(){
+		$("#id").val(acc_obj.id);
+		//fill_dropdown();
+		let lnacc = "{{{linked_accounts}}}";
+		if(lnacc.length == 0){
+			$("#no_links").show();
+			$("#newSessionForm").hide();
+		}
+	}
+	
+	function checkForm(){
+		let lid = validate_id($("#lid").val()); //validate_id is from account.js
+		if(lid == "-")
+			return false;
+		$("#lid").val(lid); // In case it changed to lowercase
+	}
+</script>

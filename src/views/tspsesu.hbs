@@ -1,0 +1,206 @@
+
+<section class='main-content' id='mainC'>
+
+	<div id="top_lbl" class="big_lbl" style="text-align: center;"></div>
+	<div id="tokens_lbl" class="big_lbl"></div>
+	<div id="tokens" style="font-size: 2em; line-height: 0;"></div>
+
+</section>
+<script src="/scripts/req_settings.js"></script>
+<script>
+	// From active TicTrainer-Web tspsesu TODO
+	var token_HTML = "<img src='/media/coin.svg' alt='\u2B50 ' height='72px' style='margin:0.3rem'>";
+	var bell_audio = new Audio('/media/bike-bell.mp3');
+	bell_audio.volume = .25;
+	var token_box = document.getElementById('tokens');
+	var already_left = false;
+	var url = "/tsp/sesu";
+	
+	window.onload = init;
+	window.onbeforeunload = endS;
+	window.onpagehide = endS;
+	
+	var ses_vars = {
+		//stype is one of: "baseline", "verbal", "DRZ", "NCR"
+		"reward_scheme" : "{{{stype}}}", //TODO ???
+		"ms_per_reward" : 10*1000,
+		"ncr_timers" : [],
+		"lag_adjust" : 0
+	};
+	
+	function init(){
+		$(document).ready(() => {
+			req_settings((err, res) => {
+				if(err){
+					cleanup();
+					endS(err);
+					return;
+				}
+				ses_vars.lbl_bgc = res.tsp_lbl_bgc;
+				ses_vars.session_length = res.tsp_len*60*1000;
+				start();
+			});
+		});
+	}
+	
+	function start(){
+		var timesent = Date.now();
+		var xhr = new XMLHttpRequest();
+		var reqBody = 'reqType=start';
+		xhr.open('POST', url, true);
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		xhr.onreadystatechange = function(){
+			if(xhr.readyState == 4 && xhr.status == 200){
+				ses_vars.lag_adjust = Date.now() - timesent;
+				let res_obj = JSON.parse(xhr.responseText);
+				if(res_obj.err){
+					cleanup();
+					already_left = true;
+					window.location.href = "/error/"+res_obj.err;
+					return;
+				}
+				let since_start = res_obj.timesince;
+				ses_vars.reward_scheme = res_obj.stype;
+				var top_lbl = document.getElementById("top_lbl");
+				var tokens_lbl = document.getElementById("tokens_lbl");
+				// IMPROVEMENT_TODO: even on baseline & verbal, check with the server every 
+				//		once in a while to see if the trainer ended the session early.
+				if(ses_vars.reward_scheme == "baseline"){
+					top_lbl.innerHTML = "OK to tic";
+					if(ses_vars.lbl_bgc)
+						top_lbl.style.backgroundColor = "#6f6";
+				}
+				else{
+					top_lbl.innerHTML = "Don't tic";
+					if(ses_vars.lbl_bgc)
+						top_lbl.style.backgroundColor = "#f66";
+				}
+				if(ses_vars.reward_scheme == "DRZ" || ses_vars.reward_scheme == "NCR"){
+					tokens_lbl.innerHTML = "Reward Tokens:";
+				}
+				
+				if(ses_vars.reward_scheme == "NCR"){
+					let rew_times = res_obj.rew_times.split(",");
+					for(t of rew_times){
+						if(!isNaN(parseInt(t))){
+							let t_i = parseInt(t)-since_start-ses_vars.lag_adjust/2;
+							ses_vars.ncr_timers.push(setTimeout(ncr_rew, t_i));
+						}
+					}
+				}
+				else{
+					if(ses_vars.reward_scheme == "DRZ"){
+						ses_vars.timed_check = setTimeout(check_for_tic, 
+							ses_vars.ms_per_reward - ses_vars.lag_adjust - since_start);
+					}
+				}
+				if(ses_vars.session_length != null)
+					ses_vars.end_timer = setTimeout(endS, ses_vars.session_length - since_start);
+			}
+		};
+		xhr.send(reqBody);
+	}
+	
+	function ncr_rew(){
+		//Send reward. Also log in session file?
+		var xhr = new XMLHttpRequest();
+		var reqBody = 'reqType=logrew';
+		xhr.open('POST', url, true);
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		xhr.onreadystatechange = function(){
+			if(xhr.readyState == 4 && xhr.status == 200){
+				let res_obj = JSON.parse(xhr.responseText);
+				if(res_obj.err){
+					cleanup();
+					already_left = true;
+					window.location.href = "/error/"+res_obj.err;
+					return;
+				}
+			}
+		}
+		xhr.send(reqBody);
+		token_box.innerHTML += token_HTML;
+		bell_audio.play();
+	}
+	
+	function check_for_tic(){
+		var timesent = Date.now();
+		var xhr = new XMLHttpRequest();
+		var reqBody = 'reqType=check&msi='+ses_vars.ms_per_reward;
+		xhr.open('POST', url, true);
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		xhr.onreadystatechange = function(){
+			if(xhr.readyState == 4 && xhr.status == 200){
+				let res_obj = JSON.parse(xhr.responseText);
+				if(res_obj.err){
+					cleanup();
+					already_left = true;
+					window.location.href = "/error/"+res_obj.err;
+					return;
+				}
+				if(res_obj.next == "end"){
+					// TODO - test
+					endS();
+					return;
+				}
+				ses_vars.lag_adjust = Date.now() - timesent;
+				if(res_obj.next == "reward"){
+					//TODO - test
+					var to_next = parseInt(res_obj.time);
+					send_reward(to_next);
+					return;
+				}
+				if(res_obj.next == "wait"){
+					var time_left = parseInt(res_obj.time);
+					ses_vars.timed_check = setTimeout(check_for_tic, time_left - ses_vars.lag_adjust);
+					return;
+				}
+			}
+		};
+		xhr.send(reqBody);
+	}
+	
+	function send_reward(to_next){
+		ses_vars.timed_check = setTimeout(check_for_tic, to_next - ses_vars.lag_adjust);
+		//It's already been logged in the session file.
+		token_box.innerHTML += token_HTML;
+		bell_audio.play();
+	}
+	
+	function cleanup(){
+		if(ses_vars.end_timer)
+			clearTimeout(ses_vars.end_timer);
+		if(ses_vars.timed_check)
+			clearTimeout(ses_vars.timed_check);
+		if(ses_vars.ncr_timers.length > 0){
+			for(t of ses_vars.ncr_timers){
+				clearTimeout(t);
+			}
+		}
+		ses_vars = {};
+	}
+	
+	function endS(err_page){
+		if(!already_left){
+			cleanup();
+			var xhr = new XMLHttpRequest();
+			var reqBody = 'reqType=end';
+			xhr.open('POST', url, true);
+			xhr.onreadystatechange = function(){
+				if(xhr.readyState == 4){
+					let res_obj = JSON.parse(xhr.responseText);
+					if(res_obj.err){
+						cleanup();
+						window.location.href = "/error/"+res_obj.err;
+						return;
+					}
+					// If no error, go to session_ended page
+					window.location.href = "session_ended";
+				}
+			}
+			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			xhr.send(reqBody);
+			already_left = true;
+		}
+	}
+</script>

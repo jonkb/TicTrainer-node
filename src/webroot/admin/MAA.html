@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<title>Manage Admin Accounts</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+	</head>
+	<body>
+		<section class="page-header">
+			<div class="header-navbar">
+				<a href="/" class="logo"></a>
+				<h1>Manage Admin Accounts</h1>
+				<div style="clear: both;"></div>
+			</div>
+		</section>
+		<section class="main-content">
+			<fieldset>
+				<legend>Manage Admin Account</legend>
+				<div class="subform">
+					<form method="POST" name="ManageAccount" onsubmit="return load_admin();">
+						<div>
+							<label for="V_id">Admin ID:</label>
+							<input type="text" name="id" id="V_id" placeholder="a0000" required>
+						</div>
+						<div>
+							<label for="V_pw">Password:</label>
+							<input type="password" name="pw" id="V_pw" required>
+						</div>
+						<input type='submit' value='Verify' class="btn">
+					</form>
+				</div>
+				<div class="subform" style="display: none" id="edit_account_subform">
+					<form method="POST" name="EditAccount" onsubmit="return change_pw();">
+						<div>
+							<label for="display_AA_ID">Admin ID:</label>
+							<span id="display_AA_ID"></span>
+						</div>
+						<div>
+							<label for="C_pw">New Password:</label>
+							<input type="password" name="new_pw" id="C_pw" required>
+						</div>
+						<input type='submit' value='Change Password' class="btn">
+					</form>
+				</div>
+			</fieldset>
+			<form method="POST" name="NewAccount" action="/admin/MAA-create_admin" onsubmit="return create_admin();">
+				<fieldset>
+					<legend>Register Admin</legend>
+					<div>
+						<label for="N_pw">New Admin Password:</label>
+						<input type="password" name="pw" id="N_pw" required>
+					</div>
+					<div>
+						<label for="N_pwc">Confirm Password:</label>
+						<input type="password" name="pwc" id="N_pwc" required>
+					</div>
+					<input type='submit' value='Create Account' class="btn">
+				</fieldset>
+			</form>
+		</section>
+		<script>
+			function load_admin(){
+				let id = document.forms["ManageAccount"].elements["id"].value.toLowerCase();
+				let pw = document.forms["ManageAccount"].elements["pw"].value;
+				
+				if(!id || !pw){
+					alert("Please finish the form");
+					return false;
+				}
+				if(id[0] !== "a" || id.length < 2){
+					alert("Invalid Admin ID");
+					return false;
+				}
+				
+				//Ask the server for the user's data and display it
+				let xhr = new XMLHttpRequest();
+				let url = '/admin/MAA-load_admin';
+				let reqBody = 'id='+id+'&pw='+pw;
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(xhr.status == 200){
+							let res_obj = JSON.parse(xhr.responseText);
+							if(res_obj.err){
+								if(res_obj.err == "pce"){
+									alert("Invalid Password");
+								}
+								else if(res_obj.err == "anfe"){
+									alert("Account not found");
+								}
+								else{
+									alert("Error: " + res_obj.err);
+								}
+								return false;
+							}
+							if(res_obj.acc_obj){
+								document.getElementById("display_AA_ID").innerHTML = res_obj.acc_obj.id;
+								document.getElementById("edit_account_subform").style.display = "";
+							}
+							else{
+								alert("Error: Unknown response from server");
+							}
+						}
+					}
+				};
+				xhr.send(reqBody);
+				return false;
+			}
+			function change_pw(){
+				let id = document.forms["ManageAccount"].elements["id"].value.toLowerCase();
+				let pw = document.forms["ManageAccount"].elements["pw"].value;
+				let new_pw = document.forms["EditAccount"].elements["new_pw"].value;
+				
+				if(new_pw.length < 1){
+					alert("Please type a new password")
+					return false;
+				}
+				
+				//Ask the server to update the password
+				let xhr = new XMLHttpRequest();
+				let url = '/admin/MAA-change_pw';
+				let reqBody = 'id='+id+'&pw='+pw+'&new_pw='+new_pw;
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(xhr.status == 200){
+							let res_obj = JSON.parse(xhr.responseText);
+							if(res_obj.err){
+								if(res_obj.err == "pce"){
+									alert("Invalid Password");
+								}
+								else{
+									alert("Error: " + res_obj.err);
+								}
+								return false;
+							}
+							//document.getElementById("success_label").style.display = "";
+							alert("Successfully changed account password \nNote: If you changed your own password, you will need to re-login.");
+						}
+					}
+				};
+				xhr.send(reqBody);
+				return false;
+			}
+			function create_admin(){
+				let pw = document.forms["NewAccount"].elements["pw"].value;
+				let pwc = document.forms["NewAccount"].elements["pwc"].value;
+				if(!pw || !pwc){
+					alert("Please finish the form");
+					return false;
+				}
+				if(pw != pwc){
+					alert("Error: Password does not match Password Conf.");
+					return false;
+				}
+				return true;
+			}
+		</script>
+	</body>
+</html>

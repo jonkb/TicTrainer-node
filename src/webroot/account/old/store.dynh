@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>TicTrainer Store</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+	</head>
+	<body>
+		<section class='page-header'>
+			<div class='header-navbar'>
+				<a href='/' class='logo'></a>
+				<h1>TicTrainer Store</h1>
+				<h2>**[id]** - Coins: **[coins]**</h2>
+				<div style='clear: both;'></div>
+			</div>
+		</section>
+		<section class='main-content' id='mainC'>
+			<div>
+				<div class='store-item'>
+					Bronze Medal<br>
+					<img src="/media/bronze.svg" alt="Bronze" height="150px"><br>
+					Price: <span id="price-b">?</span> coins
+					<form method="POST" name="buyB" onsubmit="return checkForm('b');">
+						<input type="hidden" name="source" value="buy">
+						<input type="hidden" name="item" value="b">
+						<input type="submit" value="Buy" class="btn">
+					</form>
+				</div>
+				<div class='store-item'>
+					Silver Medal<br>
+					<img src="/media/silver.svg" alt="Silver" height="150px"><br>
+					Price: <span id="price-s">?</span> coins
+					<form method="POST" name="buyS" onsubmit="return checkForm('s');">
+						<input type="hidden" name="source" value="buy">
+						<input type="hidden" name="item" value="s">
+						<input type="submit" value="Buy" class="btn">
+					</form>
+				</div>
+				<div class='store-item'>
+					Gold Medal<br>
+					<img src="/media/gold.svg" alt="Gold" height="150px"><br>
+					Price: <span id="price-g">?</span> coins
+					<form method="POST" name="buyG" onsubmit="return checkForm('g');">
+						<input type="hidden" name="source" value="buy">
+						<input type="hidden" name="item" value="g">
+						<input type="submit" value="Buy" class="btn">
+					</form>
+				</div>
+			</div>
+			<fieldset>
+				<legend>Your Items</legend>
+				<div id="heap">
+				</div>
+			</fieldset>
+		</section>
+		<script src="/scripts/store.js"></script>
+		<script>
+			genHeap("**[heap]**");
+			var coins = **[coins]**;
+			
+			//Write the prices
+			document.getElementById("price-b").innerHTML = inventory["b"];
+			document.getElementById("price-s").innerHTML = inventory["s"];
+			document.getElementById("price-g").innerHTML = inventory["g"];
+			
+			function checkForm(item){
+				var price = inventory[item];
+				if(price > coins){
+					alert("You don't have enough coins to buy that");
+					return false;
+				}
+				return true;
+			}
+		</script>
+	</body>
+</html>

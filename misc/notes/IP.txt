@@ -1,0 +1,2 @@
+OLD Tt server: 34.201.43.139
+NEW Tt server: 34.230.5.52

@@ -1,0 +1,134 @@
+
+<section class='main-content' id='mainC'>
+	<div id='tr_btns'>
+		<button type='button' class='bigBtn' id='ticBtn'>Tic Detected</button>
+		<br>
+		<button type='button' class='bigBtn' id='endBtn'>End Session</button>
+	</div>
+	<br>
+	<div id='paying_attention'>
+		<div style="float:right; margin:0;">
+			<div id='here_btn' class='btn' style="white-space:nowrap; margin: 0;">
+				I'm Here
+			</div>
+		</div>
+		<div style="height:100%; overflow:hidden;">
+			<div id='animation' style='height:100%; width:100%; float:right; background-color:#808080;'></div>
+		</div>
+	</div>
+	<!-- TODO: locales -->
+	<h3>Instructions</h3>
+	<ul>
+		<li>Click the “Tic Detected” button whenever you observe a tic.</li>
+		<li>
+			If the trainer presses no button for a whole minute, the session will end. 
+			(The idea is to stop the session if the trainer falls asleep or stops paying attention.) 
+			To prevent the session from timing out if the whole minute goes by without a tic, the 
+			trainer clicks on the “I’m Here” button before the progress bar makes it all the way 
+			to the right edge.
+		</li>
+		<li>
+			If either of you leaves the web page, the session will end early.
+		</li>
+		<li>
+			There is no built-in session end time. We recommend 15-minute sessions unless your 
+			clinician instructs you to do something different.
+		</li>
+	</ul>
+	
+</section>
+<script>
+	var url = "/session/sest";
+	var already_left = false;
+	window.onbeforeunload = endS;
+	window.onpagehide = endS;
+	document.addEventListener('visibilitychange', function(){if(document.hidden){endS();}}, false);
+	
+	document.getElementById('ticBtn').addEventListener('click', tic);
+	document.getElementById('endBtn').addEventListener('click', endS);
+	document.getElementById('here_btn').addEventListener('click', here);
+	var anim_bar = document.getElementById('animation');
+	var tTotal = 60;
+	var tLeft = 60;
+	
+	setInterval(progress, 1000);
+	
+	function set_anim_wid(width){
+		var color = '808080';
+		if(width < 18)
+			color = 'FF0000';
+		anim_bar.setAttribute('style', 'height:100%; float:right; background-color:#'+color+'; width:'+width+'%;');
+	}
+	function progress(){
+		if(tLeft > 0){
+			tLeft -= 1;
+			var width = 100 * tLeft / tTotal;
+			set_anim_wid(width);
+		}
+		else{
+			endS();
+		}
+	}
+	function here(){
+		tLeft = tTotal;
+		set_anim_wid(100);
+	}
+	function tic(){
+		here();
+		var xhr = new XMLHttpRequest();
+		var reqBody = 'reqType=tic';
+		xhr.onreadystatechange = function(){
+			if(xhr.readyState == 4 && xhr.status == 200){//just check that everything is fine
+				let resParts = xhr.responseText.split("=");
+				switch(resParts[0]){
+					case "msg":
+						if(resParts[1] != "good")
+							alert("Unknown response from server");
+						break;
+					case "next":
+						if(resParts[1] == "session_ended")
+							window.location.href = "/session/session_ended";
+						else
+							alert("Unknown response from server");
+						break;
+					case "err":
+						window.location.href = "/error/"+resParts[1];
+						break;
+					default:
+						alert("Unknown response from server");
+				}
+			}
+		};
+		xhr.open('POST', url, true);
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		xhr.send(reqBody);
+	}
+	function endS(){
+		if(!already_left){
+			var xhr = new XMLHttpRequest();
+			var reqBody = 'reqType=end';
+			xhr.onreadystatechange = function(){
+				if(xhr.readyState == 4 && xhr.status == 200){//just check that everything is fine
+					let resParts = xhr.responseText.split("=");
+					switch(resParts[0]){
+						case "next":
+							if(resParts[1] == "session_ended")
+								window.location.href = "/session/session_ended";
+							else
+								alert("Unknown response from server");
+							break;
+						case "err":
+							window.location.href = "/error/"+resParts[1];
+							break;
+						default:
+							alert("Unknown response from server");
+					}
+				}
+			};
+			xhr.open('POST', url, true);
+			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			xhr.send(reqBody);
+			already_left = true;
+		}
+	}
+</script>

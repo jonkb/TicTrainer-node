@@ -1,0 +1,18 @@
+<table style="width:100%; table-layout: auto;">
+	<tbody>
+		<tr>
+			<th style='width:4em;'>Rank</th>
+			<th style='width:6em;'>ID</th>
+			<th>Level</th>
+			<th>Points</th>
+		</tr>
+		{{#each users}}
+		<tr>
+			<!-- {{!-- <td>{{@index + 1}}</td> --}} -->
+			{{#each this}}
+			<td>{{this}}</td>
+			{{/each}}
+		</tr>
+		{{/each}}
+	</tbody>
+</table>

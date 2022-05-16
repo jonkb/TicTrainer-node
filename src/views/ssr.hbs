@@ -1,0 +1,116 @@
+
+<section class='main-content' id='mainC'>
+	<div id="st_bts_con">
+		Choose Session Type:
+		<div id='type_btns'>
+			<div class='bigBtn' id='bsln_btn'>Baseline</div>
+			<div class='bigBtn' id='vrbl_btn'>Verbal</div>
+			<div class='bigBtn' id='drz_btn'>DRZ</div>
+			<div class='bigBtn' id='ncr_btn'>NCR</div>
+		</div>
+	</div>
+	<div id="choose_log_con" style="display: none;">
+		Session Logs: <select name="ses_file" id="ses_option">
+			<!--Filled in by script-->
+		</select>
+		<div class='bigBtn' id='ncr_go'>START</div>
+	</div>
+	<script src="/scripts/req_logs.js"></script>
+</section>
+<script>
+	var already_left = false;
+	var submitted = false;
+	var url = "/tsp/sst";
+
+	window.onbeforeunload = leave;
+	window.onpagehide = leave;
+
+	// IMPROVEMENT_TODO: could switch out with jquery for simplicity
+	document.getElementById('bsln_btn').addEventListener('click', function(){start("baseline");});
+	document.getElementById('vrbl_btn').addEventListener('click', function(){start("verbal");});
+	document.getElementById('drz_btn').addEventListener('click', function(){start("DRZ");});
+	document.getElementById('ncr_btn').addEventListener('click', function(){start("NCR");});
+
+	function ncr_go(){
+		if(!(already_left || submitted)){
+			//request and parse the specified log file, making an array of reward times.
+			var logfile = document.getElementById('ses_option').value;
+			if(logfile == "-")
+				return false;
+			
+			ses_rew_times(logfile, (err, rew_times) => {
+				if(err){
+					alert(err);
+					return false;
+				}
+				//send a request to start the session, together with the array of reward times.
+				var reqBody = {reqType: "start", stype: "NCR", rew_times: rew_times.join(",")};
+				form_post(url, reqBody);
+			});
+			submitted = true;
+		}
+	}
+	
+	function start(stype){
+		if(stype == "NCR"){
+			req_ses_list(null, true, function(res){
+				if(res.err){
+					alert("Error: "+res.err);
+					return;
+				}
+				//text to fill ses_option
+				var optionHTML = "<option value='-'>Pick one</option>\n";
+				for(var i=0; i<res.length; i++){
+					let filename = res[i].filename;
+					optionHTML += "<option value='"+filename+"'>"+filename+"</option>";
+					//optionHTML += "<option value='./session/archive/"+res[i]+"'>"+res[i]+"</option>";
+				}
+				document.getElementById('ses_option').innerHTML = optionHTML;
+				document.getElementById('ncr_go').addEventListener('click', ncr_go);
+				//Show the select log dialog and hide the other buttons
+				document.getElementById("choose_log_con").style.display = "block";
+				document.getElementById("st_bts_con").style.display = "none";
+			});
+		}
+		else if(!(already_left || submitted)){
+			var reqBody = {reqType: "start", stype: stype};
+			form_post(url, reqBody);
+			submitted = true;
+		}
+	}
+	
+	function leave(){
+		if(!(submitted || already_left)){
+			var xhr = new XMLHttpRequest();
+			var reqBody = 'reqType=leave';
+			xhr.open('POST', url, true);
+			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			xhr.send(reqBody);
+			already_left = true;
+		}
+	}
+	
+	function form_post(path, parameters) {
+		// https://stackoverflow.com/questions/133925/javascript-post-request-like-a-form-submit
+		// Post to the provided URL with the specified parameters.
+		var form = $('<form></form>');
+
+		form.attr("method", "post");
+		form.attr("action", path);
+
+		$.each(parameters, function(key, value) {
+			var field = $('<input></input>');
+
+			field.attr("type", "hidden");
+			field.attr("name", key);
+			field.attr("value", value);
+
+			form.append(field);
+		});
+
+		// The form needs to be a part of the document in
+		// order for us to be able to submit it.
+		$(document.body).append(form);
+		form.submit();
+	}
+</script>

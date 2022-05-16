@@ -1,0 +1,35 @@
+##Notes
+* The old job that ran every 5 minutes was checking if the IP address ever changed.
+In practice, the IP changed once (As shown in /tmp/freedns_tictrainer_mooo_com.log) over the several years that it was running. So, I'll set it up to check twice a day this time.
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html Says when the public IP changes
+* I'm not using certbot-auto anymore since it's depricated. See cert_renewal_info.txt
+* See https://crontab.guru/ for a nifty tool
+
+##Current cron jobs
+$ crontab -l
+# Update the IP address with freedns in case it changed
+# At 02:21:17 and 14:21:17 every day
+21 2,14 * * * sleep 17; curl -s http://sync.afraid.org/u/xRVpcm1UCjJvfgRsjJsTHT37/ >> /tmp/freedns_tictrainer_mooo_com.log 2>/dev/null
+
+$ sudo crontab -l
+# Renew certificate. See https://certbot.eff.org/#pip-other and Tt/misc/notes/cert_renewal_info
+# 3rd day of the month, at 04:32, every other month
+09 04 3 1,3,5,7,9,11 * /home/ec2-user/util_scripts/renew_cert.sh
+
+
+
+
+##crontab jobs on the old server:
+
+
+$ crontab -l
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+3,8,13,18,23,28,33,38,43,48,53,58 * * * * sleep 22 ; curl -s http://sync.afraid.org/u/xRVpcm1UCjJvfgRsjJsTHT37/ >> /tmp/freedns_tictrainer_mooo_com.log 2>/dev/null
+
+
+$ sudo crontab -l
+#Renew certificate . See https://certbot.eff.org/#pip-other
+#3rd day of the month, at 04:32, every other month
+32 04 3 1,3,5,7,9,11 * /home/ec2-user/util_scripts/renew_cert.sh
+#OLD: 32 04 3 1,3,5,7,9,11 * /etc/letsencrypt/certbot-auto --force-renewal -d tictrainer.com -d www.tictrainer.com --standalone certonly --preferred-challenges http
+

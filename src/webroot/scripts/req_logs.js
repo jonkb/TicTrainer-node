@@ -1,61 +1,146 @@
 //Functions related to requesting log files.
 
-//Load a list of session log files. Needs admin authentication.
-function req_ses_list(aid, apw, uid, callback){
+function req_ses_list(uid, justDRZ, callback){
+	//Load a list of session log files. Needs active admin session.
 	var xhr = new XMLHttpRequest();
-	var url = '/admin/viewLogs.dynh';
-	var reqBody = 'admin_id='+aid+'&admin_pw='+apw+'&source=reqlist&uid='+uid;
-	xhr.open('POST', url, true);
-	xhr.setRequestHeader('Content-type', 'text/plain');
+	var url = "/gj/archived_logs";
+	if(uid && uid.length > 1){
+		url += "?uid="+uid;
+		if(justDRZ)
+			url += "&DRZ=true";
+	}
+	else if(justDRZ){
+		url += "?DRZ=true";
+	}
+	xhr.open('GET', url, true);
 	xhr.onreadystatechange = function(){
 		if(xhr.readyState == 4){
-			var res = xhr.responseText;
 			if(xhr.status == 200){
-				var loglist = JSON.parse(res);
-				callback(xhr.status, loglist);
-			}
-			else{
-				callback(xhr.status, res);
+				var res = JSON.parse(xhr.responseText);
+				callback(res);
 			}
 		}
 	};
-	xhr.send(reqBody);
+	xhr.send();
 }
 
-function ttd_to_HTML(data){
-	/**Parse plain text from a .ttd file to a table.
-		.ttd files are organized like this: <~;~>\n<~;~;~>
-		See the leaderboard scripts.
+function ses_rew_times(filename, callback){
+	/**
+	*	Request the full text of the given file and return a list of reward times. Used by NCR.
+	*	Needs active admin session
 	*/
-	//Or I could say: if the first line is "Started at ..."
-	if(data.indexOf("<") < 0 && data.indexOf(">") < 0){
-		//This is probably .txt
-		return data.replace(/\n/g,"<br>");
-	}
-	var html = "\n<table style='table-layout: auto;'>\n";
-	for(var i = 0; i< data.length; i++){
-		var character = data[i];
-		switch(character){
-			case "<":
-				html += "<tr>\n<td>";
-			break;
-			case ">":
-				html += "</td>\n</tr>\n";
-			break;
-			case ";":
-				html += "</td>\n<td>";
-			break;
-			default:
-				html += character;
+	var xhr = new XMLHttpRequest();
+	var url = "/admin/VL-log";
+	if(filename.length > 2)
+		url += "?file="+filename;
+	else
+		callback("Error: provide a filename");
+	xhr.open('GET', url, true);
+	xhr.onreadystatechange = function(){
+		if(xhr.readyState == 4){
+			if(xhr.status == 200){
+				var res = xhr.responseText;
+				var rew_times = [];
+				var sliced = res.slice(res.indexOf("session started|"));
+				var stime = new Date(sliced.slice(sliced.indexOf("|")+1, sliced.indexOf("\n")));
+				var entries = res.split("\n");
+				for(var i = 0; i<entries.length; i++){
+					var entryParts = entries[i].split("|");
+					if(entryParts[0] == "reward dispensed"){
+						var rew_time = new Date(entryParts[1]);
+						rew_times.push(rew_time - stime);//# of ms
+					}
+				}
+				callback(null, rew_times);
+			}
+		}
+	};
+	xhr.send();
+}
+
+function txt_to_HTML(data){
+	/**
+	Convert the line breaks in a txt file to <br>
+	*/
+	return data.replace(/\n/g,"<br>");
+}
+
+function csv_to_array(data){
+	/**
+	Convert the text of a csv file to an array.
+	Assumes format:
+		"abc","def","gh""quote""i","jkl"
+		"mno","pqr" ...
+	*/
+	// Uses a smidge of extra memory, but whatever.
+	let subdata = data;
+	let entry = "";
+	let i_entry_start, i_entry_end, i_newline;
+	let rows = [];
+	let row = [];
+	while(subdata.length > 0){
+		i_entry_start = subdata.indexOf("\"")+1;
+		// This next loop searches for the end of the entry
+		i_entry_end = i_entry_start;
+		while(true){
+			console.log(85, i_entry_end);
+			// Distance to next " after the current index
+			i_entry_end = subdata.indexOf("\"", i_entry_end);
+			if(i_entry_end == -1){
+				i_entry_end = subdata.length-1;
+				break;
+			}
+			if(subdata[i_entry_end+1] == "\""){
+				i_entry_end += 2; // Skip "" and keep looking
+			}
+			else{
+				// Found the end of the entry
+				break;
+			}
+			// TODO: Check that this can't infinite loop.
+		}
+		entry = subdata.slice(i_entry_start, i_entry_end);
+		entry = entry.replace(/""/g, "\""); // Unescape quotes
+		row.push(entry);
+		subdata = subdata.slice(i_entry_end+1);
+		// At this point, the next " will be the start of the next entry
+		i_nextentry = subdata.indexOf("\"");
+		if(i_nextentry == -1){
+			// EOF
+			rows.push(row);
 			break;
 		}
-	}//For each character
+		i_newline = subdata.indexOf("\n");
+		if(i_newline < i_nextentry && i_newline > -1){
+			// End of row
+			rows.push(row);
+			row = [];
+		}
+	}
+	return rows;
+}
+
+function csv_to_HTML(data){
+	/** USED by VL
+	Parse plain text from a .csv file to a table.
+		See the leaderboard scripts.
+	*/
+	
+	let html = "\n<table style='table-layout: auto;'>\n";
+	rows = csv_to_array(data);
+	for(row of rows){
+		html += "<tr>";
+		for(entry of row){
+			html += "<td>" + entry + "</td>";
+		}
+		html += "</tr>\n";
+	}
 	html += "</table>\n";
 	return html;
 }
 
 function ttsd_to_HTML(data){
-	/**
+	/** OLD -- I'm using handlebars for this now. I THINK.
 	Parse plain text from a .ttsd file to a table.
 		.ttsd files are organized like this: 
 			~|~
@@ -86,7 +171,7 @@ function ttsd_to_HTML(data){
 }
 
 function report_to_HTML(type, report){
-	/**
+	/** OLD -- I'm using handlebars for this now
 	*	Turn a report object into HTML to be injected
 	*		example report object: 
 	*		{
@@ -116,7 +201,7 @@ function report_to_HTML(type, report){
 	*			???: ???
 	*		}
 	*/
-	//TODO:Personal best not yet implemented server-side, so it's not included yet
+	// Personal best was not yet implemented server-side when I made this
 	var html = "<b>User status after session:</b>\n<table style='table-layout: auto;'>\n";
 	html += "<tr><td>Level:</td> <td>"+report.endl+"</td></tr>\n";
 	html += "<tr><td>Points:</td> <td>"+report.endp+"</td></tr>\n";

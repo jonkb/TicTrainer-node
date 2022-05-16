@@ -1,0 +1,46 @@
+11 May 2022
+certbot-auto is depricated, so use 
+$ sudo certbot certonly --force-renewal -d tictrainer.com -d www.tictrainer.com --standalone --cert-name tictrainer.com --preferred-challenges http
+
+27 May 2020
+I tried for a long time to get the --webroot option to work so it would update while running the server, but it keeps coming back with an error, and I didn't find any cases online of people with the same issue. I think I'm basically ready to give up on --webroot and stick with standalone. There's a good way to do it though, with --pre-hook and --post-hook, so it's all in one command. Though for that to work, I need runTT.sh working.
+This is the command I used last:
+sudo /usr/local/bin/certbot-auto certonly --force-renewal -d tictrainer.com -d www.tictrainer.com --standalone --cert-name tictrainer.com --preferred-challenges http
+That's because I also reinstalled certbot, and the path is different...
+USE THIS SCRIPT: ~/util_scripts/renew_cert.sh
+I tested it and it works! It renews the cert for you.
+
+22 Oct 2019 - I edited the sudo cron to run the line we know works every other month.
+/etc/letsencrypt/certbot-auto --force-renewal -d tictrainer.com -d www.tictrainer.com --standalone certonly --preferred-challenges http
+
+
+The preferred way to update the certificates is to run 
+  sudo /etc/letsencrypt/certbot-auto renew
+on a scheduled basis e.g. cron 
+
+But that command needs to connect via port 443 (HTTPS), so it
+doesn't work while TicTrainer.com is running (on that same port).
+
+There's probably a good solution but I don't know what it is.
+Perhaps running the certificate renewal on a different computer, then
+scp'ing the files to this server?
+
+The certificates expire every 90 days or so, so this will not be
+a one-time fix.
+
+/kjb
+08 Dec 2017
+
+
+** examine --help output for pre-hook and post-hook options **
+http://letsencrypt.readthedocs.io/en/latest/using.html#renewal
+/kjb
+08 Mar 2018
+
+
+OK, this worked today:
+* stop TicTrainer node.js server
+* sudo /etc/letsencrypt/certbot-auto --force-renewal -d tictrainer.com -d www.tictrainer.com --standalone certonly --preferred-challenges http
+/kjb
+Probably it can be automated?
+09 Mar 2018

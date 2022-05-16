@@ -3,8 +3,9 @@
 	<head>
 		<title>TicTrainer Leaderboard</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
-    <link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/bgStyle.css">
+		<link rel="stylesheet" type="text/css" href="/stylesheets/normalize.css">
+		<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
 		<style>
 			th {
 				text-align: left;
@@ -12,71 +13,53 @@
 		</style>
 	</head>
 	<body>
-    <section class="page-header">
+		<section class="page-header">
 			<div class="header-navbar">
 				<a href="/" class="logo"></a>
 				<h1>TicTrainer Leaderboard</h1>
 				<div style="clear: both;"></div>
 			</div>
-    </section>
-    <section class="main-content">
+		</section>
+		<section class="main-content">
+			<div id="board">
+			</div>
 			<button type="button" class="btn" onclick="refresh()">Refresh</button>
-			<table id="board" style="width:100%;">
-				<tr>
-					<th style='width:4em;'>Rank</th>
-					<th style='width:6em;'>ID</th>
-					<th>Level</th>
-					<th>Points</th>
-				</tr>
-			</table>
-    </section>
+		</section>
 		<script src="/scripts/math-ext.js"></script>
+		<script src="/templates/precompiled.js"></script>
 		<script>
-			var url = '/account/leaderboard/leaderboard.gj';
-			var lastLoaded = 0;
-			load();
-			function load(){
-				document.getElementById("board").innerHTML = "<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>"; //Show Loading on reload
-				var xhr = new XMLHttpRequest();
-				xhr.onreadystatechange = function(){
-					if(xhr.readyState == 4){
-						if(xhr.status == 200){
-							lastLoaded = new Date().getTime();
-							
-							var res = JSON.parse(xhr.responseText);
-							//sort by points, then by level
-							var res_sort = sort2d(sort2d(res, 2), 1);//math-ext.sort2d
-							var table = "<tr>"+	
-									"<th style='width:4em;'>Rank</th>"+
-									"<th style='width:6em;'>ID</th>"+
-									"<th>Level</th>"+
-									"<th>Points</th>"+
-								"</tr>";
-							for(var i = 0; i < res_sort.length; i++){
-								table += "<tr>";
-								table += "<td>"+(i+1)+"</td>";//rank
-								table += "<td>"+res_sort[i][0]+"</td>";//id
-								table += "<td>"+res_sort[i][1]+"</td>";//level
-								table += "<td>"+res_sort[i][2]+"</td>";//points
-								table += "</tr>";
-							}
-							document.getElementById("board").innerHTML = table;
-						}
-						else{//For an Error Page
-							document.open();
-							document.write(xhr.responseText);
-							document.close();
-						}//ERROR
-					}
-				}
-				xhr.open('GET', url, true);
-				xhr.send();
+const url = '/gj/leaderboard';
+const t_minrefresh = 2000;
+var lastLoaded = 0;
+load();
+function load(){
+	document.getElementById("board").innerHTML = "<p style='text-align:center;'><img src='/media/loading.gif' alt='Loading' width='128' height='128' align='middle'></p>"; //Show Loading on reload
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function(){
+		if(xhr.readyState == 4 && xhr.status == 200){
+			lastLoaded = new Date().getTime();
+			var res = JSON.parse(xhr.responseText);
+			if(res.err){
+				alert(res.err);
+				return;
 			}
-			function refresh(){
-				var time = new Date().getTime();
-				if(time - lastLoaded > 1000)
-					load();
-			}
+			let hbs_data = {
+				users: res
+				// Maybe include the user's own ID to highlight that line with an #if
+			};
+			let template_board = Handlebars.templates["leaderboard.hbs"];
+			let board_html = template_board(hbs_data);
+			document.getElementById("board").innerHTML = board_html;
+		}
+	}
+	xhr.open('GET', url, true);
+	xhr.send();
+}
+function refresh(){
+	var time = new Date().getTime();
+	if(time - lastLoaded > t_minrefresh)
+		load();
+}
 		</script>
 	</body>
 </html>
