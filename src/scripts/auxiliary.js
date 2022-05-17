@@ -313,6 +313,8 @@ function ln_add(link_data){
 	/**
 	*	Add an entry to lnusers
 	*/
+	// Add a timestamp
+	link_data.ts = Date.now();
 	lnusers.add(link_data.uid);
 	lndata[link_data.uid] = link_data;
 	db_log("Current lnusers list: "+Array.from(lnusers).join(", "), 3);

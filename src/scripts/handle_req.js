@@ -759,8 +759,7 @@ function new_tspses_get(req, res){
 		// Add uid to lnusers
 		let link_data = {
 			uid: req.session.acc_obj.id,
-			tid: "a",
-			ts: Date.now()
+			tid: "a"
 		};
 		aux.ln_add(link_data);
 		res.redirect("llu");
@@ -829,8 +828,7 @@ function new_session(req, res){
 					//Now add uid to lnusers
 					let link_data = {
 						uid: uid,
-						tid: tid,
-						ts: Date.now()
+						tid: tid
 					};
 					aux.ln_add(link_data);
 					// Save lid in the session & go to link loading.

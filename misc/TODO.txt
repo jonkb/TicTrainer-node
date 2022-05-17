@@ -15,8 +15,16 @@ FUNCTIONAL:
   - OR, add a place in the admin tab where you can write a reply to a comment and send it from something@tictrainer.com.
   - OR, mailto: link
   - Also probably have it send an email to KJB when a real comment comes in. (or weekly report so he's not swamped, though that's not likely right now)
+- (TTW) Maybe have user page check every second or two, just to see if the trainer/rater ended the session.
+- Maybe: Stop rater from making nt session with user w/out NTID
+- Fix rare bug that could happen with a session that started and immediately terminated. bug: check if session already ended immediately after starting (careful with starting sesL). (Is this still an issue?)
+- Check: did I successfully make IDs non-case-sensitive everywhere?
+- bug: why couldn't I end the session from t0's page?
+
 
 VISUAL:
+- (TSP) combine 10 reward tokens into a stack or a bag.
+- Maybe add links to the admin pages back to the main interface.dynh to make navigation easier for the admins.
 -(4,1) Add links to tictrainer.com from places like KJB website & tics-r.us
 -(4,1) Make tweaks to homepage
 -(4,2) Switch the session log option to a series of boxes: first type trainer ID, then type user ID, then it loads the dates or names of the files which have that combo of trainer and user. This should avoid the crazy list problem.
