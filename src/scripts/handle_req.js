@@ -1032,10 +1032,13 @@ function sst(req, res){
 					ret_error(res, "fe");
 			}
 			else{//file exists
-				//Append "session started at"+time
+				// Append "session started at"+time
 				var sEntry = "";
-				if(id[0] == "a")
+				if(id[0] == "a"){
+					// Add info specific to TSP sessions
 					sEntry = "Research ID|?|"+req.body.stype+"\n";
+					sEntry += "Rater ID|"+req.session.acc_obj.id+"\n";
+				}
 				// Also add a line for communicating ncr reward times if it's NCR mode
 				if(req.body.stype == "NCR" && typeof(req.body.rew_times) == "string"){
 					sEntry += "ncr reward times|" + req.body.rew_times+"\n";

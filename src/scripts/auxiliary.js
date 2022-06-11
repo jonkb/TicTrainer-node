@@ -827,6 +827,10 @@ function gen_report_obj(log_txt){
 				report_obj.is_tsp = true;
 				report_obj.tsp_stype = line_parts[2];
 			break;
+			case "Rater ID":
+				// For now, do nothing. I think modifying the report_obj calls for
+				//		modifying admin/VL and maybe the database.
+			break;
 			case "reward dispensed":
 				report_obj.tsp_rewards++;
 				if(!report_obj.ended)
