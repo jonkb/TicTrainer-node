@@ -15,4 +15,4 @@ fi
 
 # cd and start the server
 cd /home/ec2-user/TicTrainer-node/src
-nohup node server.js &> logs/log.txt &
+nohup node server.js &>> logs/log.txt &
