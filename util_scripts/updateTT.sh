@@ -21,16 +21,20 @@ read -p "Press any key to continue (or Ctrl+C to cancel)"
 
 # Make copies of old logs & settings
 cd /home/ec2-user/TicTrainer-node/src
-cp -r logs old_logs
-cp settings.json old_settings.json
+# cp -r logs old_logs
+# cp settings.json old_settings.json
+git stash
 # Update from Github
+# Load the new version, moving over /logs/ and settings.json, which will be replaced by stash pop
 git fetch
 git pull
-# Revert to old logs & settings
 mv logs pulled_logs
-mv old_logs logs
 mv settings.json pulled_settings.json
-mv old_settings settings.json
+# Revert to old logs & settings
+# mv old_logs logs
+# mv old_settings.json settings.json
+git stash pop
+
 # Prompt for edits to settings.json, based on the pulled settings
 vi -p settings.json pulled_settings.json
 
