@@ -5,6 +5,7 @@ IN PROGRESS:
 - Translation
 
 FUNCTIONAL:
+- MAKE GHOST SESSION TERMINATION AUTOMATIC & BETTER
 -(3,2) Fix the log file report so it counts 10s intervals correctly
 -(3,1) Maybe make the ghost session thing automatic.
 -(3,2) Maybe add a flag at the top of log files indicating the IDs of the user & trainer and the user's RS

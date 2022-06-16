@@ -903,10 +903,10 @@ ${sql.esc(data.report_obj.tics)}, ${sql.esc(data.report_obj.longest_tfi)},
 ${sql.esc(data.report_obj.tens_tfis)}, ${sql.esc(data.report_obj.is_tsp)},
 ${sql.esc(data.report_obj.tsp_stype)}, ${sql.esc(data.report_obj.tsp_rewards)},
 ${sql.esc(data.report_obj.tt_version)})`;
-	console.log(706, insert_query)
+	db_log("706 " + insert_query);
 	sql.pool.query(insert_query, (err, result) => {
 		if(err){
-			console.log(708, err);
+			db_log("708 " + err);
 			callback(err);
 			return;
 		}
@@ -927,7 +927,7 @@ SET best_tfi = GREATEST(best_tfi, ${tfi})
 WHERE ID = ${idN}`;
 	sql.pool.query(update_query, (err, result) => {
 		if(err){
-			console.log(735, err);
+			db_log("930 " + err);
 			callback(err);
 			return;
 		}
@@ -962,7 +962,7 @@ function archive_session(sesFile, callback){
 		
 		let sesFile2 = sesFile.slice(sesFile.lastIndexOf("/")+1);
 		let ids = sesFile2.split("_")[0].split("-");
-		console.log(730, ids);
+		db_log("965 " + ids);
 		sesFile2 = sesFile2.slice(0, sesFile2.indexOf(".ttsd"));
 		sesFile2 += "_" + end_tsf;
 		if(report_obj.is_tsp)
@@ -1078,7 +1078,7 @@ function list_top_users(N=100, callback){
 	*	Each array entry: [rank, uid, level, points]
 	*/
 	
-	console.log(1002, N);
+	db_log("1081 " + N);
 	
 	// Make sure N is an integer
 	N = Number.isInteger(N) ? N : 100;

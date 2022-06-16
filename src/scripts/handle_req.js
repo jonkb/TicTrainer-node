@@ -913,7 +913,7 @@ function llt(req, res){
 		uid: lid,
 		tid: id
 	};
-	console.log(659, link_data);
+	// console.log(659, link_data);
 	if(aux.ln_has(link_data)){
 		aux.ln_delete(link_data);
 		var sesFileName = aux.logroot + "session/ongoing/"+ id + "-" + lid + ".ttsd";
@@ -1325,7 +1325,7 @@ function sesu(req, res){
 			//Return an error if the session file doesn't exist.
 			fs.access(sesFile, function(err){
 				if(err){
-					console.log(854);
+					aux.db_log("1328 " + err);
 					res.json({err: "fe"});
 					return;
 				}
@@ -1333,7 +1333,7 @@ function sesu(req, res){
 				var lpcEntry = "\nuser l,p,c|" +newlpc+ "|" +aux.time();
 				fs.appendFile(sesFile, lpcEntry, function(err){
 					if(err){
-						console.log(861);
+						aux.db_log("1336 " + err);
 						res.json({err: "fe"});
 						return;
 					}
@@ -1348,7 +1348,7 @@ function sesu(req, res){
 					}
 					aux.edit_account(data, (err, acc_obj) => {
 						if(err){
-							console.log(875, err); // This is happening
+							aux.db_log("1351 " + err); // This is happening
 							res.json({err: err});
 							return;
 						}
@@ -1404,7 +1404,7 @@ function tspsesu(req, res){
 						res.json({err: "fe"});
 						return;
 					}
-					console.log(1139);
+					aux.db_log("1407 ");
 					res.json(res_obj);
 				});
 			});
@@ -1535,7 +1535,7 @@ function session_ended_get(req, res){
 	const lang = req.acceptsLanguages(...aux.languages);
 	aux.get_locale_data(lang, (err, locale_data) => {
 		if(err){
-			console.log(955);
+			aux.db_log("1538");
 			ret_error(res, "se");
 			return;
 		}
