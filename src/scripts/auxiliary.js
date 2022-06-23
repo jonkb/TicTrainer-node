@@ -774,7 +774,8 @@ function gen_report_obj(log_txt){
 	// Loop through each line in the file
 	let lines = log_txt.split("\n");
 	for(let line of lines){
-		if(line.trim() == ""){
+		line = line.trim()
+		if(line == ""){
 			continue;//Ignore blank lines
 		}
 		line_parts = line.split("|");
@@ -903,10 +904,10 @@ ${sql.esc(data.report_obj.tics)}, ${sql.esc(data.report_obj.longest_tfi)},
 ${sql.esc(data.report_obj.tens_tfis)}, ${sql.esc(data.report_obj.is_tsp)},
 ${sql.esc(data.report_obj.tsp_stype)}, ${sql.esc(data.report_obj.tsp_rewards)},
 ${sql.esc(data.report_obj.tt_version)})`;
-	db_log("706 " + insert_query);
+	// db_log("906 " + insert_query);
 	sql.pool.query(insert_query, (err, result) => {
 		if(err){
-			db_log("708 " + err);
+			db_log("909 " + err);
 			callback(err);
 			return;
 		}
@@ -961,7 +962,7 @@ function archive_session(sesFile, callback){
 		//let end_tsf = end_ts.replace(/-/g, "").replace(/:/g,"").replace("T", "-").split(".")[0];
 		
 		let sesFile2 = sesFile.slice(sesFile.lastIndexOf("/")+1);
-		let ids = sesFile2.split("_")[0].split("-");
+		let ids = sesFile2.split(".")[0].split("_")[0].split("-");
 		db_log("965 " + ids);
 		sesFile2 = sesFile2.slice(0, sesFile2.indexOf(".ttsd"));
 		sesFile2 += "_" + end_tsf;
