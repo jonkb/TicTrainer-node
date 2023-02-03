@@ -8,7 +8,7 @@ Also included now is TicTimer Web, which runs on the same server and is accessed
 TicTimer is a program designed to automate record keeping and reward delivery during tic suppression research. 
 This web-based version of TicTimer allows for sessions to be performed remotely and 
 without the bulky token dispenser hardware that was used with [the previous version of TicTimer](https://github.com/jonkb/TicTimer). 
-Additional information to be added here when published.
+See description [here](https://doi.org/10.12688/f1000research.26347.2). 
 
 ## Download and Installation
 1. Download this git repository to the server
